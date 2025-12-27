@@ -22,8 +22,8 @@
   <div id="app" class="w-full h-full overflow-auto"></div>
 
   <script>
-    // --- ENLACE DE GOOGLE SHEETS PARA POTENCIAS ---
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPDzRcLj36k8prcdcBgI_JEKwjkpKJFDzzcRfWRZR0JJqAZhKsW4PyZXfE1lzlthoY/exec";
+    // --- ENLACE ACTUALIZADO POR GEMINI ---
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbye6B-bGVIFCs5UQWoa8KcxO9NEcQZ6zt2wxibB0Slk8aDIFOjPNqQ2n77c1MiVODeM/exec";
 
     const defaultConfig = {
       background_color: "#faf5ff",
@@ -43,11 +43,7 @@
     let exercisesSolved = 0;
 
     function generateExercise() {
-      const exerciseTypes = [
-        'simple_power', 'multiply_same_base', 'divide_same_base', 
-        'power_of_power', 'calculate_result', 'zero_exponent', 'negative_to_positive'
-      ];
-      
+      const exerciseTypes = ['simple_power', 'multiply_same_base', 'divide_same_base', 'power_of_power', 'calculate_result', 'zero_exponent', 'negative_to_positive'];
       const type = exerciseTypes[Math.floor(Math.random() * exerciseTypes.length)];
       let exercise, answer, explanation;
       
@@ -84,11 +80,11 @@
           explanation = `Potencia de potencia: se multiplican`;
           break;
         case 'calculate_result':
-          const base5 = Math.floor(Math.random() * 3) + 2;
-          const exp5a = Math.floor(Math.random() * 3) + 1;
-          const exp5b = Math.floor(Math.random() * 3) + 1;
-          answer = Math.pow(base5, exp5a) * Math.pow(base5, exp5b);
-          exercise = `${base5}<span class="sup">${exp5a}</span> · ${base5}<span class="sup">${exp5b}</span> = ?`;
+          const b5 = Math.floor(Math.random() * 3) + 2;
+          const e5a = Math.floor(Math.random() * 3) + 1;
+          const e5b = Math.floor(Math.random() * 3) + 1;
+          answer = Math.pow(b5, e5a) * Math.pow(b5, e5b);
+          exercise = `${b5}<span class="sup">${e5a}</span> · ${b5}<span class="sup">${e5b}</span> = ?`;
           explanation = `Calcula el resultado final`;
           break;
         case 'zero_exponent':
@@ -97,11 +93,11 @@
           explanation = `Todo número elevado a 0 es igual a 1`;
           break;
         case 'negative_to_positive':
-          const base7 = Math.floor(Math.random() * 4) + 2;
-          const exp7a = -(Math.floor(Math.random() * 3) + 1);
-          const exp7b = Math.floor(Math.random() * 4) + 3;
-          answer = exp7a + exp7b;
-          exercise = `${base7}<span class="sup">${exp7a}</span> · ${base7}<span class="sup">${exp7b}</span> = ${base7}<span class="sup">x</span><br>x = ?`;
+          const b7 = Math.floor(Math.random() * 4) + 2;
+          const e7a = -(Math.floor(Math.random() * 3) + 1);
+          const e7b = Math.floor(Math.random() * 4) + 3;
+          answer = e7a + e7b;
+          exercise = `${b7}<span class="sup">${e7a}</span> · ${b7}<span class="sup">${e7b}</span> = ${b7}<span class="sup">x</span><br>x = ?`;
           explanation = `Exponentes negativos: también se suman`;
           break;
       }
@@ -119,8 +115,8 @@
                 <p class="text-gray-600">${defaultConfig.welcome_message}</p>
               </div>
               <form id="registration-form" class="space-y-4">
-                <input type="text" id="student-name" required class="w-full px-4 py-3 border-2 rounded-lg" placeholder="Nombre completo">
-                <input type="text" id="student-code" required class="w-full px-4 py-3 border-2 rounded-lg" placeholder="Código de Estudiante">
+                <input type="text" id="student-name" required class="w-full px-4 py-3 border-2 rounded-lg outline-none focus:border-purple-500" placeholder="Nombre completo">
+                <input type="text" id="student-code" required class="w-full px-4 py-3 border-2 rounded-lg outline-none focus:border-purple-500" placeholder="Código de Estudiante">
                 <button type="submit" class="w-full py-4 rounded-lg font-bold text-white bg-purple-600 hover:scale-105 transition-transform">
                   ${defaultConfig.start_button_text}
                 </button>
@@ -137,36 +133,25 @@
           <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6">
               <div class="bg-white rounded-xl shadow px-6 py-3 border-l-4 border-purple-500">
-                <p class="text-xs text-gray-500 uppercase">Estudiante</p>
+                <p class="text-xs text-gray-500 uppercase font-bold">Estudiante</p>
                 <p class="font-bold text-purple-700">${currentStudent.name}</p>
               </div>
-              <div class="flex gap-4">
-                <div class="bg-white rounded-xl shadow px-6 py-3 text-center">
-                  <p class="text-xs text-gray-500 uppercase">Puntos</p>
-                  <p class="font-bold text-xl text-green-600">${score}</p>
-                </div>
+              <div class="bg-white rounded-xl shadow px-6 py-3 text-center">
+                <p class="text-xs text-gray-500 uppercase font-bold">Puntos</p>
+                <p class="font-bold text-xl text-green-600">${score}</p>
               </div>
             </div>
-            
             <div class="exercise-card rounded-2xl shadow-xl p-8 mb-6 fade-in bg-white text-center">
-              <span class="inline-block px-4 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold mb-4">
-                ${currentExercise.explanation}
-              </span>
-              <div class="mb-8 p-8 rounded-xl bg-purple-50 text-purple-700 text-4xl font-bold">
-                ${currentExercise.exercise}
-              </div>
-              
+              <span class="inline-block px-4 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold mb-4">${currentExercise.explanation}</span>
+              <div class="mb-8 p-8 rounded-xl bg-purple-50 text-purple-700 text-4xl font-bold">${currentExercise.exercise}</div>
               <form id="answer-form" class="max-w-xs mx-auto space-y-4">
-                <input type="text" id="answer-input" inputmode="text" required class="w-full px-4 py-3 border-2 rounded-lg text-center text-xl" placeholder="Resultado">
+                <input type="text" id="answer-input" inputmode="text" required class="w-full px-4 py-3 border-2 rounded-lg text-center text-xl outline-none focus:border-purple-500" placeholder="Resultado">
                 <button type="submit" class="w-full py-3 rounded-lg font-bold text-white bg-purple-600">Verificar</button>
               </form>
               <div id="feedback" class="mt-6 text-center hidden"></div>
             </div>
-
             <div class="text-center">
-              <button id="finish-button" class="px-8 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors">
-                Finalizar y Guardar
-              </button>
+              <button id="finish-button" class="px-8 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors">Finalizar y Guardar</button>
             </div>
           </div>
         </div>
@@ -179,18 +164,14 @@
           <div class="w-full max-w-md text-center">
             <div class="exercise-card rounded-2xl shadow-xl p-8 fade-in bg-white">
               <div class="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 bg-yellow-100 text-5xl bounce">🏆</div>
-              <h2 class="text-3xl font-bold text-purple-700 mb-2">¡Buen trabajo!</h2>
+              <h2 class="text-3xl font-bold text-purple-700 mb-2">¡Práctica Terminada!</h2>
               <p class="text-gray-600 mb-6">${currentStudent.name}</p>
               <div class="bg-purple-50 p-6 rounded-xl mb-6">
                 <p class="text-4xl font-bold text-purple-600">${score} pts</p>
                 <p class="text-sm text-gray-500 mt-2">Ejercicios: ${exercisesSolved}</p>
               </div>
-              <div id="save-status" class="p-3 rounded-lg bg-blue-50 text-blue-700 font-medium">
-                Guardando nota en Google Sheets...
-              </div>
-              <button onclick="location.reload()" class="mt-8 w-full py-3 bg-purple-600 text-white font-bold rounded-lg">
-                Intentar de nuevo
-              </button>
+              <div id="save-status" class="p-3 rounded-lg bg-yellow-50 text-yellow-700 font-medium animate-pulse">Guardando en Google Sheets...</div>
+              <button onclick="location.reload()" class="mt-8 w-full py-3 bg-purple-600 text-white font-bold rounded-lg">Intentar de nuevo</button>
             </div>
           </div>
         </div>
@@ -199,16 +180,12 @@
 
     async function saveResults() {
       const statusDiv = document.getElementById('save-status');
-      const payload = {
-        nombre: currentStudent.name,
-        codigo: currentStudent.code,
-        puntos: score
-      };
-
+      const payload = { nombre: currentStudent.name, codigo: currentStudent.code, puntos: score };
       try {
         await fetch(WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors',
+          cache: 'no-cache',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
@@ -216,26 +193,19 @@
         statusDiv.innerText = "✓ Registro guardado correctamente";
       } catch (e) {
         statusDiv.className = "p-3 rounded-lg bg-red-100 text-red-700 font-bold";
-        statusDiv.innerText = "✗ Error al conectar. Verifica tu conexión.";
+        statusDiv.innerText = "✗ Error al guardar. Toma captura de pantalla.";
       }
     }
 
     function checkAnswer() {
       const userAnswer = Number(document.getElementById('answer-input').value);
       const feedbackDiv = document.getElementById('feedback');
-      
       feedbackDiv.classList.remove('hidden');
-      
       if (userAnswer === currentExercise.answer) {
-        score += 10;
-        exercisesSolved++;
+        score += 10; exercisesSolved++;
         feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-700 font-bold bounce';
         feedbackDiv.innerHTML = `✓ ¡Correcto! ${currentExercise.answer}`;
-        setTimeout(() => {
-          currentExercise = generateExercise();
-          updateUI(renderGamePage());
-          setupGameListeners();
-        }, 1500);
+        setTimeout(() => { currentExercise = generateExercise(); updateUI(renderGamePage()); setupGameListeners(); }, 1500);
       } else {
         feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-700 font-bold shake';
         feedbackDiv.innerHTML = `✗ Incorrecto. La respuesta era ${currentExercise.answer}`;
@@ -243,41 +213,24 @@
       }
     }
 
-    function updateUI(html) {
-      document.getElementById('app').innerHTML = html;
-    }
+    function updateUI(html) { document.getElementById('app').innerHTML = html; }
 
     function setupRegistrationListener() {
       const form = document.getElementById('registration-form');
       if(form) {
         form.addEventListener('submit', (e) => {
           e.preventDefault();
-          currentStudent = {
-            name: document.getElementById('student-name').value,
-            code: document.getElementById('student-code').value
-          };
-          currentExercise = generateExercise();
-          updateUI(renderGamePage());
-          setupGameListeners();
+          currentStudent = { name: document.getElementById('student-name').value, code: document.getElementById('student-code').value };
+          currentExercise = generateExercise(); updateUI(renderGamePage()); setupGameListeners();
         });
       }
     }
 
     function setupGameListeners() {
       const form = document.getElementById('answer-form');
-      if(form) {
-        form.addEventListener('submit', (e) => {
-          e.preventDefault();
-          checkAnswer();
-        });
-      }
+      if(form) form.addEventListener('submit', (e) => { e.preventDefault(); checkAnswer(); });
       const finishBtn = document.getElementById('finish-button');
-      if(finishBtn) {
-        finishBtn.addEventListener('click', () => {
-          updateUI(renderResultsPage());
-          saveResults();
-        });
-      }
+      if(finishBtn) finishBtn.addEventListener('click', () => { updateUI(renderResultsPage()); saveResults(); });
     }
 
     updateUI(renderRegistrationPage());
