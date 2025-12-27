@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecuaciones de Primer Grado - UNIVO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { box-sizing: border-box; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    .bounce { animation: bounce 0.6s ease-in-out; }
+    .shake { animation: shake 0.4s ease-in-out; }
+    .equation-card { transition: all 0.3s ease; }
+    .equation-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+  </style>
+</head>
+<body class="h-full">
+  <div id="app" class="w-full h-full overflow-auto"></div>
+
+  <script>
+    // --- CONFIGURACIÓN Y ENLACE DE GOOGLE SHEETS ---
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxC1flrn10Fps-vRIix3QuNdZEmKpbXllpzBMSLomP01fRrTPrkuuFIPvQdpIuTsMmu/exec";
+
+    const defaultConfig = {
+      background_color: "#f0f4ff",
+      card_color: "#ffffff",
+      primary_color: "#3b82f6",
+      success_color: "#10b981",
+      error_color: "#ef4444",
+      font_family: "Inter, system-ui, sans-serif",
+      game_title: "Ecuaciones de Primer Grado",
+      welcome_message: "¡Aprende resolviendo ecuaciones!",
+      start_button_text: "Comenzar a Jugar"
+    };
+
+    let currentStudent = null;
+    let currentEquation = null;
+    let score = 0;
+    let equationsSolved = 0;
+
+    // Generador de ecuaciones (ax + b = c)
+    function generateEquation() {
+      const operations = ['+', '-', '*'];
+      const operation = operations[Math.floor(Math.random() * operations.length)];
+      const a = Math.floor(Math.random() * 10) + 1;
+      let equationText, answer;
+      
+      switch(operation) {
+        case '+':
+          answer = Math.floor(Math.random() * 15) + 1;
+          const b1 = Math.floor(Math.random() * 20) + 1;
+          const c1 = a * answer + b1;
+          equationText = `${a}x + ${b1} = ${c1}`;
+          break;
+        case '-':
+          answer = Math.floor(Math.random() * 15) + 1;
+          const b2 = Math.floor(Math.random() * 20) + 1;
+          const c2 = a * answer - b2;
+          equationText = `${a}x - ${b2} = ${c2}`;
+          break;
+        case '*':
+          answer = Math.floor(Math.random() * 15) + 1;
+          const result = a * answer;
+          equationText = `${a}x = ${result}`;
+          break;
+      }
+      return { equation: equationText, answer: answer };
+    }
+
+    function renderRegistrationPage() {
+      return `
+        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color};">
+          <div class="w-full max-w-md">
+            <div class="equation-card rounded-2xl shadow-xl p-8 fade-in bg-white">
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 bg-blue-100 text-4xl">📐</div>
+                <h1 class="font-bold mb-2 text-3xl text-blue-600">${defaultConfig.game_title}</h1>
+                <p class="text-gray-600">${defaultConfig.welcome_message}</p>
+              </div>
+              <form id="registration-form" class="space-y-4">
+                <input type="text" id="student-name" required class="w-full px-4 py-3 border-2 rounded-lg" placeholder="Nombre completo">
+                <input type="text" id="student-code" required class="w-full px-4 py-3 border-2 rounded-lg" placeholder="Código de Estudiante">
+                <button type="submit" class="w-full py-4 rounded-lg font-bold text-white bg-blue-600 hover:scale-105 transition-transform">
+                  ${defaultConfig.start_button_text}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGamePage() {
+      return `
+        <div class="w-full min-h-full p-6" style="background: ${defaultConfig.background_color};">
+          <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+              <div class="bg-white rounded-xl shadow px-6 py-3">
+                <p class="text-xs text-gray-500 uppercase">Estudiante</p>
+                <p class="font-bold text-blue-600">${currentStudent.name}</p>
+              </div>
+              <div class="flex gap-4">
+                <div class="bg-white rounded-xl shadow px-6 py-3 text-center">
+                  <p class="text-xs text-gray-500 uppercase">Puntos</p>
+                  <p class="font-bold text-xl text-green-600">${score}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="equation-card rounded-2xl shadow-xl p-8 mb-6 fade-in bg-white text-center">
+              <h2 class="text-xl font-bold mb-4 text-gray-700">Resuelve para x:</h2>
+              <div class="mb-6 p-6 rounded-xl inline-block bg-blue-50 text-blue-700 text-4xl font-bold">
+                ${currentEquation.equation}
+              </div>
+              
+              <form id="answer-form" class="max-w-xs mx-auto space-y-4">
+                <input type="text" id="answer-input" inputmode="text" required class="w-full px-4 py-3 border-2 rounded-lg text-center text-xl" placeholder="Escribe el valor de x">
+                <button type="submit" id="check-button" class="w-full py-3 rounded-lg font-bold text-white bg-blue-600">Verificar</button>
+              </form>
+              <div id="feedback" class="mt-6 text-center hidden"></div>
+            </div>
+
+            <div class="text-center">
+              <button id="finish-button" class="px-8 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors">
+                Finalizar Juego y Guardar Nota
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderResultsPage() {
+      return `
+        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color};">
+          <div class="w-full max-w-md text-center">
+            <div class="equation-card rounded-2xl shadow-xl p-8 fade-in bg-white">
+              <div class="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 bg-green-100 text-5xl bounce">🎉</div>
+              <h2 class="text-3xl font-bold text-blue-700 mb-2">¡Práctica Terminada!</h2>
+              <p class="text-gray-600 mb-6">${currentStudent.name}</p>
+              <div class="bg-blue-50 p-6 rounded-xl mb-6">
+                <p class="text-sm text-gray-500 uppercase font-bold">Puntuación Final</p>
+                <p class="text-5xl font-bold text-blue-600">${score} pts</p>
+              </div>
+              <div id="save-status" class="p-3 rounded-lg bg-yellow-50 text-yellow-700 font-medium animate-pulse">
+                Guardando en Google Sheets...
+              </div>
+              <button onclick="location.reload()" class="mt-8 w-full py-3 bg-blue-600 text-white font-bold rounded-lg">
+                Jugar de nuevo
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function saveResults() {
+      const statusDiv = document.getElementById('save-status');
+      const payload = {
+        nombre: currentStudent.name,
+        codigo: currentStudent.code,
+        puntos: score
+      };
+
+      try {
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        statusDiv.className = "p-3 rounded-lg bg-green-100 text-green-700 font-bold";
+        statusDiv.innerText = "✓ Resultados guardados en la nube";
+      } catch (e) {
+        statusDiv.className = "p-3 rounded-lg bg-red-100 text-red-700 font-bold";
+        statusDiv.innerText = "✗ Error al guardar. Toma captura de pantalla.";
+      }
+    }
+
+    function checkAnswer() {
+      const userAnswer = Number(document.getElementById('answer-input').value);
+      const feedbackDiv = document.getElementById('feedback');
+      
+      feedbackDiv.classList.remove('hidden');
+      
+      if (userAnswer === currentEquation.answer) {
+        score += 10;
+        equationsSolved++;
+        feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-700 font-bold bounce';
+        feedbackDiv.innerHTML = `✓ ¡Excelente! La respuesta es correcta.`;
+        setTimeout(() => {
+          currentEquation = generateEquation();
+          updateUI(renderGamePage());
+          setupGameListeners();
+        }, 1500);
+      } else {
+        feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-700 font-bold shake';
+        feedbackDiv.innerHTML = `✗ Incorrecto. ¡Prueba de nuevo!`;
+        setTimeout(() => feedbackDiv.classList.add('hidden'), 2000);
+      }
+    }
+
+    function updateUI(html) {
+      document.getElementById('app').innerHTML = html;
+    }
+
+    function setupRegistrationListener() {
+      const form = document.getElementById('registration-form');
+      if(form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          currentStudent = {
+            name: document.getElementById('student-name').value,
+            code: document.getElementById('student-code').value
+          };
+          currentEquation = generateEquation();
+          updateUI(renderGamePage());
+          setupGameListeners();
+        });
+      }
+    }
+
+    function setupGameListeners() {
+      const form = document.getElementById('answer-form');
+      if(form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          checkAnswer();
+        });
+      }
+      const finishBtn = document.getElementById('finish-button');
+      if(finishBtn) {
+        finishBtn.addEventListener('click', () => {
+          updateUI(renderResultsPage());
+          saveResults();
+        });
+      }
+    }
+
+    updateUI(renderRegistrationPage());
+    setupRegistrationListener();
+  </script>
+</body>
+</html>
