@@ -22,15 +22,16 @@
   <div id="app" class="w-full h-full overflow-auto"></div>
 
   <script>
-    // Configuración por defecto adaptada a Ecuaciones Cuadráticas
+    // CONFIGURACIÓN Y ENLACE DE GOOGLE SHEETS
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzT68lwJSlUxEIXVfRhjHgRLwXGMcQia80QN_xrPClPdpvZde6p4eQt87YDfISS-FVkuw/exec";
+
     const defaultConfig = {
-      background_color: "#f0fdf4", // Un tono verde suave
+      background_color: "#f0fdf4",
       card_color: "#ffffff",
-      primary_color: "#16a34a", // Verde esmeralda
+      primary_color: "#16a34a",
       success_color: "#10b981",
       error_color: "#ef4444",
       font_family: "Inter, system-ui, sans-serif",
-      font_size: 16,
       game_title: "Ecuaciones Cuadráticas",
       welcome_message: "¡Resuelve las ecuaciones y encuentra los valores de x!",
       start_button_text: "Empezar Desafío"
@@ -41,48 +42,37 @@
     let score = 0;
     let exercisesSolved = 0;
 
-    // Generador de ejercicios con soluciones enteras
     function generateExercise() {
-      // Generamos dos raíces enteras entre -10 y 10 para que sea resoluble
       let r1 = Math.floor(Math.random() * 21) - 10;
       let r2 = Math.floor(Math.random() * 21) - 10;
-      
-      // (x - r1)(x - r2) = x^2 - (r1+r2)x + (r1*r2)
       let b = -(r1 + r2);
       let c = r1 * r2;
-      
       let signB = b >= 0 ? "+ " + b : "- " + Math.abs(b);
       let signC = c >= 0 ? "+ " + c : "- " + Math.abs(c);
-      
-      // Si b o c son 0, ajustamos la visualización
       let bDisplay = b === 0 ? "" : `${signB}x`;
       let cDisplay = c === 0 ? "" : `${signC}`;
       
-      let exerciseText = `x<span class="sup">2</span> ${bDisplay} ${cDisplay} = 0`;
-      
       return {
-        exercise: exerciseText,
-        answers: [r1, r2].sort((a, b) => a - b), // Ordenadas para validar fácil
+        exercise: `x<span class="sup">2</span> ${bDisplay} ${cDisplay} = 0`,
+        answers: [r1, r2].sort((a, b) => a - b),
         explanation: "Encuentra x₁ y x₂ (el orden no importa)"
       };
     }
 
     function renderRegistrationPage() {
       return `
-        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color}; font-family: ${defaultConfig.font_family};">
+        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color};">
           <div class="w-full max-w-md">
-            <div class="exercise-card rounded-2xl shadow-xl p-8 fade-in" style="background: ${defaultConfig.card_color};">
+            <div class="exercise-card rounded-2xl shadow-xl p-8 fade-in bg-white">
               <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4" style="background: ${defaultConfig.primary_color}20;">
-                  <span style="font-size: 40px;">📐</span>
-                </div>
-                <h1 class="font-bold mb-2" style="font-size: 32px; color: ${defaultConfig.primary_color};">${defaultConfig.game_title}</h1>
-                <p style="color: #666;">${defaultConfig.welcome_message}</p>
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 bg-green-100 text-4xl">📐</div>
+                <h1 class="font-bold mb-2 text-3xl text-green-700">${defaultConfig.game_title}</h1>
+                <p class="text-gray-600">${defaultConfig.welcome_message}</p>
               </div>
               <form id="registration-form" class="space-y-4">
-                <input type="text" id="student-name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg" placeholder="Nombre del Estudiante">
-                <input type="text" id="student-code" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg" placeholder="Código (ej: BG-2025)">
-                <button type="submit" class="w-full py-4 rounded-lg font-bold text-white transition-all transform hover:scale-105" style="background: ${defaultConfig.primary_color};">
+                <input type="text" id="student-name" required class="w-full px-4 py-3 border-2 rounded-lg" placeholder="Nombre del Estudiante">
+                <input type="text" id="student-code" required class="w-full px-4 py-3 border-2 rounded-lg" placeholder="Código (ej: BG-2025)">
+                <button type="submit" class="w-full py-4 rounded-lg font-bold text-white bg-green-600 hover:scale-105 transition-transform">
                   ${defaultConfig.start_button_text}
                 </button>
               </form>
@@ -94,45 +84,95 @@
 
     function renderGamePage() {
       return `
-        <div class="w-full min-h-full p-6" style="background: ${defaultConfig.background_color}; font-family: ${defaultConfig.font_family};">
+        <div class="w-full min-h-full p-6" style="background: ${defaultConfig.background_color};">
           <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6">
               <div class="bg-white rounded-xl shadow px-6 py-3">
                 <p class="text-xs text-gray-500 uppercase">Estudiante</p>
-                <p class="font-bold" style="color: ${defaultConfig.primary_color};">${currentStudent.name}</p>
+                <p class="font-bold text-green-700">${currentStudent.name}</p>
               </div>
-              <div class="flex gap-4">
-                <div class="bg-white rounded-xl shadow px-6 py-3 text-center">
-                  <p class="text-xs text-gray-500 uppercase">Puntos</p>
-                  <p class="font-bold text-xl" style="color: ${defaultConfig.success_color};">${score}</p>
-                </div>
+              <div class="bg-white rounded-xl shadow px-6 py-3 text-center">
+                <p class="text-xs text-gray-500 uppercase">Puntos</p>
+                <p class="font-bold text-xl text-green-600">${score}</p>
               </div>
             </div>
             
             <div class="exercise-card rounded-2xl shadow-xl p-8 mb-6 fade-in bg-white text-center">
               <h2 class="text-xl font-bold mb-4 text-gray-700">Resuelve la ecuación:</h2>
-              <div class="mb-6 p-6 rounded-xl inline-block" style="background: ${defaultConfig.primary_color}10; color: ${defaultConfig.primary_color}; font-size: 36px; font-weight: bold;">
+              <div class="mb-6 p-6 rounded-xl inline-block bg-green-50 text-green-700 text-4xl font-bold">
                 ${currentExercise.exercise}
               </div>
               <p class="text-sm text-gray-500 mb-6 italic">${currentExercise.explanation}</p>
               
               <form id="answer-form" class="max-w-sm mx-auto flex flex-col gap-4">
                 <div class="flex gap-4">
-                  <input type="text" id="ans1" required class="w-1/2 px-4 py-3 border-2 rounded-lg text-center text-xl" placeholder="x₁">
-                  <input type="text" id="ans2" required class="w-1/2 px-4 py-3 border-2 rounded-lg text-center text-xl" placeholder="x₂">
+                  <input type="text" id="ans1" inputmode="text" required class="w-1/2 px-4 py-3 border-2 rounded-lg text-center text-xl" placeholder="x₁">
+                  <input type="text" id="ans2" inputmode="text" required class="w-1/2 px-4 py-3 border-2 rounded-lg text-center text-xl" placeholder="x₂">
                 </div>
-                <button type="submit" class="w-full py-3 rounded-lg font-bold text-white" style="background: ${defaultConfig.primary_color};">Verificar Respuestas</button>
+                <button type="submit" class="w-full py-3 rounded-lg font-bold text-white bg-green-600">Verificar Respuestas</button>
               </form>
               <div id="feedback" class="mt-6 text-center hidden"></div>
+            </div>
+
+            <div class="text-center">
+              <button onclick="finishGame()" class="px-8 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors">
+                Finalizar Práctica y Guardar
+              </button>
             </div>
           </div>
         </div>
       `;
     }
 
+    function renderResultsPage() {
+      return `
+        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color};">
+          <div class="w-full max-w-md text-center">
+            <div class="exercise-card rounded-2xl shadow-xl p-8 fade-in bg-white">
+              <h2 class="text-3xl font-bold text-green-700 mb-4">¡Práctica Finalizada!</h2>
+              <p class="text-xl mb-2">${currentStudent.name}</p>
+              <div class="text-5xl font-bold text-green-600 my-6">${score} Puntos</div>
+              <p class="text-gray-500 mb-8">Ejercicios correctos: ${exercisesSolved}</p>
+              <div id="save-status" class="p-3 rounded-lg bg-blue-50 text-blue-700 font-medium">
+                Enviando resultados a la hoja de cálculo...
+              </div>
+              <button onclick="location.reload()" class="mt-8 w-full py-3 bg-green-600 text-white font-bold rounded-lg">
+                Jugar de nuevo
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function finishGame() {
+      updateUI(renderResultsPage());
+      
+      const statusDiv = document.getElementById('save-status');
+      const payload = {
+        nombre: currentStudent.name,
+        codigo: currentStudent.code,
+        puntos: score
+      };
+
+      try {
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        statusDiv.className = "p-3 rounded-lg bg-green-100 text-green-700 font-bold";
+        statusDiv.innerText = "✓ Resultados guardados exitosamente";
+      } catch (e) {
+        statusDiv.className = "p-3 rounded-lg bg-red-100 text-red-700 font-bold";
+        statusDiv.innerText = "✗ Error al conectar con Google Sheets";
+      }
+    }
+
     function checkAnswer() {
-      const a1 = parseInt(document.getElementById('ans1').value);
-      const a2 = parseInt(document.getElementById('ans2').value);
+      const a1 = Number(document.getElementById('ans1').value);
+      const a2 = Number(document.getElementById('ans2').value);
       const userAnswers = [a1, a2].sort((a, b) => a - b);
       const feedbackDiv = document.getElementById('feedback');
       
@@ -147,10 +187,10 @@
           currentExercise = generateExercise();
           updateUI(renderGamePage());
           setupGameListeners();
-        }, 2000);
+        }, 1800);
       } else {
         feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-700 font-bold shake';
-        feedbackDiv.innerHTML = `Incorrecto. ¡Sigue intentando!`;
+        feedbackDiv.innerHTML = `Incorrecto. ¡Revisa los signos e intenta de nuevo!`;
         setTimeout(() => feedbackDiv.classList.add('hidden'), 2000);
       }
     }
@@ -160,30 +200,33 @@
     }
 
     function setupRegistrationListener() {
-      document.getElementById('registration-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        currentStudent = {
-          name: document.getElementById('student-name').value,
-          code: document.getElementById('student-code').value
-        };
-        currentExercise = generateExercise();
-        updateUI(renderGamePage());
-        setupGameListeners();
-      });
+      const form = document.getElementById('registration-form');
+      if(form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          currentStudent = {
+            name: document.getElementById('student-name').value,
+            code: document.getElementById('student-code').value
+          };
+          currentExercise = generateExercise();
+          updateUI(renderGamePage());
+          setupGameListeners();
+        });
+      }
     }
 
     function setupGameListeners() {
-      document.getElementById('answer-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        checkAnswer();
-      });
+      const form = document.getElementById('answer-form');
+      if(form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          checkAnswer();
+        });
+      }
     }
 
-    // Inicio
     updateUI(renderRegistrationPage());
     setupRegistrationListener();
-
   </script>
 </body>
-
 </html>
