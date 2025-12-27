@@ -208,7 +208,7 @@
         setTimeout(() => { currentExercise = generateExercise(); updateUI(renderGamePage()); setupGameListeners(); }, 1500);
       } else {
         feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-700 font-bold shake';
-        feedbackDiv.innerHTML = `✗ Incorrecto. La respuesta era ${currentExercise.answer}`;
+        feedbackDiv.innerHTML = `✗ Incorrecto.`;
         setTimeout(() => feedbackDiv.classList.add('hidden'), 2000);
       }
     }
