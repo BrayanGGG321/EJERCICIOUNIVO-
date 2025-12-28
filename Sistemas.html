@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistemas de Ecuaciones - UNIVO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { box-sizing: border-box; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    .bounce { animation: bounce 0.6s ease-in-out; }
+    .shake { animation: shake 0.4s ease-in-out; }
+    .exercise-card { transition: all 0.3s ease; }
+    .exercise-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+    
+    /* Estilo para la llave del sistema */
+    .system-brace {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .system-brace::before {
+      content: '{';
+      font-size: 4rem;
+      font-weight: 300;
+      color: #9333ea;
+      margin-right: 10px;
+      line-height: 1;
+    }
+    .equation-row {
+      text-align: left;
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body class="h-full">
+  <div id="app" class="w-full h-full overflow-auto"></div>
+
+  <script>
+    // --- URL DE TU HOJA DE CÁLCULO ACTUALIZADA ---
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx5KPL8re0JpA0QHvU9YIjnK0dbXA3BuLZ0x7Dd9a68xST4gxTRXoKqhedwHTys8pEs/exec";
+
+    const defaultConfig = {
+      background_color: "#eff6ff", // Azul muy suave
+      card_color: "#ffffff",
+      primary_color: "#2563eb", // Azul fuerte
+      success_color: "#10b981",
+      error_color: "#ef4444",
+      font_family: "Inter, system-ui, sans-serif",
+      game_title: "Sistemas de Ecuaciones",
+      welcome_message: "Resuelve el sistema 2x2. ¡Solo soluciones enteras!",
+      start_button_text: "Iniciar Práctica"
+    };
+
+    let currentStudent = null;
+    let currentExercise = null;
+    let score = 0;
+    let exercisesSolved = 0;
+
+    // Función auxiliar para dar formato bonito a las ecuaciones (evitar +- o 1x)
+    function formatTerm(coef, variable, isFirst = false) {
+      if (coef === 0) return ""; // Si es 0 no se pone nada
+      
+      let str = "";
+      
+      // Signo
+      if (coef < 0) {
+        str += isFirst ? "-" : " - ";
+      } else {
+        str += isFirst ? "" : " + ";
+      }
+      
+      // Valor absoluto
+      const absCoef = Math.abs(coef);
+      if (absCoef !== 1) {
+        str += absCoef;
+      }
+      
+      str += variable;
+      return str;
+    }
+
+    function generateExercise() {
+      // 1. ELEGIR LA SOLUCIÓN PRIMERO (Enteros entre -5 y 5 para que sea mentalmente manejable)
+      const x = Math.floor(Math.random() * 11) - 5; 
+      const y = Math.floor(Math.random() * 11) - 5;
+
+      // 2. ELEGIR COEFICIENTES ALEATORIOS (Entre -5 y 5, evitando ceros para que no sea trivial)
+      let a1, b1, a2, b2;
+      do {
+        a1 = Math.floor(Math.random() * 11) - 5;
+        b1 = Math.floor(Math.random() * 11) - 5;
+        a2 = Math.floor(Math.random() * 11) - 5;
+        b2 = Math.floor(Math.random() * 11) - 5;
+        // Evitar coeficientes 0 para este nivel introductorio y evitar sistemas dependientes
+      } while (a1 === 0 || b1 === 0 || a2 === 0 || b2 === 0 || (a1*b2 - a2*b1) === 0);
+
+      // 3. CALCULAR LOS TÉRMINOS INDEPENDIENTES
+      const c1 = (a1 * x) + (b1 * y);
+      const c2 = (a2 * x) + (b2 * y);
+
+      // 4. FORMATEAR PARA VISUALIZACIÓN
+      // Ecuación 1: a1x + b1y = c1
+      let eq1Html = `${formatTerm(a1, 'x', true)} ${formatTerm(b1, 'y')} = ${c1}`;
+      // Ecuación 2: a2x + b2y = c2
+      let eq2Html = `${formatTerm(a2, 'x', true)} ${formatTerm(b2, 'y')} = ${c2}`;
+
+      return {
+        html1: eq1Html,
+        html2: eq2Html,
+        solution: { x: x, y: y },
+        explanation: "Encuentra el valor de X y Y que satisface ambas ecuaciones."
+      };
+    }
+
+    function renderRegistrationPage() {
+      return `
+        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color};">
+          <div class="w-full max-w-md">
+            <div class="exercise-card rounded-2xl shadow-xl p-8 fade-in bg-white">
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 bg-blue-100 text-4xl">🧮</div>
+                <h1 class="font-bold mb-2 text-3xl text-blue-700">${defaultConfig.game_title}</h1>
+                <p class="text-gray-600">${defaultConfig.welcome_message}</p>
+              </div>
+              <form id="registration-form" class="space-y-4">
+                <input type="text" id="student-name" required class="w-full px-4 py-3 border-2 rounded-lg outline-none focus:border-blue-500" placeholder="Nombre completo">
+                <input type="text" id="student-code" required class="w-full px-4 py-3 border-2 rounded-lg outline-none focus:border-blue-500" placeholder="Código de Estudiante">
+                <button type="submit" class="w-full py-4 rounded-lg font-bold text-white bg-blue-600 hover:scale-105 transition-transform">
+                  ${defaultConfig.start_button_text}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGamePage() {
+      return `
+        <div class="w-full min-h-full p-6" style="background: ${defaultConfig.background_color};">
+          <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+              <div class="bg-white rounded-xl shadow px-6 py-3 border-l-4 border-blue-500">
+                <p class="text-xs text-gray-500 uppercase font-bold">Estudiante</p>
+                <p class="font-bold text-blue-700">${currentStudent.name}</p>
+              </div>
+              <div class="bg-white rounded-xl shadow px-6 py-3 text-center">
+                <p class="text-xs text-gray-500 uppercase font-bold">Puntos</p>
+                <p class="font-bold text-xl text-green-600">${score}</p>
+              </div>
+            </div>
+            
+            <div class="exercise-card rounded-2xl shadow-xl p-8 mb-6 fade-in bg-white text-center">
+              <span class="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-4">${currentExercise.explanation}</span>
+              
+              <div class="flex justify-center items-center mb-8">
+                <div class="system-brace">
+                    <div class="flex flex-col">
+                        <div class="equation-row">${currentExercise.html1}</div>
+                        <div class="equation-row">${currentExercise.html2}</div>
+                    </div>
+                </div>
+              </div>
+
+              <form id="answer-form" class="max-w-sm mx-auto space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-1">Valor de X</label>
+                        <input type="number" id="answer-x" required class="w-full px-4 py-3 border-2 rounded-lg text-center text-xl outline-none focus:border-blue-500" placeholder="x">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-bold mb-1">Valor de Y</label>
+                        <input type="number" id="answer-y" required class="w-full px-4 py-3 border-2 rounded-lg text-center text-xl outline-none focus:border-blue-500" placeholder="y">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700">Verificar Respuesta</button>
+              </form>
+              
+              <div id="feedback" class="mt-6 text-center hidden"></div>
+            </div>
+            
+            <div class="text-center">
+              <button id="finish-button" class="px-8 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-700 transition-colors">Finalizar y Guardar</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderResultsPage() {
+      return `
+        <div class="w-full min-h-full flex items-center justify-center p-6" style="background: ${defaultConfig.background_color};">
+          <div class="w-full max-w-md text-center">
+            <div class="exercise-card rounded-2xl shadow-xl p-8 fade-in bg-white">
+              <div class="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 bg-yellow-100 text-5xl bounce">🏆</div>
+              <h2 class="text-3xl font-bold text-blue-700 mb-2">¡Práctica Terminada!</h2>
+              <p class="text-gray-600 mb-6">${currentStudent.name}</p>
+              <div class="bg-blue-50 p-6 rounded-xl mb-6">
+                <p class="text-4xl font-bold text-blue-600">${score} pts</p>
+                <p class="text-sm text-gray-500 mt-2">Ejercicios: ${exercisesSolved}</p>
+              </div>
+              <div id="save-status" class="p-3 rounded-lg bg-yellow-50 text-yellow-700 font-medium animate-pulse">Guardando en Google Sheets...</div>
+              <button onclick="location.reload()" class="mt-8 w-full py-3 bg-blue-600 text-white font-bold rounded-lg">Intentar de nuevo</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function saveResults() {
+      const statusDiv = document.getElementById('save-status');
+      const payload = { nombre: currentStudent.name, codigo: currentStudent.code, puntos: score };
+      try {
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          cache: 'no-cache',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        statusDiv.className = "p-3 rounded-lg bg-green-100 text-green-700 font-bold";
+        statusDiv.innerText = "✓ Registro guardado correctamente";
+      } catch (e) {
+        statusDiv.className = "p-3 rounded-lg bg-red-100 text-red-700 font-bold";
+        statusDiv.innerText = "✗ Error al guardar. Toma captura de pantalla.";
+      }
+    }
+
+    function checkAnswer() {
+      const userX = parseInt(document.getElementById('answer-x').value);
+      const userY = parseInt(document.getElementById('answer-y').value);
+      
+      const feedbackDiv = document.getElementById('feedback');
+      feedbackDiv.classList.remove('hidden');
+      
+      if (userX === currentExercise.solution.x && userY === currentExercise.solution.y) {
+        score += 10; exercisesSolved++;
+        feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-700 font-bold bounce';
+        feedbackDiv.innerHTML = `✓ ¡Correcto! x=${currentExercise.solution.x}, y=${currentExercise.solution.y}`;
+        setTimeout(() => { 
+            currentExercise = generateExercise(); 
+            updateUI(renderGamePage()); 
+            setupGameListeners(); 
+            // Poner el foco en el input X para agilizar
+            document.getElementById('answer-x').focus();
+        }, 1500);
+      } else {
+        feedbackDiv.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-700 font-bold shake';
+        feedbackDiv.innerHTML = `✗ Incorrecto. Revisa tus cálculos e intenta de nuevo.`;
+        setTimeout(() => feedbackDiv.classList.add('hidden'), 2500);
+      }
+    }
+
+    function updateUI(html) { document.getElementById('app').innerHTML = html; }
+
+    function setupRegistrationListener() {
+      const form = document.getElementById('registration-form');
+      if(form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          currentStudent = { name: document.getElementById('student-name').value, code: document.getElementById('student-code').value };
+          currentExercise = generateExercise(); updateUI(renderGamePage()); setupGameListeners();
+        });
+      }
+    }
+
+    function setupGameListeners() {
+      const form = document.getElementById('answer-form');
+      if(form) form.addEventListener('submit', (e) => { e.preventDefault(); checkAnswer(); });
+      const finishBtn = document.getElementById('finish-button');
+      if(finishBtn) finishBtn.addEventListener('click', () => { updateUI(renderResultsPage()); saveResults(); });
+    }
+
+    updateUI(renderRegistrationPage());
+    setupRegistrationListener();
+  </script>
+</body>
+</html>
