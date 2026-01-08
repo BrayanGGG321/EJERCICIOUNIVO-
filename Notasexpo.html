@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Notas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box; /* Para que el padding no rompa el ancho */
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    button:disabled {
+      background-color: #ccc;
+    }
+    #mensaje {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Asignar Notas</h2>
+    <form id="formularioNotas">
+      
+      <div class="form-group">
+        <label for="NOMBRE">Nombre:</label>
+        <input type="number" id="NOMBRE" name="NOMBRE" placeholder="Ej: BRYAN" required step="0.1">
+      </div>
+
+      <div class="form-group">
+        <label for="NOTA">NOTA:</label>
+        <input type="number" id="NOTA" name="NOTA" placeholder="Ej: 9.5" required step="0.1">
+      </div>
+
+      <button type="submit" id="btnEnviar">Enviar Notas</button>
+      <div id="mensaje"></div>
+    </form>
+  </div>
+
+  <script>
+    // Tu URL proporcionada
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzXkW2SChz8F_doNUhrMGDhqRUNwEDXb5tdzz1GRTKeFgImmwDlmTnKutEilEa-s-sZg/exec";
+
+    const form = document.getElementById('formularioNotas');
+    const mensajeDiv = document.getElementById('mensaje');
+    const btnEnviar = document.getElementById('btnEnviar');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); // Evita que la página se recargue
+
+      // Deshabilitar botón mientras envía
+      btnEnviar.disabled = true;
+      btnEnviar.innerText = "Enviando...";
+      mensajeDiv.style.color = "#666";
+      mensajeDiv.innerText = "Conectando con Google Sheets...";
+
+      // Capturar datos
+      const datos = {
+        NOMBRE: document.getElementById('NOMBRE').value,
+        NOTA: document.getElementById('NOTA').value
+      };
+
+      // Enviar datos usando fetch
+      // Nota importante: Usamos "text/plain" para evitar problemas de CORS (bloqueos del navegador)
+      // Tu script de Google Apps Script leerá esto sin problemas como string y luego hará el JSON.parse
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(datos),
+        headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+        }
+      })
+      .then(response => {
+        // Google Apps Script suele devolver texto plano, lo leemos
+        return response.text();
+      })
+      .then(data => {
+        // Éxito
+        mensajeDiv.style.color = "green";
+        mensajeDiv.innerText = "¡Notas registradas con éxito!";
+        form.reset(); // Limpia el formulario
+      })
+      .catch(error => {
+        // Error
+        console.error('Error:', error);
+        mensajeDiv.style.color = "red";
+        mensajeDiv.innerText = "Hubo un error al enviar. Revisa la consola.";
+      })
+      .finally(() => {
+        // Reactivar botón
+        btnEnviar.disabled = false;
+        btnEnviar.innerText = "Enviar Notas";
+      });
+    });
+  </script>
+
+</body>
+</html>
