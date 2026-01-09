@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoevaluación - Curso de Admisión</title>
+    <style>
+        /* Estilos Generales (Diseño limpio tipo UNIVO) */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid #003366; /* Azul oscuro institucional */
+        }
+        h1 {
+            color: #003366;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        p.desc {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        
+        /* Estilos del Formulario */
+        .form-group {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        label.question-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .option-label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box; /* Para que el padding no rompa el ancho */
+        }
+        
+        /* Botón */
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #00509e;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Mensajes de estado */
+        #statusMessage {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Autoevaluación de Desempeño</h1>
+    <p class="desc">Curso de Admisión - Módulo de Matemáticas</p>
+
+    <form id="quizForm">
+        <div class="form-group">
+            <label class="question-title" for="nombre">Nombre Completo:</label>
+            <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre aquí..." required>
+        </div>
+
+        <div class="form-group">
+            <label class="question-title">1. Aritmética: ¿Cuál fue tu nivel de práctica con ejercicios de enteros y fracciones?</label>
+            <label class="option-label"><input type="radio" name="p1" value="2.0" required> Realicé todos los ejercicios y busqué extras (Excelente)</label>
+            <label class="option-label"><input type="radio" name="p1" value="1.5"> Hice la mayoría, pero dudo con los signos (Bueno)</label>
+            <label class="option-label"><input type="radio" name="p1" value="0.5"> Solo vi la teoría y practiqué poco (Regular)</label>
+            <label class="option-label"><input type="radio" name="p1" value="0.0"> No practiqué casi nada (Insuficiente)</label>
+        </div>
+
+        <div class="form-group">
+            <label class="question-title">2. Álgebra: Ante la dificultad en ecuaciones, ¿cuál fue tu actitud?</label>
+            <label class="option-label"><input type="radio" name="p2" value="2.0" required> Perseverante: repasé hasta entender</label>
+            <label class="option-label"><input type="radio" name="p2" value="1.0"> Cumplidor: dejaba los difíciles sin hacer</label>
+            <label class="option-label"><input type="radio" name="p2" value="0.5"> Pasivo: solo copié de la pizarra</label>
+            <label class="option-label"><input type="radio" name="p2" value="0.0"> Me frustré y no lo intenté</label>
+        </div>
+
+        <div class="form-group">
+            <label class="question-title">3. Geometría: ¿Cómo estudiaste triángulos y ángulos?</label>
+            <label class="option-label"><input type="radio" name="p3" value="2.0" required> Analicé propiedades y el porqué de las fórmulas</label>
+            <label class="option-label"><input type="radio" name="p3" value="1.0"> Solo memoricé fórmulas para salir del paso</label>
+            <label class="option-label"><input type="radio" name="p3" value="0.5"> Confundí conceptos por no repasar</label>
+            <label class="option-label"><input type="radio" name="p3" value="0.0"> No le di importancia</label>
+        </div>
+
+        <div class="form-group">
+            <label class="question-title">4. Gestión del Tiempo: Fuera de clase, ¿cómo te organizaste?</label>
+            <label class="option-label"><input type="radio" name="p4" value="2.0" required> Tuve un horario fijo de repaso en casa</label>
+            <label class="option-label"><input type="radio" name="p4" value="1.0"> Estudié solo antes de evaluaciones</label>
+            <label class="option-label"><input type="radio" name="p4" value="0.5"> Estudié desordenado a última hora</label>
+            <label class="option-label"><input type="radio" name="p4" value="0.0"> No dediqué tiempo extra</label>
+        </div>
+
+        <div class="form-group">
+            <label class="question-title">5. ¿Te sientes listo para iniciar la carrera con estas bases?</label>
+            <label class="option-label"><input type="radio" name="p5" value="2.0" required> Sí, bases sólidas y seguro</label>
+            <label class="option-label"><input type="radio" name="p5" value="1.5"> Capaz, pero debo reforzar detalles</label>
+            <label class="option-label"><input type="radio" name="p5" value="0.5"> Tengo muchas dudas, debí esforzarme más</label>
+            <label class="option-label"><input type="radio" name="p5" value="0.0"> No me siento preparado</label>
+        </div>
+
+        <button type="submit" id="submitBtn">Enviar Autoevaluación</button>
+        
+        <div id="statusMessage"></div>
+    </form>
+</div>
+
+<script>
+    // =======================================================
+    // CONFIGURACIÓN: Aquí pegarás el enlace que te daré luego
+    // =======================================================
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0S-Kztq7jwkv8TxIpop3Wswtu41zuSjrzrJ1P9oVmantLR4bu-yUfMlZ0WDTnDAoW/exec"; 
+    // =======================================================
+
+    const form = document.getElementById('quizForm');
+    const statusDiv = document.getElementById('statusMessage');
+    const btn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Evita que la página se recargue
+
+        // 1. Obtener datos
+        const nombre = document.getElementById('nombre').value.trim();
+        
+        // 2. Calcular Nota
+        let totalScore = 0;
+        const questions = ['p1', 'p2', 'p3', 'p4', 'p5'];
+        let allAnswered = true;
+
+        questions.forEach(q => {
+            const selected = document.querySelector(`input[name="${q}"]:checked`);
+            if (selected) {
+                totalScore += parseFloat(selected.value);
+            } else {
+                allAnswered = false;
+            }
+        });
+
+        if (!nombre || !allAnswered) {
+            alert("Por favor responde todas las preguntas e ingresa tu nombre.");
+            return;
+        }
+
+        // 3. Preparar el envío (Solo Nombre y Nota Total)
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+
+        const payload = {
+            nombre: nombre,
+            nota: totalScore
+        };
+
+        // 4. Enviar a Google Sheets
+        // Usamos 'no-cors' para evitar errores simples, pero lo ideal es configurar bien el script
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            // Como usamos no-cors, asumimos que se envió si no hubo error de red
+            statusDiv.textContent = `¡Gracias ${nombre}! Tu autoevaluación (Nota: ${totalScore}/10) ha sido guardada.`;
+            statusDiv.className = "success";
+            statusDiv.style.display = "block";
+            btn.textContent = "Enviado";
+            form.reset();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusDiv.textContent = "Hubo un error al guardar. Intenta de nuevo.";
+            statusDiv.className = "error";
+            statusDiv.style.display = "block";
+            btn.disabled = false;
+            btn.textContent = "Enviar Autoevaluación";
+        });
+    });
+</script>
+
+</body>
+</html>
