@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Estudiantes</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* Para que el padding no afecte el ancho */
+            font-size: 14px;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #0056b3;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        /* Mensaje de éxito oculto por defecto */
+        #mensaje {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Registro de Asistencia</h2>
+    
+    <form name="submit-to-google-sheet">
+        
+        <div class="form-group">
+            <label for="nombre">Nombre Completo</label>
+            <input type="text" id="nombre" name="Nombre Completo" placeholder="Escribe tu nombre y apellidos" required>
+        </div>
+
+        <div class="form-group">
+            <label for="profesorado">Carrera / Profesorado</label>
+            <select id="profesorado" name="Profesorado" required>
+                <option value="" disabled selected>Seleccione una opción...</option>
+                <option value="Profesorado en matemática">Profesorado en matemática</option>
+                <option value="Profesorado en Parvularia">Profesorado en Parvularia</option>
+                <option value="Profesorado en educación física">Profesorado en educación física</option>
+                <option value="Profesorado en Artística">Profesorado en Artística</option>
+                <option value="Profesorado en Inglés">Profesorado en Inglés</option>
+                <option value="Licenciatura en Inglés">Licenciatura en Inglés</option>
+                <option value="Licenciatura en Psicopedagogía">Licenciatura en Psicopedagogía</option>
+            </select>
+        </div>
+
+        <button type="submit" id="btnEnviar">Enviar Registro</button>
+    </form>
+    
+    <div id="mensaje">¡Registro guardado exitosamente!</div>
+</div>
+
+<script>
+    // AQUI PEGA LA URL QUE OBTUVISTE AL PUBLICAR EL SCRIPT EN GOOGLE SHEETS
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxJjzCVXCEIghjuveg7QBeufAUY1-UFqjCP1j7hCgqb99VmhJls1_YRFtSIABrkOJC6rw/exec';
+    
+    const form = document.forms['submit-to-google-sheet'];
+    const btnEnviar = document.getElementById('btnEnviar');
+    const mensaje = document.getElementById('mensaje');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        // Desactivar botón y cambiar texto para indicar carga
+        btnEnviar.disabled = true;
+        btnEnviar.innerText = "Enviando...";
+
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                // Mostrar mensaje de éxito
+                mensaje.style.display = 'block';
+                // Resetear formulario
+                form.reset();
+                // Restaurar botón después de 3 segundos
+                setTimeout(() => {
+                    mensaje.style.display = 'none';
+                    btnEnviar.disabled = false;
+                    btnEnviar.innerText = "Enviar Registro";
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert("Hubo un error al guardar. Intenta de nuevo.");
+                btnEnviar.disabled = false;
+                btnEnviar.innerText = "Enviar Registro";
+            });
+    });
+</script>
+
+</body>
+</html>
