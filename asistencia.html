@@ -41,7 +41,7 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            box-sizing: border-box; /* Para que el padding no afecte el ancho */
+            box-sizing: border-box;
             font-size: 14px;
         }
         input[type="text"]:focus, select:focus {
@@ -108,8 +108,9 @@
 </div>
 
 <script>
-    // AQUI PEGA LA URL QUE OBTUVISTE AL PUBLICAR EL SCRIPT EN GOOGLE SHEETS
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzhlRS0c9UZ8BiXp87XZGWB7Eg7hqAIxAfsv-eCxvonAqsnxQBBcxVUez1Vrh3Rtk96Ig/exec";
+    // IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA PROPIA DE GOOGLE APPS SCRIPT
+    // Si usas la del ejemplo anterior, no llegará a tu hoja.
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwuCP_XSinnmkCvyFJZMcDz5KpFbNiOZV8n4x5DNYCzlNFapoZCq0y7msWdPvu6G7CzTA/exec"; 
     
     const form = document.forms['submit-to-google-sheet'];
     const btnEnviar = document.getElementById('btnEnviar');
@@ -118,17 +119,19 @@
     form.addEventListener('submit', e => {
         e.preventDefault();
         
-        // Desactivar botón y cambiar texto para indicar carga
+        // 1. Bloquear botón para evitar doble envío
         btnEnviar.disabled = true;
         btnEnviar.innerText = "Enviando...";
 
         fetch(scriptURL, { method: 'POST', body: new FormData(form)})
             .then(response => {
-                // Mostrar mensaje de éxito
+                // 2. Mostrar éxito
                 mensaje.style.display = 'block';
-                // Resetear formulario
+                
+                // 3. Limpiar formulario
                 form.reset();
-                // Restaurar botón después de 3 segundos
+                
+                // 4. Restaurar botón a los 3 segundos
                 setTimeout(() => {
                     mensaje.style.display = 'none';
                     btnEnviar.disabled = false;
@@ -137,7 +140,7 @@
             })
             .catch(error => {
                 console.error('Error!', error.message);
-                alert("Hubo un error al guardar. Intenta de nuevo.");
+                alert("Hubo un error al guardar. Revisa tu conexión.");
                 btnEnviar.disabled = false;
                 btnEnviar.innerText = "Enviar Registro";
             });
