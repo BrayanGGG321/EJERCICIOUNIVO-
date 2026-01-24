@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Asistencia</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; }
+        h2 { text-align: center; color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; border: none; }
+        button:hover { background-color: #218838; }
+        #mensaje { margin-top: 15px; text-align: center; font-size: 0.9em; font-weight: bold; min-height: 1.2em;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Control de Asistencia</h2>
+    <form id="asistenciaForm">
+        
+        <label for="codigo">Código de Estudiante:</label>
+        <input type="text" id="codigo" name="codigo" placeholder="Ej. U20260000" required>
+
+        <label for="estado">Estado:</label>
+        <select id="estado" name="estado">
+            <option value="Presente">Presente</option>
+            <option value="Llegada tardía">Llegada tardía</option>
+            <option value="Falta">Falta</option>
+            <option value="Falta justificada">Falta justificada</option>
+        </select>
+
+        <button type="submit" id="btnEnviar">Registrar</button>
+    </form>
+    <div id="mensaje"></div>
+</div>
+
+<script>
+    // ASEGÚRATE DE QUE ESTA URL SEA LA DE LA NUEVA IMPLEMENTACIÓN
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykr3Uk6iuC5vfRpFyzI0-2KiLoRM3CMm-PGrVYU52lYkzEUFy-3ZDboPqzSviZTKQfWA/exec";
+
+    document.getElementById('asistenciaForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var btn = document.getElementById('btnEnviar');
+        var msg = document.getElementById('mensaje');
+        var codigoInput = document.getElementById('codigo');
+        var codigo = codigoInput.value;
+        var estado = document.getElementById('estado').value;
+
+        btn.disabled = true;
+        btn.textContent = "Verificando...";
+        msg.textContent = "";
+        msg.style.color = "#333";
+
+        // ELIMINADO: mode: 'no-cors' (esto permitía errores silenciosos)
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `codigo=${encodeURIComponent(codigo)}&estado=${encodeURIComponent(estado)}`
+        })
+        .then(response => response.json()) // Ahora convertimos la respuesta a JSON
+        .then(data => {
+            if (data.status === "success") {
+                // CASO 1: ÉXITO
+                msg.style.color = "green";
+                msg.textContent = "✅ " + data.message;
+                document.getElementById('asistenciaForm').reset();
+                codigoInput.focus();
+            } else {
+                // CASO 2: ERROR (Código no encontrado)
+                msg.style.color = "red";
+                msg.textContent = "❌ " + data.message;
+                // Seleccionamos el texto del código para que lo corrijan rápido
+                codigoInput.select();
+            }
+        })
+        .catch(error => {
+            msg.style.color = "orange";
+            msg.textContent = "Error de conexión. Intente de nuevo.";
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = "Registrar";
+        });
+    });
+</script>
+
+</body>
+</html>
