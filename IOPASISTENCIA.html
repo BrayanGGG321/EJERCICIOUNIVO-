@@ -38,8 +38,8 @@
 </div>
 
 <script>
-    // ASEGÚRATE DE QUE ESTA URL SEA LA DE LA NUEVA IMPLEMENTACIÓN
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykr3Uk6iuC5vfRpFyzI0-2KiLoRM3CMm-PGrVYU52lYkzEUFy-3ZDboPqzSviZTKQfWA/exec";
+    // PEGA AQUÍ LA NUEVA URL (asegúrate de haber hecho "Nueva Implementación")
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLCSK-ZUzR9XxrQpXiUWYXJ7Lz5Bfab_iHr1a6BXUPD4x6Jcl1-kC30xyykJ3tIsSAsw/exec";
 
     document.getElementById('asistenciaForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -53,35 +53,29 @@
         btn.disabled = true;
         btn.textContent = "Verificando...";
         msg.textContent = "";
-        msg.style.color = "#333";
 
-        // ELIMINADO: mode: 'no-cors' (esto permitía errores silenciosos)
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `codigo=${encodeURIComponent(codigo)}&estado=${encodeURIComponent(estado)}`
+        // Construimos la URL con los parámetros
+        var urlConParams = SCRIPT_URL + "?codigo=" + encodeURIComponent(codigo) + "&estado=" + encodeURIComponent(estado);
+
+        fetch(urlConParams, {
+            method: 'GET' // Usamos GET para evitar bloqueos CORS
         })
-        .then(response => response.json()) // Ahora convertimos la respuesta a JSON
+        .then(response => response.json())
         .then(data => {
             if (data.status === "success") {
-                // CASO 1: ÉXITO
                 msg.style.color = "green";
                 msg.textContent = "✅ " + data.message;
                 document.getElementById('asistenciaForm').reset();
                 codigoInput.focus();
             } else {
-                // CASO 2: ERROR (Código no encontrado)
                 msg.style.color = "red";
                 msg.textContent = "❌ " + data.message;
-                // Seleccionamos el texto del código para que lo corrijan rápido
-                codigoInput.select();
+                codigoInput.select(); // Seleccionar texto para corregir
             }
         })
         .catch(error => {
             msg.style.color = "orange";
-            msg.textContent = "Error de conexión. Intente de nuevo.";
+            msg.textContent = "Error de conexión. Verifique la URL.";
             console.error('Error:', error);
         })
         .finally(() => {
