@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Arte de Plantear Problemas: Variables</title>
+    <title>Taller Práctico: Variables (Versión Extendida)</title>
     <style>
-        /* --- CONFIGURACIÓN DE COLORES UNIVO --- */
+        /* --- ESTILOS UNIVO 2026 --- */
         :root {
             --univo-yellow: #F9B410;
             --univo-dark: #05080D;
             --univo-gray: #E7E7E7;
             --univo-white: #FFFFFF;
+            --success: #28a745;
+            --error: #dc3545;
         }
 
         body {
@@ -23,315 +25,346 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             background-color: var(--univo-white);
             padding: 40px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
-        /* --- TIPOGRAFÍA Y ENCABEZADOS --- */
-        h1, h2, h3 {
-            color: var(--univo-dark);
-        }
-
-        h1 {
+        /* Encabezados */
+        header {
+            text-align: center;
             border-bottom: 5px solid var(--univo-yellow);
-            padding-bottom: 10px;
-            margin-bottom: 30px;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
         }
 
-        .section-header {
-            background-color: var(--univo-dark);
-            color: var(--univo-white);
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 40px;
-            margin-bottom: 20px;
-        }
+        h1 { margin: 0; color: var(--univo-dark); text-transform: uppercase; letter-spacing: 1px; }
+        h2 { color: var(--univo-yellow); background: var(--univo-dark); padding: 10px 20px; display: inline-block; border-radius: 4px; margin-top: 40px;}
+        h3 { border-left: 5px solid var(--univo-yellow); padding-left: 10px; margin-top: 30px; }
 
-        /* --- CAJAS DE TEORÍA --- */
-        .theory-box {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .card {
-            flex: 1;
-            background: #fff;
-            border-left: 5px solid var(--univo-yellow);
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            min-width: 300px;
-        }
-
-        .highlight {
-            font-weight: bold;
-            background-color: rgba(249, 180, 16, 0.2); /* Amarillo transparente */
-            padding: 0 4px;
-        }
-
-        /* --- ELEMENTOS INTERACTIVOS --- */
-        .exercise-container {
-            border: 1px solid var(--univo-gray);
+        /* Cajas de Ejercicios */
+        .exercise-box {
+            background: #fafafa;
+            border: 1px solid #ddd;
             padding: 20px;
             margin-bottom: 20px;
-            border-radius: 5px;
-            background-color: #fafafa;
+            border-radius: 6px;
+            transition: transform 0.2s;
         }
 
+        .exercise-box:hover {
+            border-color: var(--univo-yellow);
+        }
+
+        /* Tablas para el Maratón */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--univo-dark); color: var(--univo-white); }
+        tr:hover { background-color: #fff8e1; }
+
+        /* Inputs y Botones */
         textarea {
-            width: 100%;
-            height: 80px;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: inherit;
+            width: 100%; height: 60px; padding: 10px; margin: 10px 0;
+            border: 2px solid #ccc; border-radius: 4px; font-family: inherit;
         }
-
-        select {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid var(--univo-dark);
-        }
+        textarea:focus { border-color: var(--univo-yellow); outline: none; }
 
         button {
-            background-color: var(--univo-yellow);
-            color: var(--univo-dark);
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.3s;
-            margin-top: 10px;
+            background-color: var(--univo-yellow); color: var(--univo-dark);
+            border: none; padding: 10px 20px; font-size: 15px; font-weight: bold;
+            cursor: pointer; border-radius: 4px; margin-top: 10px;
         }
+        button:hover { background-color: #e0a20e; transform: translateY(-1px); }
 
-        button:hover {
-            background-color: #e0a20e;
-        }
-
-        /* --- FEEDBACK Y SOLUCIONES --- */
-        .feedback {
-            display: none; /* Oculto por defecto */
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f0f8ff;
-            border-left: 5px solid var(--univo-dark);
-        }
-
-        .feedback.correct {
-            background-color: #d4edda;
-            border-color: #28a745;
-            color: #155724;
-        }
-
-        .feedback.incorrect {
-            background-color: #f8d7da;
-            border-color: #dc3545;
-            color: #721c24;
-        }
-
-        /* --- PIE DE PÁGINA --- */
-        .footer {
-            margin-top: 50px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #666;
-            border-top: 1px solid var(--univo-gray);
-            padding-top: 20px;
+        /* Feedback y Resultados */
+        .feedback { display: none; padding: 15px; margin-top: 10px; border-radius: 4px; background: #eee; }
+        .correct-text { color: var(--success); font-weight: bold; }
+        .incorrect-text { color: var(--error); font-weight: bold; }
+        
+        #score-board {
+            position: fixed; top: 20px; right: 20px;
+            background: var(--univo-dark); color: var(--univo-yellow);
+            padding: 15px; border-radius: 50px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 100;
         }
 
     </style>
 </head>
 <body>
 
+<div id="score-board">Puntos: <span id="currentScore">0</span> / 100</div>
+
 <div class="container">
-    <h1>El Arte de Plantear Problemas Estadísticos</h1>
-    <p><strong>Objetivo:</strong> Diferenciar con precisión entre variables cuantitativas discretas y continuas en contextos de investigación aplicada.</p>
-    
-    <div class="section-header">
-        <h2>1. Marco Conceptual Breve</h2>
-    </div>
+    <header>
+        <h1>Laboratorio de Estadística: Variables</h1>
+        <p>Departamento de Matemáticas y Ciencias - UNIVO</p>
+        <small>Tiempo estimado: 60 minutos</small>
+    </header>
 
-    <div class="theory-box">
-        <div class="card">
-            <h3>🔹 Variable Discreta</h3>
-            <p>Son aquellas que surgen de un proceso de <strong>conteo</strong>.</p>
-            <ul>
-                <li>Solo toman valores enteros o puntuales.</li>
-                <li>No hay valores intermedios (no puedes tener 1.5 hijos).</li>
-                <li><em>Ejemplo:</em> Número de materias reprobadas.</li>
-            </ul>
-        </div>
-        <div class="card">
-            <h3>🔸 Variable Continua</h3>
-            <p>Son aquellas que surgen de un proceso de <strong>medición</strong>.</p>
-            <ul>
-                <li>Pueden tomar cualquier valor dentro de un intervalo (decimales infinitos).</li>
-                <li>Dependen de la precisión del instrumento.</li>
-                <li><em>Ejemplo:</em> Tiempo de reacción ante un estímulo (0.453 seg).</li>
-            </ul>
-        </div>
-    </div>
+    <h2>FASE 1: Maratón de Clasificación (40 Puntos)</h2>
+    <p>Selecciona rápidamente si la variable es <strong>Discreta</strong> (conteo/enteros) o <strong>Continua</strong> (medición/decimales). Tienes 10 ítems.</p>
 
-    <div class="section-header">
-        <h2>2. Fase de Calentamiento: Clasificación Rápida</h2>
-    </div>
-    <p>Selecciona el tipo de variable correcto para cada ítem.</p>
+    <form id="quizForm">
+        <table>
+            <thead>
+                <tr>
+                    <th>Situación / Variable</th>
+                    <th>Tipo de Variable</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1. Número de hermanos de un estudiante.</td>
+                    <td>
+                        <label><input type="radio" name="q1" value="D"> Discreta</label>
+                        <label><input type="radio" name="q1" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>2. Estatura exacta de un jugador de baloncesto (en metros).</td>
+                    <td>
+                        <label><input type="radio" name="q2" value="D"> Discreta</label>
+                        <label><input type="radio" name="q2" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>3. Cantidad de pupitres dañados en un aula.</td>
+                    <td>
+                        <label><input type="radio" name="q3" value="D"> Discreta</label>
+                        <label><input type="radio" name="q3" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>4. Tiempo que tarda en cargar una página web (segundos).</td>
+                    <td>
+                        <label><input type="radio" name="q4" value="D"> Discreta</label>
+                        <label><input type="radio" name="q4" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>5. Temperatura de un horno industrial.</td>
+                    <td>
+                        <label><input type="radio" name="q5" value="D"> Discreta</label>
+                        <label><input type="radio" name="q5" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>6. Número de llamadas recibidas en un Call Center en una hora.</td>
+                    <td>
+                        <label><input type="radio" name="q6" value="D"> Discreta</label>
+                        <label><input type="radio" name="q6" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>7. Litros de gasolina vendidos en una estación.</td>
+                    <td>
+                        <label><input type="radio" name="q7" value="D"> Discreta</label>
+                        <label><input type="radio" name="q7" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>8. Cantidad de materias aprobadas en el ciclo.</td>
+                    <td>
+                        <label><input type="radio" name="q8" value="D"> Discreta</label>
+                        <label><input type="radio" name="q8" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>9. Peso de un recién nacido (Kg).</td>
+                    <td>
+                        <label><input type="radio" name="q9" value="D"> Discreta</label>
+                        <label><input type="radio" name="q9" value="C"> Continua</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>10. Número de likes en una publicación de Facebook.</td>
+                    <td>
+                        <label><input type="radio" name="q10" value="D"> Discreta</label>
+                        <label><input type="radio" name="q10" value="C"> Continua</label>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" onclick="gradePhase1()">Calificar Fase 1</button>
+        <div id="feedbackP1" class="feedback"></div>
+    </form>
 
-    <div class="exercise-container">
-        <p><strong>1. Cantidad de estudiantes inscritos en la plataforma Canvas.</strong></p>
-        <select id="q1">
-            <option value="">-- Seleccionar --</option>
-            <option value="discreta">Discreta</option>
-            <option value="continua">Continua</option>
-        </select>
-        <button onclick="checkWarmup(1, 'discreta')">Verificar</button>
-        <div id="feed1" class="feedback"></div>
-    </div>
+    <h2>FASE 2: Análisis de Casos (30 Puntos)</h2>
+    <p>Lee el contexto, piensa tu respuesta y luego compárala con la solución experta.</p>
 
-    <div class="exercise-container">
-        <p><strong>2. Nivel de cortisol (hormona del estrés) en sangre (mcg/dL).</strong></p>
-        <select id="q2">
-            <option value="">-- Seleccionar --</option>
-            <option value="discreta">Discreta</option>
-            <option value="continua">Continua</option>
-        </select>
-        <button onclick="checkWarmup(2, 'continua')">Verificar</button>
-        <div id="feed2" class="feedback"></div>
-    </div>
-
-    <div class="section-header">
-        <h2>3. El Arte de Definir Variables (Casos de Estudio)</h2>
-    </div>
-    <p>En la investigación real, las variables no vienen etiquetadas. Lee los siguientes problemas, propón cuáles son las variables clave y luego compara tu respuesta con la del experto.</p>
-
-    <div class="exercise-container" style="border-left: 5px solid var(--univo-yellow);">
-        <h3>Caso A: Psicología Educativa</h3>
-        <p><em>"Un investigador desea saber si el uso de la IA Gemini reduce el tiempo que los estudiantes tardan en completar una tarea de estadística, y si esto afecta el número de errores cometidos en el cálculo final."</em></p>
-        
-        <p><strong>Tu análisis:</strong> Escribe abajo cuáles son las 2 variables principales y qué tipo crees que son.</p>
-        <textarea id="caseA_input" placeholder="Ej: Variable 1 es... y es de tipo..."></textarea>
-        
-        <button onclick="revealCase('caseA')">Comparar con Solución Experta</button>
-        
-        <div id="caseA_feedback" class="feedback">
-            <h4>Retroalimentación:</h4>
-            <p>Las variables identificadas son:</p>
-            <ol>
-                <li><strong>Tiempo de resolución:</strong> Es <span class="highlight">CONTINUA</span>. Se mide en minutos/segundos y el tiempo fluye (ej. 15.4 minutos).</li>
-                <li><strong>Número de errores:</strong> Es <span class="highlight">DISCRETA</span>. Se cuenta (ej. 1 error, 3 errores). No puedes tener 2.5 errores.</li>
-            </ol>
-            <p><em>¿Coincidió tu análisis? Si confundiste el tiempo con discreta, recuerda que aunque el reloj marque segundos enteros, el tiempo en sí es una magnitud física continua.</em></p>
-        </div>
-    </div>
-
-    <div class="exercise-container" style="border-left: 5px solid var(--univo-yellow);">
-        <h3>Caso B: Recursos Humanos</h3>
-        <p><em>"La UNIVO quiere evaluar el servicio de cafetería. Se medirá cuánto dinero gasta cada estudiante en promedio por almuerzo y cuántos días a la semana hacen uso del servicio."</em></p>
-        
-        <p><strong>Tu análisis:</strong> Identifica las variables y clasifícalas.</p>
-        <textarea id="caseB_input" placeholder="Escribe tu propuesta aquí..."></textarea>
-        
-        <button onclick="revealCase('caseB')">Comparar con Solución Experta</button>
-        
-        <div id="caseB_feedback" class="feedback">
-            <h4>Retroalimentación:</h4>
-            <ol>
-                <li><strong>Dinero gastado ($):</strong> Técnicamente es <span class="highlight">DISCRETA</span> en el sentido estricto (no hay milésimas de centavo en pago real), pero en estadística se suele tratar como <strong>CONTINUA</strong> para efectos de promedios y análisis complejos.</li>
-                <li><strong>Días de uso (frecuencia):</strong> Es <span class="highlight">DISCRETA</span>. (1, 2, 3, 4 o 5 días). No puedes ir 3.14 días.</li>
-            </ol>
-        </div>
-    </div>
-
-     <div class="exercise-container" style="border-left: 5px solid var(--univo-yellow);">
-        <h3>Caso C: Reto Avanzado</h3>
-        <p><em>"Se estudia la ansiedad ante los exámenes. Se aplicará un test psicométrico que da un puntaje final entero del 0 al 100, y además se medirá la temperatura corporal del estudiante al momento del examen."</em></p>
-        
-        <p><strong>Tu análisis:</strong> ¿Qué tipo de variable es el "Puntaje del Test" y la "Temperatura"?</p>
-        <textarea id="caseC_input" placeholder="Escribe tu propuesta aquí..."></textarea>
-        
-        <button onclick="revealCase('caseC')">Comparar con Solución Experta</button>
-        
-        <div id="caseC_feedback" class="feedback">
-            <h4>Retroalimentación:</h4>
-            <ol>
-                <li><strong>Puntaje del Test (0-100):</strong> Es <span class="highlight">DISCRETA</span>. Aunque mide un constructo psicológico, la escala arroja saltos enteros. (Nota: A veces se tratan como continuas en análisis avanzados, pero su naturaleza es discreta).</li>
-                <li><strong>Temperatura corporal:</strong> Es <span class="highlight">CONTINUA</span>. (Ej. 36.5°C, 36.54°C). Siempre se puede medir con más precisión.</li>
-            </ol>
+    <div class="exercise-box">
+        <h3>Caso A: Control de Calidad (Ingeniería)</h3>
+        <p>En una fábrica de bebidas, se revisan las botellas. Se anotan dos cosas: <strong>1)</strong> Cuántas botellas salen defectuosas por lote y <strong>2)</strong> El volumen exacto de líquido (ml) en cada botella.</p>
+        <p><em>Clasifica ambas variables.</em></p>
+        <textarea id="caseA_input" placeholder="Escribe tu análisis aquí..."></textarea>
+        <button onclick="revealAnswer('caseA')">Ver Solución</button>
+        <div id="caseA_feed" class="feedback">
+            <strong>Solución:</strong><br>
+            1. Botellas defectuosas: <strong>DISCRETA</strong> (Es un conteo: 0, 1, 5 botellas).<br>
+            2. Volumen de líquido: <strong>CONTINUA</strong> (Es medición: 499.5 ml, 500.1 ml).
         </div>
     </div>
 
-    <div class="footer">
-        <p>Departamento de Matemáticas y Estadística - UNIVO &copy; 2026</p>
+    <div class="exercise-box">
+        <h3>Caso B: Salud Pública (Nutrición)</h3>
+        <p>Para un estudio de obesidad en San Miguel, se registra: el número de comidas que la persona hace al día y su Índice de Masa Corporal (IMC).</p>
+        <textarea id="caseB_input" placeholder="Escribe tu análisis aquí..."></textarea>
+        <button onclick="revealAnswer('caseB')">Ver Solución</button>
+        <div id="caseB_feed" class="feedback">
+            <strong>Solución:</strong><br>
+            1. Número de comidas: <strong>DISCRETA</strong> (Desayuno, Almuerzo, Cena = 3).<br>
+            2. IMC: <strong>CONTINUA</strong> (Resultado de una fórmula con peso y talla, ej: 24.5).
+        </div>
+    </div>
+
+    <div class="exercise-box">
+        <h3>Caso C: Marketing Digital</h3>
+        <p>Un Community Manager mide: Cuánto tiempo pasa un usuario viendo un video de TikTok y cuántos comentarios deja.</p>
+        <textarea id="caseC_input" placeholder="Escribe tu análisis aquí..."></textarea>
+        <button onclick="revealAnswer('caseC')">Ver Solución</button>
+        <div id="caseC_feed" class="feedback">
+            <strong>Solución:</strong><br>
+            1. Tiempo de visualización: <strong>CONTINUA</strong> (Tiempo = magnitud física).<br>
+            2. Cantidad de comentarios: <strong>DISCRETA</strong> (Conteo simple).
+        </div>
+    </div>
+
+    <h2>FASE 3: Detector de Errores (30 Puntos)</h2>
+    <p>Un estudiante de primer año hizo estas afirmaciones. Explica por qué están MAL.</p>
+
+    <div class="exercise-box" style="border-left: 5px solid #dc3545;">
+        <p><strong>Afirmación Errónea 1:</strong> "La variable <em>Edad</em> es Discreta, porque yo tengo 20 años, no 20.5 años".</p>
+        <textarea id="err1_input" placeholder="¿Por qué está equivocado el estudiante?"></textarea>
+        <button onclick="revealError('err1')">Ver Corrección</button>
+        <div id="err1_feed" class="feedback">
+            <strong>Corrección:</strong> La edad es <strong>tiempo</strong> transcurrido desde el nacimiento, por lo tanto es <strong>CONTINUA</strong>. Que nosotros la reportemos en números enteros por conveniencia social no cambia su naturaleza matemática. Tienes 20 años, 3 meses, 2 días, 5 horas...
+        </div>
+    </div>
+
+    <div class="exercise-box" style="border-left: 5px solid #dc3545;">
+        <p><strong>Afirmación Errónea 2:</strong> "El dinero es Continuo porque puedo tener $10.50".</p>
+        <textarea id="err2_input" placeholder="Esta es difícil. ¿Cuál es el matiz técnico?"></textarea>
+        <button onclick="revealError('err2')">Ver Corrección</button>
+        <div id="err2_feed" class="feedback">
+            <strong>Corrección:</strong> Técnicamente, el dinero es <strong>DISCRETA</strong> porque no puedes tener menos de un centavo ($0.01). Hay saltos finitos. <br><em>Sin embargo</em>, en estadística avanzada y economía, a menudo se trata como continua para facilitar los cálculos porque los saltos son muy pequeños.
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px;">
+        <p>Has completado el taller práctico.</p>
+        <button onclick="window.print()" style="background: var(--univo-dark); color: white;">Guardar evidencia (Imprimir en PDF)</button>
     </div>
 
 </div>
 
 <script>
-    // Lógica para el Calentamiento
-    function checkWarmup(id, correctAnswer) {
-        const select = document.getElementById('q' + id);
-        const feedbackDiv = document.getElementById('feed' + id);
-        const selectedValue = select.value;
+    let totalScore = 0;
+    let phase1Done = false;
 
-        feedbackDiv.style.display = 'block';
-        feedbackDiv.className = 'feedback'; // Reset classes
+    // --- LÓGICA FASE 1 (MARATÓN) ---
+    function gradePhase1() {
+        if (phase1Done) return; // Evitar puntos dobles
 
-        if (selectedValue === correctAnswer) {
-            feedbackDiv.classList.add('correct');
-            feedbackDiv.innerHTML = "<strong>¡Correcto!</strong> " + getExplanation(id);
-        } else if (selectedValue === "") {
-            feedbackDiv.innerHTML = "Por favor selecciona una opción.";
-            feedbackDiv.style.backgroundColor = "#fff3cd";
-            feedbackDiv.style.borderColor = "#ffeeba";
-            feedbackDiv.style.color = "#856404";
-        } else {
-            feedbackDiv.classList.add('incorrect');
-            feedbackDiv.innerHTML = "<strong>Inténtalo de nuevo.</strong> Piensa: " + getHint(id);
+        const answers = {
+            q1: 'D', q2: 'C', q3: 'D', q4: 'C', q5: 'C',
+            q6: 'D', q7: 'C', q8: 'D', q9: 'C', q10: 'D'
+        };
+
+        let score = 0;
+        let correctCount = 0;
+        const form = document.getElementById('quizForm');
+        
+        // Revisar cada respuesta
+        for (let key in answers) {
+            const selected = form.elements[key].value;
+            // Buscar la fila para darle color
+            const row = form.elements[key][0].closest('tr');
+
+            if (selected === answers[key]) {
+                score += 4; // 4 puntos x 10 preguntas = 40
+                correctCount++;
+                row.style.backgroundColor = "rgba(40, 167, 69, 0.1)"; // Verde suave
+            } else {
+                row.style.backgroundColor = "rgba(220, 53, 69, 0.1)"; // Rojo suave
+            }
         }
+
+        updateScore(score);
+        phase1Done = true;
+
+        const feed = document.getElementById('feedbackP1');
+        feed.style.display = 'block';
+        feed.innerHTML = `<strong>Resultados Fase 1:</strong> Tuviste ${correctCount} de 10 correctas. (+${score} pts)`;
     }
 
-    function getExplanation(id) {
-        if(id === 1) return "Los estudiantes se cuentan uno por uno (enteros). No existe medio estudiante.";
-        if(id === 2) return "El nivel de cortisol es una medida química que puede tener decimales infinitos dependiendo del microscopio.";
-    }
+    // --- LÓGICA FASES 2 Y 3 (REVELAR) ---
+    // Usamos un sistema simple: Si el usuario escribe algo, le damos los puntos por participación.
+    
+    function revealAnswer(id) {
+        const input = document.getElementById(id + '_input');
+        const feed = document.getElementById(id + '_feed');
+        const btn = event.target;
 
-    function getHint(id) {
-        if(id === 1) return "¿Puedes tener 3.5 estudiantes? ¿Es un conteo o una medición?";
-        if(id === 2) return "¿Es algo que cuentas con los dedos o algo que mides con un instrumento de precisión?";
-    }
-
-    // Lógica para los Casos de Estudio (Revelar respuesta)
-    function revealCase(caseId) {
-        const feedbackDiv = document.getElementById(caseId + '_feedback');
-        const userText = document.getElementById(caseId + '_input').value;
-
-        if (userText.length < 5) {
-            alert("Por favor intenta escribir tu propuesta antes de ver la solución. El aprendizaje ocurre al intentarlo.");
+        if (input.value.length < 5) {
+            alert("⚠️ Por favor intenta resolver el ejercicio antes de ver la solución.");
             return;
         }
 
-        feedbackDiv.style.display = 'block';
-        // Efecto visual suave
-        feedbackDiv.style.opacity = 0;
-        let op = 0.1;
-        let timer = setInterval(function () {
-            if (op >= 1){
+        if (feed.style.display !== 'block') {
+            feed.style.display = 'block';
+            updateScore(10); // 10 puntos por cada caso analizado
+            btn.disabled = true;
+            btn.innerText = "Completado";
+            btn.style.backgroundColor = "#ccc";
+        }
+    }
+
+    function revealError(id) {
+        const input = document.getElementById(id + '_input');
+        const feed = document.getElementById(id + '_feed');
+        const btn = event.target;
+
+        if (input.value.length < 5) {
+            alert("⚠️ Escribe tu argumento antes de ver la corrección.");
+            return;
+        }
+
+        if (feed.style.display !== 'block') {
+            feed.style.display = 'block';
+            updateScore(15); // 15 puntos por cada error detectado (son más difíciles)
+            btn.disabled = true;
+            btn.innerText = "Completado";
+            btn.style.backgroundColor = "#ccc";
+        }
+    }
+
+    // --- ACTUALIZAR PUNTAJE GLOBAL ---
+    function updateScore(points) {
+        totalScore += points;
+        const scoreSpan = document.getElementById('currentScore');
+        
+        // Animación de conteo
+        let start = parseInt(scoreSpan.innerText);
+        let end = totalScore;
+        let duration = 1000;
+        let range = end - start;
+        let current = start;
+        let increment = end > start ? 1 : -1;
+        let stepTime = Math.abs(Math.floor(duration / range));
+        
+        let timer = setInterval(function() {
+            current += increment;
+            scoreSpan.innerText = current;
+            if (current == end) {
                 clearInterval(timer);
             }
-            feedbackDiv.style.opacity = op;
-            feedbackDiv.style.filter = 'alpha(opacity=' + op * 100 + ")";
-            op += op * 0.1;
-        }, 10);
+        }, stepTime > 0 ? stepTime : 10);
     }
+
 </script>
 
 </body>
