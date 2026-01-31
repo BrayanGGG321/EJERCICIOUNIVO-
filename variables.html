@@ -4,24 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bootcamp IO: Formulación de Problemas | UNIVO</title>
-
-    <!-- MathJax: renderizado de LaTeX -->
-    <script>
-    window.MathJax = {
-      tex: {
-        // Permite $...$ e $$...$$ y \(..\) \[..\]
-        inlineMath: [['$','$'], ['\\(','\\)']],
-        displayMath: [['$$','$$'], ['\\[','\\]']],
-        processEscapes: true
-      },
-      options: {
-        // No procesar dentro de estas etiquetas (evita romper <code>, <pre>, <textarea>, etc.)
-        skipHtmlTags: ['script','noscript','style','textarea','pre','code']
-      }
-    };
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <style>
         /* --- CORE THEME: UNIVO 2026 --- */
         :root {
@@ -29,7 +11,7 @@
             --u-dark: #05080D;
             --u-gray: #E7E7E7;
             --u-white: #FFFFFF;
-            --u-blue-accent: #004d99; /* Acento para IO */
+            --u-blue-accent: #004d99;
             --u-success: #28a745;
             --u-error: #dc3545;
         }
@@ -47,7 +29,7 @@
             overflow: hidden;
         }
 
-        /* --- LAYOUT: SIDEBAR & MAIN --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: 280px;
             background-color: var(--u-dark);
@@ -100,6 +82,7 @@
             border-top: 1px solid #333;
         }
 
+        /* --- MAIN CONTENT --- */
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -107,7 +90,6 @@
             background-color: #f4f6f8;
         }
 
-        /* --- COMPONENTS --- */
         .container { max-width: 900px; margin: 0 auto; }
 
         .card {
@@ -124,7 +106,6 @@
         h1, h2, h3 { color: var(--u-dark); }
         .highlight { background-color: rgba(249, 180, 16, 0.3); padding: 0 5px; border-radius: 3px; }
 
-        /* Forms & Inputs */
         .question-row {
             padding: 15px;
             border-bottom: 1px solid #eee;
@@ -139,8 +120,10 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 0.95em;
+            width: 100%;
         }
-        textarea { width: 100%; height: 80px; margin-top: 10px; }
+        select { width: auto; }
+        textarea { height: 80px; margin-top: 10px; }
 
         .btn-action {
             background-color: var(--u-yellow);
@@ -155,8 +138,8 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .btn-action:hover { background-color: #e0a20e; }
+        .btn-disabled { background-color: #ccc; cursor: default; transform: none; box-shadow: none; }
 
-        /* Feedback System */
         .feedback-box {
             margin-top: 10px;
             padding: 10px;
@@ -167,11 +150,9 @@
         .fb-correct { background-color: #d4edda; color: #155724; }
         .fb-error { background-color: #f8d7da; color: #721c24; }
 
-        /* Progress Bar */
         .progress-track { width: 100%; height: 10px; background: #333; border-radius: 5px; margin-top: 10px; }
         .progress-fill { height: 100%; background: var(--u-yellow); width: 0%; border-radius: 5px; transition: width 0.5s; }
 
-        /* Utility */
         .hidden { display: none; }
         .badge {
             display: inline-block; padding: 3px 8px; font-size: 0.75em; 
@@ -189,7 +170,7 @@
     <div class="nav-menu">
         <button class="nav-btn active" onclick="showSection('intro')">1. Introducción y Teoría</button>
         <button class="nav-btn" onclick="showSection('level1')">2. Drill: Clasificación <span id="badge1" class="badge">0/20</span></button>
-        <button class="nav-btn" onclick="showSection('level2')">3. Lab: Depuración <span id="badge2" class="badge">0/10</span></button>
+        <button class="nav-btn" onclick="showSection('level2')">3. Lab: Depuración <span id="badge2" class="badge">0/5</span></button>
         <button class="nav-btn" onclick="showSection('level3')">4. Casos de Negocios <span id="badge3" class="badge">0/5</span></button>
         <button class="nav-btn" onclick="showSection('final')">5. Certificación Final</button>
         <button class="nav-btn" onclick="resetProgress()" style="color: #dc3545; margin-top: 20px;">⚠️ Reiniciar Todo</button>
@@ -206,24 +187,24 @@
     <div id="intro" class="container section">
         <div class="card theory">
             <h1>Módulo Intensivo: El Arte de Plantear Problemas</h1>
-            <p>Bienvenido al Bootcamp de Formulación de Investigación de Operaciones. Este módulo está diseñado para durar aproximadamente <strong>4 horas</strong>.</p>
-            <p><strong>Instrucciones:</strong> Tu progreso se guardará automáticamente en este navegador. No necesitas terminar todo en una sola sesión.</p>
+            <p>Bienvenido al Bootcamp de Formulación de Investigación de Operaciones. Duración estimada: <strong>4 horas</strong>.</p>
+            <p><strong>Nota:</strong> Tu progreso se guarda automáticamente.</p>
         </div>
         
         <div class="card theory">
-            <h3>📖 Lectura Obligatoria: La Anatomía de una Variable</h3>
-            <p>En IO aplicada a negocios, una variable ($x_j$) no es un objeto, es una <strong>decisión cuantificable</strong>. Debes definirla con tres apellidos:</p>
+            <h3>📖 Lectura: La Anatomía de una Variable</h3>
+            <p>En IO aplicada a negocios, una variable ($x_j$) es una <strong>decisión cuantificable</strong>:</p>
             <ol>
-                <li><strong>¿Qué es?</strong> (Cantidad, Porcentaje, Decisión lógica).</li>
-                <li><strong>¿De qué?</strong> (Sillas Modelo A, Inversión en Bonos, Turno Nocturno).</li>
-                <li><strong>¿Unidad de tiempo/lugar?</strong> (Por semana, Por día, En la planta 1).</li>
+                <li><strong>¿Qué es?</strong> (Cantidad, Porcentaje, Decisión).</li>
+                <li><strong>¿De qué?</strong> (Sillas Modelo A, Inversión).</li>
+                <li><strong>¿Unidad?</strong> (Por semana, Por día).</li>
             </ol>
             <hr>
-            <h4>Tipos de Variables en Negocios:</h4>
+            <h4>Tipos de Variables:</h4>
             <ul>
-                <li><strong>Continuas (L):</strong> Dinero, Líquidos, Tiempo, Porcentajes, Kilos. Admiten decimales.</li>
-                <li><strong>Enteras (I):</strong> Personas, Vehículos, Máquinas, Contratos, Proyectos. No admiten decimales.</li>
-                <li><strong>Binarias (B):</strong> Decisiones de "Sí/No". (1 = Construir, 0 = No construir).</li>
+                <li><strong>Continuas (L):</strong> Dinero, Líquidos, Tiempo. (Admiten decimales).</li>
+                <li><strong>Enteras (I):</strong> Personas, Vehículos, Proyectos. (No admiten decimales).</li>
+                <li><strong>Binarias (B):</strong> Decisiones "Sí/No". (1 o 0).</li>
             </ul>
         </div>
         <button class="btn-action" onclick="showSection('level1')">Comenzar Entrenamiento</button>
@@ -232,8 +213,7 @@
     <div id="level1" class="container section hidden">
         <div class="card practice">
             <h2>Nivel 1: Clasificación Rápida (The Drill)</h2>
-            <p>Clasifica las siguientes 20 variables operativas. Debes acertar todas para dominar el nivel.</p>
-            <p><em>C = Continua | E = Entera (Discreta) | B = Binaria</em></p>
+            <p>Clasifica las 20 variables. (C = Continua, E = Entera, B = Binaria)</p>
             <div id="drill-container"></div>
             <button class="btn-action" onclick="checkLevel1()">Verificar Nivel 1</button>
         </div>
@@ -242,7 +222,7 @@
     <div id="level2" class="container section hidden">
         <div class="card practice">
             <h2>Nivel 2: Laboratorio de Depuración</h2>
-            <p>Un analista junior ha formulado mal las siguientes variables. Tu trabajo es indicar <strong>POR QUÉ</strong> está mal y seleccionar la corrección.</p>
+            <p>Indica cuál es el error en los planteamientos del analista junior.</p>
             <div id="debug-container"></div>
             <button class="btn-action" onclick="checkLevel2()">Verificar Correcciones</button>
         </div>
@@ -251,7 +231,7 @@
     <div id="level3" class="container section hidden">
         <div class="card practice">
             <h2>Nivel 3: Casos de Negocio (Business Cases)</h2>
-            <p>Lee los escenarios complejos. Redacta las variables de decisión. (Este módulo requiere auto-evaluación honesta).</p>
+            <p>Redacta las variables de decisión para los siguientes escenarios.</p>
             <div id="cases-container"></div>
         </div>
     </div>
@@ -261,8 +241,7 @@
             <h1>Certificación de Competencias</h1>
             <p>Has completado el recorrido de entrenamiento.</p>
             <div style="font-size: 3em; margin: 20px;">🏆</div>
-            <p>Puntaje Final Acumulado: <strong id="finalScoreDisplay">0</strong> / 100</p>
-            <p>Imprime esta pantalla como evidencia de tu trabajo de 4 horas.</p>
+            <p>Puntaje Final Acumulado: <strong id="finalScoreDisplay">0</strong>%</p>
             <button class="btn-action" onclick="window.print()">Imprimir Evidencia PDF</button>
         </div>
     </div>
@@ -270,7 +249,7 @@
 </div>
 
 <script>
-    // --- DATABASE DE PREGUNTAS (EXTENSA) ---
+    // --- DATOS ---
     const drillQuestions = [
         { q: "Número de camiones a asignar a la Ruta 1.", type: "E" },
         { q: "Litros de leche utilizados para queso fresco.", type: "C" },
@@ -280,7 +259,7 @@
         { q: "Tiempo exacto de procesamiento en máquina A.", type: "C" },
         { q: "Número de bonos del tesoro a comprar.", type: "E" },
         { q: "Asignación de un proyecto al equipo A (Sí/No).", type: "B" },
-        { q: "Kigramos de harina en inventario.", type: "C" },
+        { q: "Kilogramos de harina en inventario.", type: "C" },
         { q: "Cantidad de escritorios a fabricar.", type: "E" },
         { q: "Dinero ($) gastado en publicidad.", type: "C" },
         { q: "Número de vuelos comerciales diarios.", type: "E" },
@@ -289,87 +268,84 @@
         { q: "Cantidad de pasajeros en un bus.", type: "E" },
         { q: "Temperatura del horno industrial.", type: "C" },
         { q: "Número de acciones a vender.", type: "E" },
-        { q: "Selección de la ruta más corta (Binaria en grafos).", type: "B" },
-        { q: "Horas hombre requeridas para una tarea.", type: "C" }, // Truco: las horas se fraccionan
+        { q: "Selección de la ruta más corta (Binaria).", type: "B" },
+        { q: "Horas hombre requeridas.", type: "C" },
         { q: "Cantidad de contenedores embarcados.", type: "E" }
     ];
 
     const debugQuestions = [
         { 
-            context: "Fábrica de Zapatos", 
-            bad: "x = zapatos", 
-            correction: "x debe ser 'Cantidad de pares de zapatos a producir por semana'. Falta unidad y tiempo.",
-            options: ["Es correcta", "Falta definir cantidad y tiempo", "Debería ser Binaria"] 
+            context: "Fábrica de Zapatos", bad: "x = zapatos", 
+            options: ["Es correcta", "Falta definir cantidad y tiempo", "Debería ser Binaria"],
+            ans: "Falta definir cantidad y tiempo"
         },
         { 
-            context: "Inversión", 
-            bad: "x = Ganancia", 
-            correction: "La ganancia es una CONSECUENCIA (Función Objetivo), no una DECISIÓN. La decisión es cuánto invertir.",
-            options: ["x es una variable de salida, no de entrada", "x debería ser costos", "Está bien"] 
+            context: "Inversión", bad: "x = Ganancia", 
+            options: ["x es una variable de salida, no de entrada", "x debería ser costos", "Está bien"],
+            ans: "x es una variable de salida, no de entrada"
         },
         { 
-            context: "Transporte", 
-            bad: "x = Camión de placa AB-123", 
-            correction: "No modelamos objetos específicos, sino cantidades o decisiones sobre ellos.",
-            options: ["Es muy específico", "Está perfecto", "Falta el color del camión"] 
+            context: "Transporte", bad: "x = Camión de placa AB-123", 
+            options: ["Es muy específico", "Está perfecto", "Falta el color del camión"],
+            ans: "Es muy específico"
         },
         { 
-            context: "Selección de Personal", 
-            bad: "x = Número de gerentes (donde x puede ser 2.5)", 
-            correction: "Error de tipo: Las personas deben ser variables Enteras, no Continuas.",
-            options: ["Debe ser Entera", "Debe ser Continua", "Debe ser Binaria"] 
+            context: "Selección de Personal", bad: "x = Número de gerentes (donde x = 2.5)", 
+            options: ["Debe ser Entera", "Debe ser Continua", "Debe ser Binaria"],
+            ans: "Debe ser Entera"
         },
         { 
-            context: "Producción", 
-            bad: "x = Costo de materia prima", 
-            correction: "El costo es un PARAMETRO (dato conocido), no una variable.",
-            options: ["Es un Parámetro, no Variable", "Es Binaria", "Es una Restricción"] 
+            context: "Producción", bad: "x = Costo de materia prima", 
+            options: ["Es un Parámetro, no Variable", "Es Binaria", "Es una Restricción"],
+            ans: "Es un Parámetro, no Variable"
         }
-        // Se pueden agregar más aquí para llegar a 10
     ];
 
     const businessCases = [
         {
             title: "Caso 1: Mix de Medios (Marketing)",
-            desc: "Tienes un presupuesto y debes decidir cuántos anuncios poner en TV, Radio y Redes Sociales. Los anuncios de TV y Radio se compran por 'spot' (unidad entera), pero en Redes Sociales inviertes una cantidad de dinero continua.",
+            desc: "Decidir cuántos anuncios poner en TV, Radio y cuánto invertir en Redes Sociales.",
             solution: "x1: Cantidad de spots en TV (Entera)\nx2: Cantidad de spots en Radio (Entera)\nx3: Dólares a invertir en Redes Sociales (Continua)"
         },
         {
             title: "Caso 2: Problema de la Mochila (Logística)",
-            desc: "Tienes un camión con capacidad limitada de peso. Tienes 5 tipos de cajas posibles para cargar. Debes decidir cuántas cajas de cada tipo llevar para maximizar el valor de la carga.",
-            solution: "xi: Cantidad de cajas del tipo 'i' a cargar (donde i = 1,2,3,4,5).\nTipo: Enteras Positivas."
+            desc: "Decidir cuántas cajas de 5 tipos diferentes llevar en un camión para maximizar valor.",
+            solution: "xi: Cantidad de cajas del tipo 'i' a cargar.\nTipo: Enteras Positivas."
         },
         {
-            title: "Caso 3: Localización de Plantas (Estratégico)",
-            desc: "La UNIVO quiere abrir nuevos campus. Tiene 4 ubicaciones posibles: San Miguel, Usulután, La Unión, Morazán. Solo tiene presupuesto para abrir 2. Debe decidir cuáles abrir.",
-            solution: "yj: Variable Binaria (1 si se abre en la ubicación j, 0 si no).\nRestricción lógica: y1 + y2 + y3 + y4 = 2"
+            title: "Caso 3: Localización (Estratégico)",
+            desc: "Elegir 2 ubicaciones de 4 posibles (San Miguel, Usulután, La Unión, Morazán).",
+            solution: "yj: Variable Binaria (1 si se abre en la ubicación j, 0 si no).\nRestricción: Suma de yj = 2"
         },
         {
-            title: "Caso 4: Dieta Hospitalaria (Nutrición/Costos)",
-            desc: "Un hospital debe crear una dieta mezclando Pollo, Arroz y Verduras. Debe cumplir requerimientos de vitaminas. Se busca minimizar costo.",
-            solution: "xi: Gramos (o Kilos) del ingrediente 'i' a incluir en la mezcla.\nTipo: Continua (puedes servir 100.5 gramos)."
+            title: "Caso 4: Dieta (Nutrición/Costos)",
+            desc: "Mezclar Pollo, Arroz y Verduras para cumplir vitaminas minimizando costo.",
+            solution: "xi: Gramos del ingrediente 'i' en la mezcla.\nTipo: Continua."
         },
         {
-            title: "Caso 5: Asignación de Tareas (RRHH)",
-            desc: "Tienes 3 empleados y 3 tareas. Cada empleado debe hacer exactamente una tarea. Decidir quién hace qué.",
-            solution: "xij: Variable Binaria. 1 si el empleado 'i' hace la tarea 'j', 0 si no."
+            title: "Caso 5: Asignación (RRHH)",
+            desc: "3 empleados, 3 tareas. Cada uno hace una.",
+            solution: "xij: Variable Binaria. 1 si el empleado 'i' hace la tarea 'j'."
         }
     ];
 
-    // --- STATE MANAGEMENT ---
+    // --- ESTADO (State) ---
     let state = {
         l1_answers: {},
         l2_answers: {},
-        l3_completed: [],
-        score: 0
+        l3_completed: [], // Guarda los índices completados
+        l3_text: {} // NUEVO: Guarda el texto escrito por el alumno
     };
 
-    // --- INIT ---
+    // --- INICIALIZACIÓN ---
     window.onload = function() {
-        loadProgress();
+        // 1. PRIMERO dibujamos la interfaz (Importante para que existan los elementos)
         renderLevel1();
         renderLevel2();
         renderLevel3();
+        
+        // 2. LUEGO cargamos los datos guardados
+        loadProgress();
         updateUI();
     };
 
@@ -377,20 +353,24 @@
         document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        // Buscar el botón correspondiente y activarlo (lógica simplificada)
-        event.target.classList.add('active');
+        // Marcar activo en sidebar (simple)
+        const buttons = document.querySelectorAll('.nav-btn');
+        if(id === 'intro') buttons[0].classList.add('active');
+        if(id === 'level1') buttons[1].classList.add('active');
+        if(id === 'level2') buttons[2].classList.add('active');
+        if(id === 'level3') buttons[3].classList.add('active');
+        if(id === 'final') buttons[4].classList.add('active');
         window.scrollTo(0,0);
     }
 
-    // --- RENDERING FUNCTIONS ---
-
+    // --- RENDERING ---
     function renderLevel1() {
         const container = document.getElementById('drill-container');
         drillQuestions.forEach((item, index) => {
             container.innerHTML += `
                 <div class="question-row">
-                    <span>${index + 1}. ${item.q}</span>
-                    <select id="l1_q${index}" onchange="saveL1(${index}, this.value)">
+                    <span style="flex:1">${index + 1}. ${item.q}</span>
+                    <select id="l1_q${index}" onchange="saveL1(${index}, this.value)" style="flex:0 0 150px">
                         <option value="">Seleccionar...</option>
                         <option value="C">Continua</option>
                         <option value="E">Entera</option>
@@ -405,29 +385,11 @@
     function renderLevel2() {
         const container = document.getElementById('debug-container');
         debugQuestions.forEach((item, index) => {
-            let opts = "";
-            // Mezclar opciones simple
-            let allOpts = [...item.options]; // En un caso real, habría que aleatorizarlas o definir cuál es la correcta por índice
-            // Para simplificar este demo, asumiremos que la Opción 0 es la correcta en el array 'options' del objeto, 
-            // pero vamos a renderizar botones.
-            
-            // *Corrección para la lógica del demo*: Vamos a asumir que la respuesta correcta es la que coincide lógicamente.
-            // En este código simplificado, definiremos la correcta como la opción 0 o 1 según el caso.
-            // Para hacerlo robusto: Vamos a hacer que el usuario ELIJA la razón.
-            
-            // Re-mapeo rápido para el ejemplo:
-            // Q1 Correct: "Falta definir..." (Index 1)
-            // Q2 Correct: "x es variable de salida..." (Index 0)
-            // Q3 Correct: "Es muy específico" (Index 0)
-            // Q4 Correct: "Debe ser Entera" (Index 0)
-            // Q5 Correct: "Es un Parámetro..." (Index 0)
-            
             container.innerHTML += `
                 <div class="card" style="background:#f9f9f9;">
                     <h4>${index+1}. Contexto: ${item.context}</h4>
                     <p class="highlight" style="display:inline-block;">Definición Mala: "${item.bad}"</p>
-                    <p>¿Cuál es el error?</p>
-                    <select id="l2_q${index}" style="width:100%">
+                    <select id="l2_q${index}" style="width:100%; margin-top:10px;">
                         <option value="">-- Diagnóstico --</option>
                         ${item.options.map(o => `<option value="${o}">${o}</option>`).join('')}
                     </select>
@@ -444,19 +406,18 @@
                 <div class="card" style="border-left: 5px solid var(--u-blue-accent);">
                     <h3>${item.title}</h3>
                     <p>${item.desc}</p>
-                    <textarea id="case_${index}" placeholder="Define las variables (x1, x2...)..."></textarea>
-                    <button class="btn-action" style="padding: 5px 15px; font-size: 0.8em; margin-top:5px;" onclick="revealCase(${index})">Autoevaluar</button>
+                    <textarea id="case_${index}" placeholder="Define las variables aquí..." oninput="saveL3Text(${index})"></textarea>
+                    <button id="btn_case_${index}" class="btn-action" style="padding: 8px 20px; font-size: 0.9em;" onclick="revealCase(${index})">Autoevaluar</button>
                     <div id="case_fb_${index}" class="feedback-box" style="background: #e2e6ea; border: 1px solid #cbd5e0;">
                         <strong>Solución Experta:</strong><br>
-                        <pre style="white-space: pre-wrap;">${item.solution}</pre>
-                        <p><em>Si tu respuesta se parece, date por satisfecho.</em></p>
+                        <pre style="white-space: pre-wrap; font-family:inherit;">${item.solution}</pre>
                     </div>
                 </div>
             `;
         });
     }
 
-    // --- LOGIC CHECKS ---
+    // --- LÓGICA DE VALIDACIÓN ---
 
     function checkLevel1() {
         let correctCount = 0;
@@ -471,108 +432,137 @@
                 fb.innerText = "¡Correcto!";
             } else {
                 fb.className = 'feedback-box fb-error';
-                fb.innerText = `Incorrecto. Era ${item.type === 'C' ? 'Continua' : item.type === 'E' ? 'Entera' : 'Binaria'}.`;
+                fb.innerText = `Incorrecto. Correcta: ${item.type === 'C' ? 'Continua' : item.type === 'E' ? 'Entera' : 'Binaria'}.`;
             }
         });
-        
-        // Guardar progreso
-        updateGlobalProgress(20, correctCount, 'badge1'); // Peso 20%
+        saveProgress();
+        updateUI();
     }
 
     function checkLevel2() {
-        // Respuestas correctas hardcoded para el demo
-        const answers = [
-            "Falta definir cantidad y tiempo",
-            "x es una variable de salida, no de entrada",
-            "Es muy específico",
-            "Debe ser Entera",
-            "Es un Parámetro, no Variable"
-        ];
-
         let correctCount = 0;
-        answers.forEach((ans, index) => {
+        debugQuestions.forEach((item, index) => {
             const val = document.getElementById(`l2_q${index}`).value;
             const fb = document.getElementById(`l2_fb${index}`);
             fb.style.display = 'block';
 
-            if(val === ans) {
+            if(val === item.ans) {
                 correctCount++;
                 fb.className = 'feedback-box fb-correct';
                 fb.innerText = "Diagnóstico Correcto.";
             } else {
                 fb.className = 'feedback-box fb-error';
-                fb.innerText = `Error. El problema era: ${ans}`;
+                fb.innerText = `Error. La razón es: ${item.ans}`;
             }
         });
-
-        updateGlobalProgress(30, correctCount * 2, 'badge2'); // Peso 30%
-    }
-
-    function revealCase(index) {
-        document.getElementById(`case_fb_${index}`).style.display = 'block';
-        // Simplemente por revelar y participar sumamos al progreso
-        if(!state.l3_completed.includes(index)){
-            state.l3_completed.push(index);
-            updateGlobalProgress(50, state.l3_completed.length * 10, 'badge3'); // Peso 50%
-        }
-    }
-
-    // --- UTILITIES & STORAGE ---
-
-    function saveL1(index, val) {
-        state.l1_answers[index] = val;
-        saveProgress();
-    }
-
-    function updateGlobalProgress(weight, scoreRaw, badgeId) {
-        // Simplificación: Calculamos un score global basado en interacciones
-        // Este es un sistema básico de puntaje
-        state.score += 5; // Sumar puntos arbitrarios por interacción para el demo
+        // Guardamos las respuestas de L2 también para que no se pierdan al recargar (aunque no se pedía explícito, es mejor)
+        debugQuestions.forEach((_, idx) => {
+             state.l2_answers[idx] = document.getElementById(`l2_q${idx}`).value;
+        });
         saveProgress();
         updateUI();
     }
 
-    function updateUI() {
-        // Actualizar badges
-        document.getElementById('badge1').innerText = Object.keys(state.l1_answers).length + "/20";
-        document.getElementById('badge3').innerText = state.l3_completed.length + "/5";
+    function revealCase(index) {
+        document.getElementById(`case_fb_${index}`).style.display = 'block';
         
-        // Actualizar barra
-        // Hacemos un cálculo aproximado de completitud
-        let totalSteps = 20 + 5 + 5; // Drill + Debug + Cases
-        let currentSteps = Object.keys(state.l1_answers).length + state.l3_completed.length; 
-        
-        let pct = Math.min(100, Math.floor((currentSteps / totalSteps) * 100));
-        
-        document.getElementById('globalProgress').style.width = pct + "%";
-        document.getElementById('percentText').innerText = pct + "%";
-        document.getElementById('finalScoreDisplay').innerText = pct; // Usamos % como score para simplificar
-    }
+        // Bloquear botón visualmente para indicar completado
+        const btn = document.getElementById(`btn_case_${index}`);
+        btn.innerText = "Completado";
+        btn.classList.add('btn-disabled');
 
-    function saveProgress() {
-        localStorage.setItem('univo_io_bootcamp', JSON.stringify(state));
-    }
-
-    function loadProgress() {
-        const saved = localStorage.getItem('univo_io_bootcamp');
-        if(saved) {
-            state = JSON.parse(saved);
-            // Restaurar inputs L1
-            for(const [idx, val] of Object.entries(state.l1_answers)){
-                let el = document.getElementById(`l1_q${idx}`);
-                if(el) el.value = val;
-            }
-            // Restaurar L3 visualmente
-            state.l3_completed.forEach(idx => {
-                let el = document.getElementById(`case_fb_${idx}`);
-                if(el) el.style.display = 'block';
-            });
+        if(!state.l3_completed.includes(index)){
+            state.l3_completed.push(index);
+            saveProgress();
+            updateUI();
         }
     }
 
+    // --- ALMACENAMIENTO Y CARGA ---
+
+    function saveL1(index, val) {
+        state.l1_answers[index] = val;
+        saveProgress();
+        updateUI();
+    }
+
+    function saveL3Text(index) {
+        // Guardar lo que escribe el usuario en tiempo real
+        const text = document.getElementById(`case_${index}`).value;
+        state.l3_text[index] = text;
+        saveProgress();
+    }
+
+    function saveProgress() {
+        localStorage.setItem('univo_io_bootcamp_v2', JSON.stringify(state));
+    }
+
+    function loadProgress() {
+        const saved = localStorage.getItem('univo_io_bootcamp_v2');
+        if(saved) {
+            state = JSON.parse(saved);
+            
+            // Restaurar L1
+            for(const [idx, val] of Object.entries(state.l1_answers || {})){
+                let el = document.getElementById(`l1_q${idx}`);
+                if(el) el.value = val;
+            }
+
+            // Restaurar L2 (si se validó antes)
+            for(const [idx, val] of Object.entries(state.l2_answers || {})){
+                let el = document.getElementById(`l2_q${idx}`);
+                if(el) el.value = val;
+            }
+
+            // Restaurar Texto L3 (NUEVO)
+            if(state.l3_text) {
+                for(const [idx, txt] of Object.entries(state.l3_text)){
+                    let el = document.getElementById(`case_${idx}`);
+                    if(el) el.value = txt;
+                }
+            }
+
+            // Restaurar L3 (Visuales de completado)
+            if(state.l3_completed) {
+                state.l3_completed.forEach(idx => {
+                    let fb = document.getElementById(`case_fb_${idx}`);
+                    let btn = document.getElementById(`btn_case_${idx}`);
+                    if(fb) fb.style.display = 'block';
+                    if(btn) {
+                        btn.innerText = "Completado";
+                        btn.classList.add('btn-disabled');
+                    }
+                });
+            }
+        }
+    }
+
+    function updateUI() {
+        // Badges
+        const l1_count = Object.keys(state.l1_answers || {}).length;
+        const l2_count = Object.keys(state.l2_answers || {}).length; // Aproximado
+        const l3_count = (state.l3_completed || []).length;
+
+        document.getElementById('badge1').innerText = l1_count + "/20";
+        document.getElementById('badge2').innerText = (l2_count > 0 ? "Hecho" : "0/5"); 
+        document.getElementById('badge3').innerText = l3_count + "/5";
+        
+        // Barra Global
+        // Pesos: L1=30%, L2=30%, L3=40%
+        let p1 = (l1_count / 20) * 30;
+        let p2 = (l2_count >= 5 ? 1 : 0) * 30; // Simplificado: L2 da puntos si se intentó
+        let p3 = (l3_count / 5) * 40;
+        
+        let totalPct = Math.min(100, Math.floor(p1 + p2 + p3));
+        
+        document.getElementById('globalProgress').style.width = totalPct + "%";
+        document.getElementById('percentText').innerText = totalPct + "%";
+        document.getElementById('finalScoreDisplay').innerText = totalPct;
+    }
+
     function resetProgress() {
-        if(confirm("¿Estás seguro de borrar todo tu progreso?")) {
-            localStorage.removeItem('univo_io_bootcamp');
+        if(confirm("¿Borrar todo el progreso y empezar de cero?")) {
+            localStorage.removeItem('univo_io_bootcamp_v2');
             location.reload();
         }
     }
