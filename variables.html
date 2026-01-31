@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bootcamp IO: Formulación de Problemas | UNIVO</title>
+
+    <!-- MathJax: renderizado de LaTeX -->
+    <script>
+    window.MathJax = {
+      tex: {
+        // Permite $...$ e $$...$$ y \(..\) \[..\]
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        displayMath: [['$$','$$'], ['\\[','\\]']],
+        processEscapes: true
+      },
+      options: {
+        // No procesar dentro de estas etiquetas (evita romper <code>, <pre>, <textarea>, etc.)
+        skipHtmlTags: ['script','noscript','style','textarea','pre','code']
+      }
+    };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         /* --- CORE THEME: UNIVO 2026 --- */
         :root {
