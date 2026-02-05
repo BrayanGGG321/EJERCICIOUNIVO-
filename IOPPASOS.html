@@ -3,43 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Conceptual: Modelado de Problemas</title>
+    <title>Modelado: Teoría y Práctica</title>
     <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --bg-color: #ecf0f1;
+            --accent-color: #e67e22; /* Naranja para destacar acciones */
+            --bg-color: #f4f6f7;
             --text-color: #333;
+            --card-bg: #ffffff;
+            --success: #27ae60;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            color: var(--text-color);
             min-height: 100vh;
         }
 
-        h1 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 40px;
+        /* --- SISTEMA DE NAVEGACIÓN --- */
+        .view {
+            display: none; /* Oculto por defecto */
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
-        /* Contenedor del mapa */
-        .map-container {
+        .view.active {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            max-width: 1000px;
         }
 
-        /* Nivel 1: El Título del Proceso */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2 { color: var(--primary-color); text-align: center; }
+
+        /* --- ESTILOS GENERALES Y BOTONES --- */
+        .btn-nav {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+
+        .btn-nav:hover {
+            transform: scale(1.05);
+            background-color: #d35400;
+        }
+
+        .btn-back {
+            background-color: #95a5a6;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        /* --- VISTA 1: MAPA CONCEPTUAL (Estilos anteriores) --- */
         .root-node {
             background: var(--primary-color);
             color: white;
@@ -48,219 +81,296 @@
             font-size: 1.5rem;
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            position: relative;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             text-align: center;
         }
-
-        /* Línea conectora vertical principal */
-        .root-node::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 50px;
-            background-color: #bdc3c7;
-        }
-
-        /* Nivel 2: Los Pasos */
         .steps-container {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            width: 100%;
+            gap: 20px;
             flex-wrap: wrap;
-            position: relative;
         }
-
-        /* Línea horizontal conectora */
-        .steps-container::before {
-            content: '';
-            position: absolute;
-            top: -20px; /* Ajuste para conectar con la línea vertical */
-            left: 20%;
-            right: 20%;
-            height: 4px;
-            background-color: #bdc3c7;
-            z-index: 0;
-            /* Solo visible en pantallas grandes */
-        }
-        
-        @media (max-width: 768px) {
-            .steps-container::before { display: none; }
-            .root-node::after { display: none; }
-        }
-
-        /* Tarjetas de los pasos */
-        .card {
-            background-color: white;
+        .concept-card {
+            background-color: var(--card-bg);
             border-radius: 10px;
-            width: 300px;
-            min-height: 150px;
+            width: 280px;
+            min-height: 120px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 1;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            transition: transform 0.3s;
         }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
-
-        /* Líneas conectoras individuales para cada tarjeta */
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 4px;
-            height: 30px;
-            background-color: #bdc3c7;
-        }
-        @media (max-width: 768px) {
-            .card::before { display: none; }
-            .card { margin-bottom: 20px; width: 90%; }
-        }
-
-        /* Encabezado de la tarjeta */
-        .card-header {
-            padding: 20px;
+        .concept-card:hover { transform: translateY(-5px); }
+        .concept-header {
+            padding: 15px;
             background-color: var(--secondary-color);
             color: white;
-            text-align: center;
             font-weight: bold;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            text-align: center;
         }
+        .concept-body { padding: 15px; font-size: 0.9rem; }
 
-        /* Color específico para paso 1 */
-        .step-1 .card-header { background-color: #95a5a6; } 
-
-        .icon { font-size: 1.5rem; }
-
-        /* Contenido de la tarjeta */
-        .card-body {
+        /* --- VISTA 2: PROBLEMA INTERACTIVO --- */
+        .problem-box {
+            background-color: #fff;
+            border-left: 5px solid var(--primary-color);
             padding: 20px;
-            color: var(--text-color);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            flex-grow: 1;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            width: 100%;
         }
 
-        /* Interactividad: Detalles ocultos */
-        .details {
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: all 0.5s ease;
-            background-color: #f8f9fa;
-            border-top: 1px solid #eee;
+        .problem-section {
+            background-color: white;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
 
-        /* Clase activa para mostrar detalles */
-        .card.active .details {
-            max-height: 500px; /* Altura suficiente para el texto */
-            opacity: 1;
-            padding: 15px;
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
 
-        .card.active .card-header::after {
-            content: '▲';
-            font-size: 0.8rem;
-            margin-left: 10px;
+        /* Controles Interactivos */
+        .interaction-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, button.action-btn {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button.action-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
         }
         
-        .card:not(.active) .card-header::after {
-            content: '▼';
-            font-size: 0.8rem;
-            margin-left: 10px;
-        }
+        button.action-btn:hover { background-color: #2980b9; }
 
-        .highlight {
+        .result-display {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e8f6f3;
+            border: 1px solid #d4efdf;
+            border-radius: 8px;
+            color: #16a085;
             font-weight: bold;
-            color: var(--secondary-color);
+            display: none; /* Oculto inicialmente */
+            text-align: center;
+            width: 90%;
+            animation: slideDown 0.3s ease;
         }
 
-        .instruction {
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            text-align: center;
-            font-style: italic;
+        .math-eq {
+            font-family: "Courier New", monospace;
+            font-size: 1.2rem;
+            color: #c0392b;
         }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grid para restricciones */
+        .constraints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            width: 100%;
+        }
+
+        .constraint-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        
+        .constraint-item:hover { background: #e9ecef; }
 
     </style>
 </head>
 <body>
 
-    <h1>Pasos para el Modelado de un Problema</h1>
-    <p class="instruction">Haz clic en las tarjetas azules para ver las definiciones detalladas.</p>
-
-    <div class="map-container">
+    <div id="view-map" class="view active">
+        <h1>Modelado de Problemas Matemáticos</h1>
         
-        <div class="root-node">
-            MODELADO MATEMÁTICO
-        </div>
+        <div class="root-node">PASOS PRINCIPALES</div>
 
         <div class="steps-container">
-            
-            <div class="card step-1">
-                <div class="card-header">
-                    <span class="icon">①</span> Definir Variables
-                </div>
-                <div class="card-body">
-                    <p>Este es el <strong>primer paso</strong> fundamental antes de formular cualquier ecuación.</p>
+            <div class="concept-card">
+                <div class="concept-header">1. Definir Variables</div>
+                <div class="concept-body">
+                    Es el primer paso. Identificar qué cantidades desconocidas debemos determinar.
                 </div>
             </div>
 
-            <div class="card" onclick="toggleCard(this)">
-                <div class="card-header">
-                    <span class="icon">②</span> Función Objetivo
-                </div>
-                <div class="card-body">
-                    <p>La meta principal del modelo.</p>
-                    <small>(Clic para ver definición)</small>
-                </div>
-                <div class="details">
-                    <p><span class="highlight">Definición:</span> Es una expresión matemática formulada en términos de variables de decisión.</p>
-                    <p><span class="highlight">Propósito:</span> Maximizar o minimizar algún criterio (costos, beneficios, tiempo, eficiencia).</p>
+            <div class="concept-card">
+                <div class="concept-header">2. Función Objetivo</div>
+                <div class="concept-body">
+                    Expresión matemática ($Z$) que representa la meta (Maximizar utilidad o Minimizar costos).
                 </div>
             </div>
 
-            <div class="card" onclick="toggleCard(this)">
-                <div class="card-header">
-                    <span class="icon">③</span> Restricciones
-                </div>
-                <div class="card-body">
-                    <p>Los límites del sistema.</p>
-                    <small>(Clic para ver definición)</small>
-                </div>
-                <div class="details">
-                    <p><span class="highlight">Definición:</span> Conjunto de ecuaciones o desigualdades que limitan los valores posibles de las variables.</p>
-                    <p><span class="highlight">Rol:</span> Representan recursos disponibles y definen el <strong>espacio factible</strong> (soluciones viables).</p>
+            <div class="concept-card">
+                <div class="concept-header">3. Restricciones</div>
+                <div class="concept-body">
+                    Ecuaciones o desigualdades que limitan los recursos (tiempo, materiales, capacidad).
                 </div>
             </div>
-
         </div>
+
+        <button class="btn-nav" onclick="switchView('view-example')">
+            Ver Ejemplo Práctico ➔
+        </button>
+    </div>
+
+    <div id="view-example" class="view">
+        <button class="btn-nav btn-back" onclick="switchView('view-map')">⬅ Volver al Mapa</button>
+
+        <h1>Ejemplo: Fábrica de Muebles</h1>
+
+        <div class="problem-box">
+            <strong>Descripción del problema:</strong><br>
+            Una empresa produce <strong>Mesas</strong> y <strong>Sillas</strong>.<br>
+            <ul>
+                <li><strong>Mesa:</strong> Requiere 4h mano de obra, 6u madera. Gana $50.</li>
+                <li><strong>Silla:</strong> Requiere 2h mano de obra, 3u madera. Gana $30.</li>
+                <li><strong>Disponibilidad:</strong> Máximo 40h mano de obra y 60u madera.</li>
+            </ul>
+            <em>Objetivo: Maximizar la utilidad total.</em>
+        </div>
+
+        <div class="problem-section">
+            <div class="section-title">1. Selección de Variables</div>
+            <p>Selecciona qué representan X e Y para este problema:</p>
+            <div class="interaction-area">
+                <select id="var-select">
+                    <option value="0">-- Seleccionar --</option>
+                    <option value="wrong">X = Horas, Y = Madera</option>
+                    <option value="correct">X = Cantidad de Mesas, Y = Cantidad de Sillas</option>
+                </select>
+                <button class="action-btn" onclick="checkVariables()">Definir Variables</button>
+                
+                <div id="res-vars" class="result-display">
+                    ✅ ¡Correcto!<br>
+                    <span class="math-eq">x = Cantidad de Mesas / semana</span><br>
+                    <span class="math-eq">y = Cantidad de Sillas / semana</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="problem-section">
+            <div class="section-title">2. Función Objetivo</div>
+            <p>Basado en las utilidades ($50 por mesa, $30 por silla), define la meta.</p>
+            <div class="interaction-area">
+                <button class="action-btn" onclick="showObjective()">Generar Función Z</button>
+                <div id="res-obj" class="result-display">
+                    Meta: Maximizar Utilidad<br>
+                    <span class="math-eq">Max Z = 50x + 30y</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="problem-section">
+            <div class="section-title">3. Restricciones</div>
+            <p>Haz clic en cada recurso para formular su restricción matemática:</p>
+            
+            <div class="constraints-grid">
+                <div class="constraint-item" onclick="revealConstraint('c1')">
+                    <strong>Mano de Obra</strong><br>
+                    (Máx 40 horas)
+                    <div id="c1" class="result-display" style="background: white; border: none; color: #c0392b;">
+                        4x + 2y ≤ 40
+                    </div>
+                </div>
+
+                <div class="constraint-item" onclick="revealConstraint('c2')">
+                    <strong>Madera</strong><br>
+                    (Máx 60 unidades)
+                    <div id="c2" class="result-display" style="background: white; border: none; color: #c0392b;">
+                        6x + 3y ≤ 60
+                    </div>
+                </div>
+
+                <div class="constraint-item" onclick="revealConstraint('c3')">
+                    <strong>No Negatividad</strong><br>
+                    (Lógica real)
+                    <div id="c3" class="result-display" style="background: white; border: none; color: #c0392b;">
+                        x, y ≥ 0
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        function toggleCard(card) {
-            // Alternar la clase 'active' para mostrar/ocultar detalles
-            card.classList.toggle('active');
+        // Función para cambiar entre vistas
+        function switchView(viewId) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view').forEach(div => {
+                div.classList.remove('active');
+            });
+            // Mostrar la seleccionada
+            document.getElementById(viewId).classList.add('active');
+            
+            // Scroll arriba
+            window.scrollTo(0, 0);
+        }
+
+        // Lógica Paso 1: Variables
+        function checkVariables() {
+            const val = document.getElementById('var-select').value;
+            const resDiv = document.getElementById('res-vars');
+            
+            if(val === 'correct') {
+                resDiv.style.display = 'block';
+                resDiv.style.backgroundColor = '#e8f6f3';
+                resDiv.innerHTML = `✅ ¡Correcto!<br><span class="math-eq">x = Mesas, y = Sillas</span>`;
+            } else if (val === 'wrong') {
+                resDiv.style.display = 'block';
+                resDiv.style.backgroundColor = '#fdebd0';
+                resDiv.style.color = '#c0392b';
+                resDiv.innerHTML = `❌ Incorrecto. Las horas y madera son recursos, no lo que decidimos producir.`;
+            } else {
+                alert("Por favor selecciona una opción.");
+            }
+        }
+
+        // Lógica Paso 2: Objetivo
+        function showObjective() {
+            document.getElementById('res-obj').style.display = 'block';
+        }
+
+        // Lógica Paso 3: Restricciones
+        function revealConstraint(id) {
+            const el = document.getElementById(id);
+            // Efecto toggle simple
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
         }
     </script>
-
 </body>
 </html>
