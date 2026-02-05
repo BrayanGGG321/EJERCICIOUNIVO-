@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Conceptual: Modelado de Problemas</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --bg-color: #ecf0f1;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Contenedor del mapa */
+        .map-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* Nivel 1: El Título del Proceso */
+        .root-node {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        /* Línea conectora vertical principal */
+        .root-node::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 50px;
+            background-color: #bdc3c7;
+        }
+
+        /* Nivel 2: Los Pasos */
+        .steps-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* Línea horizontal conectora */
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: -20px; /* Ajuste para conectar con la línea vertical */
+            left: 20%;
+            right: 20%;
+            height: 4px;
+            background-color: #bdc3c7;
+            z-index: 0;
+            /* Solo visible en pantallas grandes */
+        }
+        
+        @media (max-width: 768px) {
+            .steps-container::before { display: none; }
+            .root-node::after { display: none; }
+        }
+
+        /* Tarjetas de los pasos */
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            width: 300px;
+            min-height: 150px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        /* Líneas conectoras individuales para cada tarjeta */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 30px;
+            background-color: #bdc3c7;
+        }
+        @media (max-width: 768px) {
+            .card::before { display: none; }
+            .card { margin-bottom: 20px; width: 90%; }
+        }
+
+        /* Encabezado de la tarjeta */
+        .card-header {
+            padding: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Color específico para paso 1 */
+        .step-1 .card-header { background-color: #95a5a6; } 
+
+        .icon { font-size: 1.5rem; }
+
+        /* Contenido de la tarjeta */
+        .card-body {
+            padding: 20px;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        /* Interactividad: Detalles ocultos */
+        .details {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+
+        /* Clase activa para mostrar detalles */
+        .card.active .details {
+            max-height: 500px; /* Altura suficiente para el texto */
+            opacity: 1;
+            padding: 15px;
+        }
+
+        .card.active .card-header::after {
+            content: '▲';
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .card:not(.active) .card-header::after {
+            content: '▼';
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .instruction {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-align: center;
+            font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Pasos para el Modelado de un Problema</h1>
+    <p class="instruction">Haz clic en las tarjetas azules para ver las definiciones detalladas.</p>
+
+    <div class="map-container">
+        
+        <div class="root-node">
+            MODELADO MATEMÁTICO
+        </div>
+
+        <div class="steps-container">
+            
+            <div class="card step-1">
+                <div class="card-header">
+                    <span class="icon">①</span> Definir Variables
+                </div>
+                <div class="card-body">
+                    <p>Este es el <strong>primer paso</strong> fundamental antes de formular cualquier ecuación.</p>
+                </div>
+            </div>
+
+            <div class="card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <span class="icon">②</span> Función Objetivo
+                </div>
+                <div class="card-body">
+                    <p>La meta principal del modelo.</p>
+                    <small>(Clic para ver definición)</small>
+                </div>
+                <div class="details">
+                    <p><span class="highlight">Definición:</span> Es una expresión matemática formulada en términos de variables de decisión.</p>
+                    <p><span class="highlight">Propósito:</span> Maximizar o minimizar algún criterio (costos, beneficios, tiempo, eficiencia).</p>
+                </div>
+            </div>
+
+            <div class="card" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <span class="icon">③</span> Restricciones
+                </div>
+                <div class="card-body">
+                    <p>Los límites del sistema.</p>
+                    <small>(Clic para ver definición)</small>
+                </div>
+                <div class="details">
+                    <p><span class="highlight">Definición:</span> Conjunto de ecuaciones o desigualdades que limitan los valores posibles de las variables.</p>
+                    <p><span class="highlight">Rol:</span> Representan recursos disponibles y definen el <strong>espacio factible</strong> (soluciones viables).</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleCard(card) {
+            // Alternar la clase 'active' para mostrar/ocultar detalles
+            card.classList.toggle('active');
+        }
+    </script>
+
+</body>
+</html>
