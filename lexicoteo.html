@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden Lexicográfico: Diagrama de Árbol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0;
+        }
+
+        /* Efectos de brillo */
+        .glow-text { text-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+        
+        /* Animaciones */
+        .node-container {
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0;
+            transform: scale(0);
+        }
+        .node-container.visible { opacity: 1; transform: scale(1); }
+        
+        .tree-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            transition: stroke-dashoffset 0.8s ease-out;
+        }
+        .tree-line.visible { stroke-dashoffset: 0; }
+
+        /* Paneles */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Botón animado (Estilo Púrpura para diferenciar del Inductivo Azul) */
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+        }
+        .btn-primary:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Indicador de Orden */
+        .order-badge {
+            font-size: 10px;
+            fill: #fbbf24; /* Amber */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-[url('https://grainy-gradients.vercel.app/noise.svg')]">
+
+    <header class="h-16 border-b border-slate-700/50 flex items-center px-8 bg-slate-900/80 backdrop-blur-md z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center font-bold text-white">L</div>
+            <h1 class="text-xl font-bold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">Orden Lexicográfico</h1>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <aside class="w-full md:w-[400px] glass-panel border-r border-slate-700/50 flex flex-col z-10">
+            <div id="contentArea" class="flex-1 p-8 overflow-y-auto"></div>
+            <div class="p-6 border-t border-slate-700/50 bg-slate-900/40">
+                <button id="actionBtn" class="btn-primary w-full py-4 rounded-xl font-bold text-white text-lg flex items-center justify-center gap-2 group">
+                    <span id="btnText">Comenzar Explicación</span>
+                    <svg id="btnIcon" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                </button>
+                <div class="mt-4 flex items-center gap-3">
+                    <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-purple-500 w-0 transition-all duration-500 shadow-[0_0_10px_#a855f7]"></div>
+                    </div>
+                    <span id="stepCounter" class="text-xs text-slate-400 font-mono">0/4</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0" style="background-image: radial-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;"></div>
+            
+            <svg id="treeSvg" viewBox="0 0 800 500" class="w-full h-full max-w-5xl relative z-0">
+                <defs>
+                    <linearGradient id="gradRoot" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fbbf24" />
+                        <stop offset="100%" stop-color="#d97706" />
+                    </linearGradient>
+                    <linearGradient id="grad0" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#22d3ee" />
+                        <stop offset="100%" stop-color="#0891b2" />
+                    </linearGradient>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#c084fc" />
+                        <stop offset="100%" stop-color="#9333ea" />
+                    </linearGradient>
+                </defs>
+                <g id="linesLayer"></g>
+                <g id="nodesLayer"></g>
+            </svg>
+
+            <div id="statusTag" class="absolute top-8 right-8 bg-slate-800/80 backdrop-blur px-4 py-2 rounded-lg border border-purple-500/30 text-purple-300 text-sm font-mono hidden">
+                Buscando en rama: <span id="branchValue" class="font-bold text-white">...</span>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE LOS PASOS ---
+        const steps = [
+            {
+                type: 'intro',
+                html: `
+                    <div class="animate-fade-in space-y-6">
+                        <div class="p-4 bg-slate-800/50 rounded-xl border-l-4 border-purple-500">
+                            <h3 class="text-purple-400 font-bold text-lg mb-2">Definición: Orden Lexicográfico</h3>
+                            <p class="text-slate-300 leading-relaxed">Es la generalización del <strong>orden alfabético</strong> (diccionario).</p>
+                            <p class="text-slate-400 mt-2 text-sm">No importa la longitud. Importa el valor de izquierda a derecha. Siempre asumimos que <strong>0 va antes que 1</strong>.</p>
+                        </div>
+                        <div class="flex items-center gap-4 justify-center py-4">
+                            <div class="w-12 h-12 rounded-full border-2 border-cyan-400 flex items-center justify-center text-cyan-400 font-bold">0</div>
+                            <span class="text-slate-500 text-xl"><</span>
+                            <div class="w-12 h-12 rounded-full border-2 border-purple-400 flex items-center justify-center text-purple-400 font-bold">1</div>
+                        </div>
+                    </div>
+                `,
+                actionText: "Ir al Ejercicio"
+            },
+            {
+                type: 'statement',
+                html: `
+                    <div class="animate-fade-in text-center mt-10">
+                        <div class="inline-block p-4 rounded-full bg-slate-800 mb-4 border border-slate-600">
+                            <span class="text-4xl">📚</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-4">Ejercicio Práctico</h2>
+                        <p class="text-xl text-slate-300 mb-8">
+                            Enumerar las palabras de longitud 3 usando orden lexicográfico.
+                        </p>
+                        <div class="text-left bg-slate-900/50 p-4 rounded-lg text-sm text-slate-400 font-mono border border-slate-700">
+                            Estrategia: Profundidad (DFS)<br>
+                            Prioridad: Rama Izquierda (0) antes que Derecha (1)
+                        </div>
+                    </div>
+                `,
+                actionText: "Iniciar Recorrido"
+            },
+            {
+                type: 'build',
+                branch: 'Inicio',
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-amber-400 mb-2">La Raíz</h2>
+                        <p class="text-slate-300 mb-4">Comenzamos igual que en el inductivo, con una raíz vacía.</p>
+                        <p class="text-slate-400 text-sm">Pero a diferencia del inductivo, no vamos a "llenar niveles". Vamos a <strong>explorar caminos</strong>.</p>
+                    </div>
+                `,
+                nodes: [{ id: 'root', x: 400, y: 50, val: 'R', parent: null, type: 'root' }],
+                actionText: "Explorar Rama '0' (Izquierda)"
+            },
+            {
+                // Muestra TODA la rama izquierda de golpe para ilustrar el concepto "Primero lo que empieza con 0"
+                type: 'build',
+                branch: '0XX',
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-cyan-400 mb-2">Prioridad Izquierda (0)</h2>
+                        <p class="text-slate-300 mb-4">En el diccionario, primero leemos <strong>todas</strong> las palabras que empiezan con A (o 0).</p>
+                        <p class="text-slate-400 text-sm mb-2">No pasamos a la rama del 1 hasta haber agotado todas las opciones del 0.</p>
+                        <ul class="text-xs font-mono text-cyan-300 space-y-1 bg-slate-800 p-2 rounded">
+                            <li>1. 000</li>
+                            <li>2. 001</li>
+                            <li>3. 010</li>
+                            <li>4. 011</li>
+                        </ul>
+                    </div>
+                `,
+                nodes: [
+                    { id: '0', x: 200, y: 180, val: '0', parent: 'root', type: '0' },
+                    { id: '00', x: 100, y: 320, val: '00', parent: '0', type: '0' },
+                    { id: '000', x: 50, y: 450, val: '000', parent: '00', type: '0', order: 1 },
+                    { id: '001', x: 150, y: 450, val: '001', parent: '00', type: '1', order: 2 },
+                    { id: '01', x: 300, y: 320, val: '01', parent: '0', type: '1' },
+                    { id: '010', x: 250, y: 450, val: '010', parent: '01', type: '0', order: 3 },
+                    { id: '011', x: 350, y: 450, val: '011', parent: '01', type: '1', order: 4 }
+                ],
+                actionText: "Explorar Rama '1' (Derecha)"
+            },
+            {
+                // Muestra la rama derecha
+                type: 'build',
+                branch: '1XX',
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-purple-400 mb-2">Rama Derecha (1)</h2>
+                        <p class="text-slate-300 mb-4">Solo cuando terminamos con el 0, pasamos a las palabras que inician con 1.</p>
+                        <p class="text-slate-400 text-sm mb-2">Esto completa nuestro orden lexicográfico.</p>
+                        <ul class="text-xs font-mono text-purple-300 space-y-1 bg-slate-800 p-2 rounded">
+                            <li>5. 100</li>
+                            <li>6. 101</li>
+                            <li>7. 110</li>
+                            <li>8. 111</li>
+                        </ul>
+                    </div>
+                `,
+                nodes: [
+                    { id: '1', x: 600, y: 180, val: '1', parent: 'root', type: '1' },
+                    { id: '10', x: 500, y: 320, val: '10', parent: '1', type: '0' },
+                    { id: '100', x: 450, y: 450, val: '100', parent: '10', type: '0', order: 5 },
+                    { id: '101', x: 550, y: 450, val: '101', parent: '10', type: '1', order: 6 },
+                    { id: '11', x: 700, y: 320, val: '11', parent: '1', type: '1' },
+                    { id: '110', x: 650, y: 450, val: '110', parent: '11', type: '0', order: 7 },
+                    { id: '111', x: 750, y: 450, val: '111', parent: '11', type: '1', order: 8 }
+                ],
+                actionText: "Reiniciar"
+            }
+        ];
+
+        // --- LÓGICA DE CONTROL ---
+        let currentStep = 0;
+        const contentArea = document.getElementById('contentArea');
+        const actionBtn = document.getElementById('actionBtn');
+        const btnText = document.getElementById('btnText');
+        const progressBar = document.getElementById('progressBar');
+        const stepCounter = document.getElementById('stepCounter');
+        const linesLayer = document.getElementById('linesLayer');
+        const nodesLayer = document.getElementById('nodesLayer');
+        const statusTag = document.getElementById('statusTag');
+        const branchValue = document.getElementById('branchValue');
+
+        function init() {
+            renderStep(0);
+        }
+
+        function renderStep(index) {
+            const step = steps[index];
+            contentArea.innerHTML = step.html;
+            
+            if (index === steps.length - 1) {
+                btnText.textContent = "Reiniciar Ejercicio";
+            } else {
+                btnText.textContent = step.actionText;
+            }
+
+            const progress = ((index) / (steps.length - 1)) * 100;
+            progressBar.style.width = `${progress}%`;
+            stepCounter.textContent = `${index}/${steps.length - 1}`;
+
+            if (step.type === 'intro' || step.type === 'statement') {
+                linesLayer.innerHTML = '';
+                nodesLayer.innerHTML = '';
+                statusTag.classList.add('hidden');
+            } else if (step.type === 'build') {
+                statusTag.classList.remove('hidden');
+                branchValue.textContent = step.branch;
+                drawNodesSequential(step.nodes);
+            }
+        }
+
+        function drawNodesSequential(newNodes) {
+            newNodes.forEach((node, i) => {
+                // Delay incrementado para efecto de "Recorrido"
+                const delay = i * 250; 
+
+                setTimeout(() => {
+                    // Línea
+                    if (node.parent) {
+                        const parentEl = document.getElementById(`circle-${node.parent}`);
+                        if (parentEl) {
+                            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                            line.setAttribute("x1", parentEl.getAttribute('cx'));
+                            line.setAttribute("y1", parentEl.getAttribute('cy'));
+                            line.setAttribute("x2", node.x);
+                            line.setAttribute("y2", node.y);
+                            line.setAttribute("stroke", node.type === '0' ? '#22d3ee' : '#c084fc');
+                            line.setAttribute("stroke-width", "2");
+                            line.setAttribute("class", "tree-line");
+                            linesLayer.appendChild(line);
+                            // Forzar reflow
+                            setTimeout(() => line.classList.add('visible'), 50);
+                        }
+                    }
+
+                    // Nodo
+                    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                    g.setAttribute("class", "node-container");
+                    g.setAttribute("transform-origin", `${node.x}px ${node.y}px`);
+
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("id", `circle-${node.id}`);
+                    circle.setAttribute("cx", node.x);
+                    circle.setAttribute("cy", node.y);
+                    circle.setAttribute("r", node.type === 'root' ? 25 : 18);
+                    
+                    let fillUrl = "url(#gradRoot)";
+                    if (node.type === '0') fillUrl = "url(#grad0)";
+                    if (node.type === '1') fillUrl = "url(#grad1)";
+                    circle.setAttribute("fill", fillUrl);
+                    circle.setAttribute("filter", "drop-shadow(0 0 4px rgba(255,255,255,0.3))");
+
+                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    text.setAttribute("x", node.x);
+                    text.setAttribute("y", node.y + 5);
+                    text.setAttribute("text-anchor", "middle");
+                    text.setAttribute("fill", "white");
+                    text.setAttribute("font-weight", "bold");
+                    text.setAttribute("font-size", "12");
+                    text.textContent = node.val;
+
+                    g.appendChild(circle);
+                    g.appendChild(text);
+
+                    // Si tiene orden, mostrar numerito pequeño arriba
+                    if (node.order) {
+                        const badge = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        badge.setAttribute("x", node.x + 15);
+                        badge.setAttribute("y", node.y - 10);
+                        badge.setAttribute("class", "order-badge");
+                        badge.textContent = `#${node.order}`;
+                        g.appendChild(badge);
+                    }
+
+                    nodesLayer.appendChild(g);
+                    setTimeout(() => g.classList.add('visible'), 50);
+
+                }, delay);
+            });
+        }
+
+        actionBtn.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                renderStep(currentStep);
+            } else {
+                currentStep = 0;
+                renderStep(0);
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
