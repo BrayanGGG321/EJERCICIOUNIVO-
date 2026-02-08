@@ -3,342 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Definición Inductiva: Lenguaje Formal</title>
+    <title>Orden Inductivo: Diagrama de Árbol</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Slate 50 */
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a; /* Fondo oscuro */
+            color: #e2e8f0;
         }
-        h1, h2, h3 {
-            font-family: 'Merriweather', serif;
+
+        /* Efectos de brillo para hacerlo llamativo */
+        .glow-text {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
         
-        /* Animaciones para el árbol */
-        .node {
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        /* Animaciones del árbol */
+        .node-container {
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             opacity: 0;
-            transform: scale(0.5);
+            transform: scale(0);
         }
-        .node.visible {
+        .node-container.visible {
             opacity: 1;
             transform: scale(1);
         }
         
-        .link {
+        .tree-line {
             stroke-dasharray: 1000;
             stroke-dashoffset: 1000;
             transition: stroke-dashoffset 1s ease-out;
-            opacity: 0.4;
         }
-        .link.visible {
+        .tree-line.visible {
             stroke-dashoffset: 0;
         }
 
-        /* Caja de fórmulas matemáticas */
-        .math-box {
-            background-color: #ffffff;
-            border-left: 4px solid #4f46e5; /* Indigo 600 */
-            padding: 1rem;
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            font-family: 'Courier New', monospace;
-            color: #334155;
+        /* Tarjeta de teoría */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
         }
 
-        .highlight {
-            color: #4f46e5;
-            font-weight: bold;
+        /* Botón animado */
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(14, 165, 233, 0.6);
+        }
+        .btn-primary:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            box-shadow: none;
         }
     </style>
 </head>
-<body class="text-slate-700 h-screen flex flex-col overflow-hidden">
+<body class="h-screen flex flex-col overflow-hidden bg-[url('https://grainy-gradients.vercel.app/noise.svg')]">
 
-    <header class="bg-white border-b border-slate-200 py-4 px-6 flex justify-between items-center shadow-sm z-10">
-        <div>
-            <h1 class="text-xl md:text-2xl font-bold text-slate-800">Orden Inductivo de Cadenas</h1>
-            <p class="text-sm text-slate-500">Construcción formal de $\Sigma^*$ paso a paso</p>
-        </div>
-        <div class="text-xs text-slate-400 font-mono hidden md:block">
-            Alfabeto &Sigma; = {a, b}
+    <header class="h-16 border-b border-slate-700/50 flex items-center px-8 bg-slate-900/80 backdrop-blur-md z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-white">I</div>
+            <h1 class="text-xl font-bold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400">Orden Inductivo</h1>
         </div>
     </header>
 
-    <main class="flex flex-1 overflow-hidden">
+    <div class="flex flex-1 overflow-hidden">
         
-        <section class="w-full md:w-1/3 bg-white border-r border-slate-200 p-6 flex flex-col overflow-y-auto shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+        <aside class="w-full md:w-[400px] glass-panel border-r border-slate-700/50 flex flex-col z-10">
             
-            <div id="theoryContent" class="flex-1">
+            <div id="contentArea" class="flex-1 p-8 overflow-y-auto">
                 </div>
 
-            <div class="mt-6 pt-6 border-t border-slate-100">
-                <div class="flex gap-3">
-                    <button id="nextBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded shadow-sm transition-colors flex items-center justify-center gap-2">
-                        <span>Siguiente Paso</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                    </button>
-                    
-                    <button id="resetBtn" class="px-4 py-3 border border-slate-300 text-slate-600 rounded hover:bg-slate-50 transition-colors hidden" title="Reiniciar">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="text-center mt-3">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Progreso</span>
-                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-1">
-                        <div id="progressBar" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            <div class="p-6 border-t border-slate-700/50 bg-slate-900/40">
+                <button id="actionBtn" class="btn-primary w-full py-4 rounded-xl font-bold text-white text-lg flex items-center justify-center gap-2 group">
+                    <span id="btnText">Comenzar Explicación</span>
+                    <svg id="btnIcon" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                </button>
+                
+                <div class="mt-4 flex items-center gap-3">
+                    <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-cyan-400 w-0 transition-all duration-500 shadow-[0_0_10px_#22d3ee]"></div>
                     </div>
+                    <span id="stepCounter" class="text-xs text-slate-400 font-mono">0/5</span>
                 </div>
             </div>
-        </section>
+        </aside>
 
-        <section class="flex-1 bg-slate-50 relative overflow-hidden flex items-center justify-center p-4">
-            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#64748b 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <main class="flex-1 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0" style="background-image: radial-gradient(rgba(56, 189, 248, 0.1) 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <svg id="treeSvg" viewBox="0 0 800 500" class="w-full h-full max-w-4xl max-h-[80vh] preserve-3d">
+            <svg id="treeSvg" viewBox="0 0 800 500" class="w-full h-full max-w-5xl relative z-0">
                 <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
-                    </marker>
+                    <linearGradient id="gradRoot" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fbbf24" /> <stop offset="100%" stop-color="#d97706" />
+                    </linearGradient>
+                    <linearGradient id="grad0" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#22d3ee" /> <stop offset="100%" stop-color="#0891b2" />
+                    </linearGradient>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#c084fc" /> <stop offset="100%" stop-color="#9333ea" />
+                    </linearGradient>
                 </defs>
-                <g id="linksGroup"></g>
-                <g id="nodesGroup"></g>
+                
+                <g id="linesLayer"></g>
+                <g id="nodesLayer"></g>
             </svg>
-            
-            <div id="levelTag" class="absolute top-6 right-6 bg-white/80 backdrop-blur border border-slate-200 px-4 py-2 rounded-md shadow-sm text-sm font-mono text-slate-600 hidden">
-                Longitud actual: <span class="font-bold text-indigo-600">0</span>
+
+            <div id="statusTag" class="absolute top-8 right-8 bg-slate-800/80 backdrop-blur px-4 py-2 rounded-lg border border-cyan-500/30 text-cyan-300 text-sm font-mono hidden">
+                Generando nivel: <span id="levelValue" class="font-bold text-white">Raíz</span>
             </div>
-        </section>
-    </main>
+        </main>
+    </div>
 
     <script>
-        // --- Datos del Modelo Inductivo ---
+        // --- CONFIGURACIÓN DE LOS PASOS ---
         const steps = [
             {
-                title: "Paso Base (Base de la Inducción)",
-                math: "L₀ = { ε }",
-                desc: "Todo proceso inductivo necesita un punto de partida. Definimos el conjunto inicial <strong>L₀</strong> que contiene únicamente la cadena vacía (representada como ε o raíz).",
-                detail: "Longitud de cadena: 0",
-                nodes: [{ id: 'root', x: 400, y: 50, label: 'ε', parent: null }]
+                // PASO 0: Definiciones
+                type: 'intro',
+                html: `
+                    <div class="animate-fade-in space-y-6">
+                        <div class="p-4 bg-slate-800/50 rounded-xl border-l-4 border-cyan-500">
+                            <h3 class="text-cyan-400 font-bold text-lg mb-2">¿Qué es un Diagrama de Árbol?</h3>
+                            <p class="text-slate-300 leading-relaxed">Es una representación gráfica que nos permite visualizar todas las posibilidades de un proceso. Como un mapa que muestra todos los caminos que podemos tomar.</p>
+                        </div>
+                        
+                        <div class="p-4 bg-slate-800/50 rounded-xl border-l-4 border-purple-500">
+                            <h3 class="text-purple-400 font-bold text-lg mb-2">¿Qué es el Orden Inductivo?</h3>
+                            <p class="text-slate-300 leading-relaxed">Es una forma de construcción "por generaciones". <br><br>No nos importa el diccionario. Nos importa <strong>crear lo nuevo basándonos en lo anterior</strong>. Como construir un edificio piso por piso.</p>
+                        </div>
+                    </div>
+                `,
+                actionText: "Ir al Ejercicio"
             },
             {
-                title: "Paso Inductivo 1",
-                math: "L₁ = L₀ × Σ = { a, b }",
-                desc: "Aplicamos la regla inductiva: tomamos cada elemento del paso anterior y le concatenamos cada letra del alfabeto <strong>Σ = {a, b}</strong>.",
-                detail: "De ε surgen 'a' y 'b'.",
-                nodes: [
-                    { id: 'a', x: 250, y: 180, label: 'a', parent: 'root' },
-                    { id: 'b', x: 550, y: 180, label: 'b', parent: 'root' }
-                ]
+                // PASO 1: Enunciado
+                type: 'statement',
+                html: `
+                    <div class="animate-fade-in text-center mt-10">
+                        <div class="inline-block p-4 rounded-full bg-slate-800 mb-4 border border-slate-600">
+                            <span class="text-4xl">📝</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-4">Ejercicio Práctico</h2>
+                        <p class="text-xl text-slate-300 mb-8">
+                            Construir, usando el método inductivo, todas las combinaciones binarias (0 y 1) de longitud 3.
+                        </p>
+                        <div class="text-left bg-slate-900/50 p-4 rounded-lg text-sm text-slate-400 font-mono border border-slate-700">
+                            Objetivo: { 000, 001, 010, ... }<br>
+                            Método: Inducción (Paso a paso)
+                        </div>
+                    </div>
+                `,
+                actionText: "Colocar la Raíz"
             },
             {
-                title: "Paso Inductivo 2",
-                math: "L₂ = L₁ × Σ = { aa, ab, ba, bb }",
-                desc: "Repetimos el proceso. Para cada palabra de longitud 1, agregamos nuevamente 'a' y 'b'. <br><br>Observa que el tamaño del conjunto se duplica (2² = 4).",
-                detail: "Formamos palabras de longitud 2.",
-                nodes: [
-                    { id: 'aa', x: 175, y: 310, label: 'aa', parent: 'a' },
-                    { id: 'ab', x: 325, y: 310, label: 'ab', parent: 'a' },
-                    { id: 'ba', x: 475, y: 310, label: 'ba', parent: 'b' },
-                    { id: 'bb', x: 625, y: 310, label: 'bb', parent: 'b' }
-                ]
+                // PASO 2: La Raíz
+                type: 'build',
+                level: 0,
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-amber-400 mb-2">Paso 1: La Raíz</h2>
+                        <p class="text-slate-300 mb-4">Todo árbol comienza con un punto de origen.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Esta es nuestra base. Aún no tenemos longitud, ni ceros ni unos. Es el punto de partida desde donde nacerán todas las ramas.
+                        </p>
+                    </div>
+                `,
+                nodes: [{ id: 'root', x: 400, y: 50, val: 'RAÍZ', parent: null, type: 'root' }],
+                actionText: "Generar Longitud 1"
             },
             {
-                title: "Paso Inductivo 3 (Final)",
-                math: "L₃ = L₂ × Σ",
-                desc: "Finalmente, construimos las palabras de longitud 3. El orden inductivo garantiza que hemos cubierto <strong>todas</strong> las combinaciones posibles sistemáticamente.",
-                detail: "Total: 8 palabras (2³).",
+                // PASO 3: Nivel 1
+                type: 'build',
+                level: 1,
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-cyan-400 mb-2">Paso 2: Primera Generación</h2>
+                        <p class="text-slate-300 mb-4">De la raíz nacen nuestras opciones básicas: <strong>0</strong> y <strong>1</strong>.</p>
+                        <div class="bg-slate-800 p-3 rounded border border-slate-600 mb-2">
+                            <p class="font-mono text-cyan-300">0</p>
+                            <p class="font-mono text-purple-300">1</p>
+                        </div>
+                        <p class="text-sm text-slate-400">Ahora tenemos palabras de longitud 1.</p>
+                    </div>
+                `,
                 nodes: [
-                    { id: 'aaa', x: 140, y: 440, label: 'aaa', parent: 'aa' },
-                    { id: 'aab', x: 210, y: 440, label: 'aab', parent: 'aa' },
-                    { id: 'aba', x: 290, y: 440, label: 'aba', parent: 'ab' },
-                    { id: 'abb', x: 360, y: 440, label: 'abb', parent: 'ab' },
-                    { id: 'baa', x: 440, y: 440, label: 'baa', parent: 'ba' },
-                    { id: 'bab', x: 510, y: 440, label: 'bab', parent: 'ba' },
-                    { id: 'bba', x: 590, y: 440, label: 'bba', parent: 'bb' },
-                    { id: 'bbb', x: 660, y: 440, label: 'bbb', parent: 'bb' }
-                ]
+                    { id: '0', x: 200, y: 180, val: '0', parent: 'root', type: '0' },
+                    { id: '1', x: 600, y: 180, val: '1', parent: 'root', type: '1' }
+                ],
+                actionText: "Generar Longitud 2"
+            },
+            {
+                // PASO 4: Nivel 2
+                type: 'build',
+                level: 2,
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-blue-400 mb-2">Paso 3: Segunda Generación</h2>
+                        <p class="text-slate-300 mb-4">Aquí aplicamos la <strong>Inducción</strong>.</p>
+                        <p class="text-slate-400 text-sm mb-4">A cada elemento que ya existía (0 y 1), le agregamos nuevamente un 0 y un 1.</p>
+                        <ul class="text-sm space-y-2 font-mono text-slate-300">
+                            <li>0 → <span class="text-cyan-400">00</span>, <span class="text-purple-400">01</span></li>
+                            <li>1 → <span class="text-cyan-400">10</span>, <span class="text-purple-400">11</span></li>
+                        </ul>
+                    </div>
+                `,
+                nodes: [
+                    { id: '00', x: 100, y: 320, val: '00', parent: '0', type: '0' },
+                    { id: '01', x: 300, y: 320, val: '01', parent: '0', type: '1' },
+                    { id: '10', x: 500, y: 320, val: '10', parent: '1', type: '0' },
+                    { id: '11', x: 700, y: 320, val: '11', parent: '1', type: '1' }
+                ],
+                actionText: "Generar Longitud 3 (Final)"
+            },
+            {
+                // PASO 5: Nivel 3 (Final)
+                type: 'build',
+                level: 3,
+                html: `
+                    <div class="animate-fade-in">
+                        <h2 class="text-2xl font-bold text-green-400 mb-2">Paso Final: Longitud 3</h2>
+                        <p class="text-slate-300 mb-4">Repetimos el proceso una última vez.</p>
+                        <p class="text-slate-400 text-sm mb-4">Hemos construido todas las combinaciones posibles de forma ordenada y sin saltarnos ninguna.</p>
+                        <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-center">
+                            <span class="text-green-400 font-bold text-xl">Total: 8 Palabras</span>
+                        </div>
+                    </div>
+                `,
+                nodes: [
+                    { id: '000', x: 50, y: 450, val: '000', parent: '00', type: '0' },
+                    { id: '001', x: 150, y: 450, val: '001', parent: '00', type: '1' },
+                    { id: '010', x: 250, y: 450, val: '010', parent: '01', type: '0' },
+                    { id: '011', x: 350, y: 450, val: '011', parent: '01', type: '1' },
+                    { id: '100', x: 450, y: 450, val: '100', parent: '10', type: '0' },
+                    { id: '101', x: 550, y: 450, val: '101', parent: '10', type: '1' },
+                    { id: '110', x: 650, y: 450, val: '110', parent: '11', type: '0' },
+                    { id: '111', x: 750, y: 450, val: '111', parent: '11', type: '1' }
+                ],
+                actionText: "Reiniciar Ejercicio"
             }
         ];
 
-        // --- Lógica de Control ---
-        let currentStepIndex = -1;
-        const theoryContainer = document.getElementById('theoryContent');
-        const nextBtn = document.getElementById('nextBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const linksGroup = document.getElementById('linksGroup');
-        const nodesGroup = document.getElementById('nodesGroup');
+        // --- LÓGICA DEL PROGRAMA ---
+        let currentStep = 0;
+        const contentArea = document.getElementById('contentArea');
+        const actionBtn = document.getElementById('actionBtn');
+        const btnText = document.getElementById('btnText');
         const progressBar = document.getElementById('progressBar');
-        const levelTag = document.getElementById('levelTag');
+        const stepCounter = document.getElementById('stepCounter');
+        const linesLayer = document.getElementById('linesLayer');
+        const nodesLayer = document.getElementById('nodesLayer');
+        const statusTag = document.getElementById('statusTag');
+        const levelValue = document.getElementById('levelValue');
 
-        // Función inicial
         function init() {
-            renderWelcome();
+            renderStep(0);
         }
 
-        function renderWelcome() {
-            theoryContainer.innerHTML = `
-                <div class="animate-fade-in">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-4">Bienvenido</h2>
-                    <p class="text-slate-600 mb-4 leading-relaxed">
-                        Este visualizador interactivo demuestra cómo se construye un lenguaje formal utilizando el <strong>Orden Inductivo</strong>.
-                    </p>
-                    <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4">
-                        <p class="text-sm text-indigo-800 font-medium">Concepto Clave:</p>
-                        <p class="text-sm text-indigo-700 mt-1">
-                            A diferencia del orden lexicográfico (diccionario), aquí priorizamos la <strong>generación por longitud</strong>.
-                        </p>
-                    </div>
-                    <p class="text-slate-500 text-sm">Presiona "Siguiente Paso" para comenzar la inducción.</p>
-                </div>
-            `;
-        }
-
-        function updateTheory(step) {
-            theoryContainer.innerHTML = `
-                <div class="opacity-0 translate-y-2 transition-all duration-500" id="theoryAnim">
-                    <span class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2 block">Paso ${currentStepIndex}</span>
-                    <h2 class="text-2xl font-bold text-slate-800 mb-3">${step.title}</h2>
-                    
-                    <div class="math-box">
-                        ${step.math}
-                    </div>
-                    
-                    <p class="text-slate-600 leading-relaxed mb-4">
-                        ${step.desc}
-                    </p>
-                    
-                    <div class="flex items-center gap-2 text-sm text-slate-500 mt-6 pt-4 border-t border-slate-100">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>${step.detail}</span>
-                    </div>
-                </div>
-            `;
+        function renderStep(index) {
+            const step = steps[index];
             
-            // Trigger animación de texto
-            setTimeout(() => {
-                const el = document.getElementById('theoryAnim');
-                el.classList.remove('opacity-0', 'translate-y-2');
-            }, 50);
+            // 1. Actualizar Texto Lateral
+            contentArea.innerHTML = step.html;
+            
+            // 2. Actualizar Botón y Progreso
+            if (index === steps.length - 1) {
+                btnText.textContent = "Reiniciar Ejercicio";
+                document.getElementById('btnIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />';
+            } else {
+                btnText.textContent = step.actionText;
+                document.getElementById('btnIcon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />';
+            }
 
-            // Actualizar Tag flotante
-            levelTag.classList.remove('hidden');
-            levelTag.innerHTML = `Longitud actual (n): <span class="font-bold text-indigo-600">${currentStepIndex}</span>`;
+            const progress = ((index) / (steps.length - 1)) * 100;
+            progressBar.style.width = `${progress}%`;
+            stepCounter.textContent = `${index}/${steps.length - 1}`;
+
+            // 3. Lógica Visual (SVG)
+            if (step.type === 'intro' || step.type === 'statement') {
+                // Limpiar SVG si volvemos al inicio
+                linesLayer.innerHTML = '';
+                nodesLayer.innerHTML = '';
+                statusTag.classList.add('hidden');
+            } else if (step.type === 'build') {
+                statusTag.classList.remove('hidden');
+                levelValue.textContent = step.level === 0 ? "Raíz" : `Longitud ${step.level}`;
+                drawNodes(step.nodes);
+            }
         }
 
-        function drawNodes(stepData) {
-            stepData.nodes.forEach((node, index) => {
-                // 1. Dibujar Línea (si tiene padre)
+        function drawNodes(newNodes) {
+            newNodes.forEach((node, i) => {
+                // Dibujar línea desde el padre
                 if (node.parent) {
-                    const parentNode = document.getElementById(`node-${node.parent}`);
-                    if (parentNode) {
-                        const x1 = parseFloat(parentNode.getAttribute('cx'));
-                        const y1 = parseFloat(parentNode.getAttribute('cy')) + 20; // + radio
-                        const x2 = node.x;
-                        const y2 = node.y - 20; // - radio
+                    const parentEl = document.getElementById(`circle-${node.parent}`);
+                    if (parentEl) {
+                        const x1 = parseFloat(parentEl.getAttribute('cx'));
+                        const y1 = parseFloat(parentEl.getAttribute('cy'));
                         
                         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
                         line.setAttribute("x1", x1);
                         line.setAttribute("y1", y1);
-                        line.setAttribute("x2", x2);
-                        line.setAttribute("y2", y2);
-                        line.setAttribute("stroke", "#cbd5e1"); // Slate 300
+                        line.setAttribute("x2", node.x);
+                        line.setAttribute("y2", node.y);
+                        // Color de línea según si va a 0 (Cyan) o 1 (Morado)
+                        const strokeColor = node.type === '0' ? '#22d3ee' : '#c084fc';
+                        line.setAttribute("stroke", strokeColor);
                         line.setAttribute("stroke-width", "2");
-                        line.setAttribute("marker-end", "url(#arrowhead)");
-                        line.classList.add("link");
+                        line.setAttribute("class", "tree-line");
                         
-                        linksGroup.appendChild(line);
+                        linesLayer.appendChild(line);
                         
-                        // Forzar reflow para animación
-                        setTimeout(() => line.classList.add("visible"), index * 100);
+                        // Animación línea
+                        setTimeout(() => line.classList.add('visible'), i * 150);
                     }
                 }
 
-                // 2. Dibujar Nodo (Círculo + Texto)
+                // Grupo del nodo
                 const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-                g.classList.add("node");
-                g.setAttribute("id", `g-${node.id}`);
+                g.setAttribute("class", "node-container");
+                g.setAttribute("transform-origin", `${node.x}px ${node.y}px`);
 
                 // Círculo
                 const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("id", `circle-${node.id}`);
                 circle.setAttribute("cx", node.x);
                 circle.setAttribute("cy", node.y);
-                circle.setAttribute("r", 20);
-                circle.setAttribute("id", `node-${node.id}`);
-                // Estilo diferente para nodos hoja vs nodos internos
-                const isRoot = node.id === 'root';
-                circle.setAttribute("fill", isRoot ? "#4f46e5" : "#ffffff");
-                circle.setAttribute("stroke", "#4f46e5");
-                circle.setAttribute("stroke-width", "2");
+                circle.setAttribute("r", node.type === 'root' ? 25 : 18);
+                
+                // Asignar gradiente
+                let fillUrl = "url(#gradRoot)";
+                if (node.type === '0') fillUrl = "url(#grad0)";
+                if (node.type === '1') fillUrl = "url(#grad1)";
+                
+                circle.setAttribute("fill", fillUrl);
+                // Brillo externo
+                circle.setAttribute("filter", "drop-shadow(0 0 4px rgba(255,255,255,0.5))");
 
                 // Texto
                 const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 text.setAttribute("x", node.x);
-                text.setAttribute("y", node.y + 5); // Ajuste visual vertical
+                text.setAttribute("y", node.y + 5);
                 text.setAttribute("text-anchor", "middle");
-                text.setAttribute("fill", isRoot ? "#ffffff" : "#1e293b");
-                text.setAttribute("font-weight", "600");
-                text.setAttribute("font-size", "14");
-                text.textContent = node.label;
+                text.setAttribute("fill", "white");
+                text.setAttribute("font-weight", "bold");
+                text.setAttribute("font-size", node.type === 'root' ? "10" : "12");
+                text.textContent = node.val;
 
                 g.appendChild(circle);
                 g.appendChild(text);
-                nodesGroup.appendChild(g);
+                nodesLayer.appendChild(g);
 
-                // Animación de entrada escalonada
-                setTimeout(() => g.classList.add("visible"), index * 100 + 300);
+                // Animación nodo (un poco después de la línea)
+                setTimeout(() => g.classList.add('visible'), i * 150 + 300);
             });
         }
 
-        function handleNext() {
-            currentStepIndex++;
-            
-            if (currentStepIndex < steps.length) {
-                const step = steps[currentStepIndex];
-                updateTheory(step);
-                drawNodes(step);
-                
-                // Actualizar barra de progreso
-                const progress = ((currentStepIndex + 1) / steps.length) * 100;
-                progressBar.style.width = `${progress}%`;
-
-                // Manejo de botones
-                if (currentStepIndex === steps.length - 1) {
-                    nextBtn.innerHTML = `<span>Completado</span>`;
-                    nextBtn.classList.add('bg-slate-400', 'cursor-not-allowed');
-                    nextBtn.disabled = true;
-                    resetBtn.classList.remove('hidden');
-                }
+        actionBtn.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                renderStep(currentStep);
+            } else {
+                // Reiniciar
+                currentStep = 0;
+                renderStep(0);
             }
-        }
-
-        function handleReset() {
-            currentStepIndex = -1;
-            linksGroup.innerHTML = '';
-            nodesGroup.innerHTML = '';
-            progressBar.style.width = '0%';
-            nextBtn.innerHTML = `<span>Siguiente Paso</span> <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>`;
-            nextBtn.classList.remove('bg-slate-400', 'cursor-not-allowed');
-            nextBtn.classList.add('bg-indigo-600');
-            nextBtn.disabled = false;
-            resetBtn.classList.add('hidden');
-            levelTag.classList.add('hidden');
-            renderWelcome();
-        }
-
-        // Listeners
-        nextBtn.addEventListener('click', handleNext);
-        resetBtn.addEventListener('click', handleReset);
+        });
 
         // Iniciar
         init();
-
     </script>
 </body>
 </html>
