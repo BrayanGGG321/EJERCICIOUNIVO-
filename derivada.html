@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animación de la Derivada</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        canvas {
+            background-color: #ffffff;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .math-text {
+            font-size: 1.1em;
+            margin-top: 15px;
+            color: #555;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>De Recta Secante a Recta Tangente</h2>
+        <p>Observa cómo el punto <strong>Q</strong> se acerca al punto fijo <strong>P</strong>.</p>
+        <canvas id="derivadaCanvas" width="700" height="450"></canvas>
+        <div class="math-text">
+            Valor de <span style="color: #3498db; font-weight: bold;">Δx</span>: <span id="deltaXValue">3.00</span>
+        </div>
+        <p>Cuando Δx se acerca a 0, la recta azul (Secante) se convierte en la roja (Tangente).</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('derivadaCanvas');
+        const ctx = canvas.getContext('2d');
+        const deltaXDisplay = document.getElementById('deltaXValue');
+
+        // Configuraciones de escala y posición para centrar la gráfica
+        const scaleX = 100;
+        const scaleY = 40;
+        const offsetX = 50;
+        const offsetY = 400;
+
+        // Nuestra función de ejemplo: f(x) = 0.3 * x^2 + 1
+        function f(x) {
+            return 0.3 * x * x + 1;
+        }
+
+        // Funciones para convertir coordenadas matemáticas a píxeles del canvas
+        function cx(x) { return offsetX + x * scaleX; }
+        function cy(y) { return offsetY - y * scaleY; }
+
+        // Punto P (Fijo)
+        const x0 = 2;
+        const y0 = f(x0);
+
+        // Variables de la animación
+        let dx = 3.5;       // Incremento inicial (Δx)
+        let speed = 0.015;  // Velocidad a la que Q se acerca a P
+
+        function animar() {
+            // Limpiar el lienzo en cada fotograma
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Dibujar los ejes X e Y
+            ctx.beginPath();
+            ctx.moveTo(offsetX, 0); ctx.lineTo(offsetX, canvas.height);
+            ctx.moveTo(0, offsetY); ctx.lineTo(canvas.width, offsetY);
+            ctx.strokeStyle = '#bdc3c7';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 2. Dibujar la curva f(x)
+            ctx.beginPath();
+            for (let x = 0; x <= 6; x += 0.1) {
+                if (x === 0) ctx.moveTo(cx(x), cy(f(x)));
+                else ctx.lineTo(cx(x), cy(f(x)));
+            }
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 3. Coordenadas del Punto Q (Móvil)
+            let x1 = x0 + dx;
+            let y1 = f(x1);
+
+            // 4. Calcular la recta secante/tangente
+            let m = (y1 - y0) / (x1 - x0); // Pendiente
+            
+            // Proyectar la línea para que atraviese la pantalla
+            let startX = 0;
+            let startY = y0 - m * (x0 - startX);
+            let endX = 6;
+            let endY = y0 + m * (endX - x0);
+
+            // Dibujar la recta
+            ctx.beginPath();
+            ctx.moveTo(cx(startX), cy(startY));
+            ctx.lineTo(cx(endX), cy(endY));
+            
+            // Si Δx es muy pequeño, la pintamos de rojo (Tangente), si no, azul (Secante)
+            if (dx < 0.05) {
+                ctx.strokeStyle = '#e74c3c'; // Rojo
+                ctx.lineWidth = 3;
+            } else {
+                ctx.strokeStyle = '#3498db'; // Azul
+                ctx.lineWidth = 2;
+                // Línea punteada para el Δx
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(cx(x0), cy(y0));
+                ctx.lineTo(cx(x1), cy(y0));
+                ctx.lineTo(cx(x1), cy(y1));
+                ctx.strokeStyle = '#95a5a6';
+                ctx.stroke();
+                ctx.setLineDash([]); // Quitar línea punteada
+            }
+            
+            // Trazar la recta secante principal
+            ctx.beginPath();
+            ctx.moveTo(cx(startX), cy(startY));
+            ctx.lineTo(cx(endX), cy(endY));
+            ctx.strokeStyle = dx < 0.05 ? '#e74c3c' : '#3498db';
+            ctx.stroke();
+
+            // 5. Dibujar los puntos P y Q
+            // Punto fijo P (Rojo)
+            ctx.beginPath();
+            ctx.arc(cx(x0), cy(y0), 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fill();
+            ctx.fillText("P", cx(x0) - 20, cy(y0) - 10);
+
+            // Punto móvil Q (Azul)
+            if (dx >= 0.05) {
+                ctx.beginPath();
+                ctx.arc(cx(x1), cy(y1), 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.fillText("Q", cx(x1) + 15, cy(y1) - 10);
+            }
+
+            // Actualizar texto en pantalla
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#333";
+            deltaXDisplay.innerText = Math.max(0, dx).toFixed(3);
+
+            // 6. Lógica de animación: reducir Δx
+            dx -= speed;
+
+            // Si Q llega a P (Δx es casi 0), reiniciamos la animación después de una pausa corta
+            if (dx <= 0) {
+                dx = 0;
+                setTimeout(() => {
+                    dx = 3.5; // Volver a empezar
+                    requestAnimationFrame(animar);
+                }, 1500); // Pausar 1.5 segundos cuando es tangente
+            } else {
+                requestAnimationFrame(animar);
+            }
+        }
+
+        // Iniciar la animación
+        animar();
+    </script>
+</body>
+</html>
