@@ -3,85 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animación de la Derivada</title>
+    <title>Animación de la Derivada con Límite</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
+            background-color: #f4f7f6;
+            color: #2c3e50;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
         .container {
             background: white;
-            padding: 20px 40px;
+            padding: 20px 40px 30px 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
             text-align: center;
+            max-width: 800px;
         }
         canvas {
             background-color: #ffffff;
-            border: 2px solid #e1e8ed;
+            border: 1px solid #dcdde1;
             border-radius: 8px;
-            margin-top: 20px;
-        }
-        .math-text {
-            font-size: 1.1em;
             margin-top: 15px;
-            color: #555;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
         }
-        .highlight {
+        .math-box {
+            background-color: #fdfbf7;
+            border-left: 5px solid #f39c12;
+            padding: 15px;
+            margin-top: 25px;
+            border-radius: 0 8px 8px 0;
+            text-align: left;
+        }
+        .limit-display {
+            font-size: 1.1em;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .highlight-h {
             font-weight: bold;
-            color: #e74c3c;
+            color: #2980b9;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>De Recta Secante a Recta Tangente</h2>
-        <p>Observa cómo el punto <strong>Q</strong> se acerca al punto fijo <strong>P</strong>.</p>
-        <canvas id="derivadaCanvas" width="700" height="450"></canvas>
-        <div class="math-text">
-            Valor de <span style="color: #3498db; font-weight: bold;">Δx</span>: <span id="deltaXValue">3.00</span>
+        <h2>Visualización Geométrica del Límite</h2>
+        <p>Observa cómo la secante se vuelve tangente al acercar el incremento <strong>h</strong> a cero.</p>
+        
+        <canvas id="derivadaCanvas" width="750" height="450"></canvas>
+
+        <div class="math-box">
+            <p style="margin-top: 0; color: #7f8c8d; font-weight: bold;">Definición formal de la derivada:</p>
+            <div>
+                $$ f'(x_0) = \lim_{h \to 0} \frac{f(x_0+h) - f(x_0)}{h} $$
+            </div>
+            <div class="limit-display">
+                Valor actual del incremento \( h \) \(\approx\) <span id="hValue" class="highlight-h">3.000</span>
+            </div>
         </div>
-        <p>Cuando Δx se acerca a 0, la recta azul (Secante) se convierte en la roja (Tangente).</p>
     </div>
 
     <script>
         const canvas = document.getElementById('derivadaCanvas');
         const ctx = canvas.getContext('2d');
-        const deltaXDisplay = document.getElementById('deltaXValue');
+        const hDisplay = document.getElementById('hValue');
 
-        // Configuraciones de escala y posición para centrar la gráfica
-        const scaleX = 100;
-        const scaleY = 40;
-        const offsetX = 50;
-        const offsetY = 400;
+        // Configuraciones de escala (ajustadas para dar espacio a las etiquetas)
+        const scaleX = 90;
+        const scaleY = 35;
+        const offsetX = 80;  // Más margen izquierdo para f(x0)
+        const offsetY = 400; // Margen inferior para x0
 
-        // Nuestra función de ejemplo: f(x) = 0.3 * x^2 + 1
+        // Función f(x) = 0.3 * x^2 + 1
         function f(x) {
             return 0.3 * x * x + 1;
         }
 
-        // Funciones para convertir coordenadas matemáticas a píxeles del canvas
+        // Conversión a píxeles
         function cx(x) { return offsetX + x * scaleX; }
         function cy(y) { return offsetY - y * scaleY; }
 
-        // Punto P (Fijo)
-        const x0 = 2;
+        // Punto base (x0)
+        const x0 = 1.8;
         const y0 = f(x0);
 
-        // Variables de la animación
-        let dx = 3.5;       // Incremento inicial (Δx)
-        let speed = 0.015;  // Velocidad a la que Q se acerca a P
+        // Variables de animación (usamos 'h' en lugar de 'dx' para coincidir con la fórmula)
+        let h = 3.5;       
+        let speed = 0.015;  
 
         function animar() {
-            // Limpiar el lienzo en cada fotograma
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // 1. Dibujar los ejes X e Y
@@ -92,9 +114,15 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
+            // Etiquetas de los ejes
+            ctx.fillStyle = "#7f8c8d";
+            ctx.font = "italic 16px Arial";
+            ctx.fillText("x", canvas.width - 20, offsetY - 10);
+            ctx.fillText("y", offsetX + 10, 20);
+
             // 2. Dibujar la curva f(x)
             ctx.beginPath();
-            for (let x = 0; x <= 6; x += 0.1) {
+            for (let x = 0; x <= 6.5; x += 0.1) {
                 if (x === 0) ctx.moveTo(cx(x), cy(f(x)));
                 else ctx.lineTo(cx(x), cy(f(x)));
             }
@@ -102,87 +130,99 @@
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // 3. Coordenadas del Punto Q (Móvil)
-            let x1 = x0 + dx;
+            // 3. Coordenadas del Punto desplazado (x0 + h)
+            let x1 = x0 + h;
             let y1 = f(x1);
 
-            // 4. Calcular la recta secante/tangente
-            let m = (y1 - y0) / (x1 - x0); // Pendiente
-            
-            // Proyectar la línea para que atraviese la pantalla
-            let startX = 0;
-            let startY = y0 - m * (x0 - startX);
-            let endX = 6;
-            let endY = y0 + m * (endX - x0);
+            // 4. Proyecciones hacia los ejes (líneas punteadas)
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 1;
 
-            // Dibujar la recta
+            // Proyecciones de x0 y f(x0)
             ctx.beginPath();
-            ctx.moveTo(cx(startX), cy(startY));
-            ctx.lineTo(cx(endX), cy(endY));
-            
-            // Si Δx es muy pequeño, la pintamos de rojo (Tangente), si no, azul (Secante)
-            if (dx < 0.05) {
-                ctx.strokeStyle = '#e74c3c'; // Rojo
-                ctx.lineWidth = 3;
-            } else {
-                ctx.strokeStyle = '#3498db'; // Azul
-                ctx.lineWidth = 2;
-                // Línea punteada para el Δx
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(cx(x0), cy(y0));
-                ctx.lineTo(cx(x1), cy(y0));
-                ctx.lineTo(cx(x1), cy(y1));
-                ctx.strokeStyle = '#95a5a6';
-                ctx.stroke();
-                ctx.setLineDash([]); // Quitar línea punteada
-            }
-            
-            // Trazar la recta secante principal
-            ctx.beginPath();
-            ctx.moveTo(cx(startX), cy(startY));
-            ctx.lineTo(cx(endX), cy(endY));
-            ctx.strokeStyle = dx < 0.05 ? '#e74c3c' : '#3498db';
+            ctx.moveTo(cx(x0), cy(y0)); ctx.lineTo(cx(x0), cy(0)); // hacia X
+            ctx.moveTo(cx(x0), cy(y0)); ctx.lineTo(cx(0), cy(y0)); // hacia Y
+            ctx.strokeStyle = '#c0392b'; // Rojo
             ctx.stroke();
 
-            // 5. Dibujar los puntos P y Q
-            // Punto fijo P (Rojo)
+            ctx.fillStyle = '#c0392b';
+            ctx.font = "bold 14px Arial";
+            ctx.fillText("x₀", cx(x0) - 8, cy(0) + 20);
+            ctx.fillText("f(x₀)", cx(0) - 40, cy(y0) + 5);
+
+            // Proyecciones de x0+h y f(x0+h)
+            if (h >= 0.05) {
+                ctx.beginPath();
+                ctx.moveTo(cx(x1), cy(y1)); ctx.lineTo(cx(x1), cy(0)); // hacia X
+                ctx.moveTo(cx(x1), cy(y1)); ctx.lineTo(cx(0), cy(y1)); // hacia Y
+                ctx.strokeStyle = '#2980b9'; // Azul
+                ctx.stroke();
+
+                ctx.fillStyle = '#2980b9';
+                ctx.fillText("x₀ + h", cx(x1) - 20, cy(0) + 20);
+                ctx.fillText("f(x₀ + h)", cx(0) - 65, cy(y1) + 5);
+            }
+            ctx.setLineDash([]); // Restablecer línea continua
+
+            // 5. Calcular y dibujar la recta (Secante o Tangente)
+            let m = (y1 - y0) / (h); 
+            let startX = 0;
+            let startY = y0 - m * (x0 - startX);
+            let endX = 7;
+            let endY = y0 + m * (endX - x0);
+
+            ctx.beginPath();
+            ctx.moveTo(cx(startX), cy(startY));
+            ctx.lineTo(cx(endX), cy(endY));
+            
+            if (h < 0.05) {
+                ctx.strokeStyle = '#e74c3c'; // Rojo (Tangente)
+                ctx.lineWidth = 3;
+            } else {
+                ctx.strokeStyle = '#3498db'; // Azul (Secante)
+                ctx.lineWidth = 2;
+            }
+            ctx.stroke();
+
+            // 6. Dibujar los Puntos
+            // Punto fijo (x0, f(x0))
             ctx.beginPath();
             ctx.arc(cx(x0), cy(y0), 6, 0, Math.PI * 2);
             ctx.fillStyle = '#e74c3c';
             ctx.fill();
-            ctx.fillText("P", cx(x0) - 20, cy(y0) - 10);
 
-            // Punto móvil Q (Azul)
-            if (dx >= 0.05) {
+            // Punto móvil (x0+h, f(x0+h))
+            if (h >= 0.05) {
                 ctx.beginPath();
                 ctx.arc(cx(x1), cy(y1), 6, 0, Math.PI * 2);
                 ctx.fillStyle = '#3498db';
                 ctx.fill();
-                ctx.fillText("Q", cx(x1) + 15, cy(y1) - 10);
             }
 
-            // Actualizar texto en pantalla
-            ctx.font = "16px Arial";
-            ctx.fillStyle = "#333";
-            deltaXDisplay.innerText = Math.max(0, dx).toFixed(3);
+            // Actualizar texto de 'h' en pantalla
+            hDisplay.innerText = Math.max(0, h).toFixed(3);
+            if (h < 0.05) {
+                hDisplay.style.color = '#e74c3c';
+                hDisplay.innerText = "0.000 (Límite alcanzado)";
+            } else {
+                hDisplay.style.color = '#2980b9';
+            }
 
-            // 6. Lógica de animación: reducir Δx
-            dx -= speed;
+            // 7. Lógica de reducción de h
+            h -= speed;
 
-            // Si Q llega a P (Δx es casi 0), reiniciamos la animación después de una pausa corta
-            if (dx <= 0) {
-                dx = 0;
+            if (h <= 0) {
+                h = 0;
                 setTimeout(() => {
-                    dx = 3.5; // Volver a empezar
+                    h = 3.5; 
                     requestAnimationFrame(animar);
-                }, 1500); // Pausar 1.5 segundos cuando es tangente
+                }, 2000); // Pausar 2 segundos para apreciar la tangente
             } else {
                 requestAnimationFrame(animar);
             }
         }
 
-        // Iniciar la animación
+        // Iniciar
         animar();
     </script>
 </body>
