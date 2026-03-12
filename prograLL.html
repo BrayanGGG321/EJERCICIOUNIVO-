@@ -8,11 +8,11 @@
     <script>
         window.MathJax = {
             tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                inlineMath: [['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             },
             startup: {
-                typeset: false // Lo actualizaremos manualmente para evitar errores
+                typeset: false
             }
         };
     </script>
@@ -64,6 +64,7 @@
             border-radius: 5px;
             font-family: monospace;
             resize: vertical;
+            box-sizing: border-box;
         }
         button {
             background-color: #27ae60;
@@ -136,65 +137,65 @@
 </div>
 
 <script>
-    // Uso cadenas simples para evitar que el navegador rompa la sintaxis al copiar y pegar
     const steps = [
         {
             title: "Paso 1: Variables de Decisión",
             prompt: "Define las variables de decisión. Necesitas variables para lo que inviertes en el Plan A cada año, en el Plan B, y el dinero que decides guardar en efectivo (no invertido) al inicio de cada periodo.",
-            correct: "$$ x_{A1}, x_{A2}, x_{A3} : \\text{montos invertidos en el plan A al inicio de los años 1, 2 y 3.} $$ <br> $$ x_{B1}, x_{B2} : \\text{montos invertidos en el plan B al inicio de los años 1 y 2.} $$ <br> $$ e_1, e_2, e_3 : \\text{efectivo no invertido al inicio de los años 1, 2 y 3.} $$",
+            correct: "$$x_{A1}, x_{A2}, x_{A3} : \\text{montos invertidos en el plan A al inicio de los años 1, 2 y 3.}$$<br>$$x_{B1}, x_{B2} : \\text{montos invertidos en el plan B al inicio de los años 1 y 2.}$$<br>$$e_1, e_2, e_3 : \\text{efectivo no invertido al inicio de los años 1, 2 y 3.}$$",
             explanation: "Es fundamental incluir una variable de 'efectivo' (e) porque el ejecutivo no está obligado a invertir todo su dinero si guardarlo para el siguiente año da un mejor rendimiento global."
         },
         {
             title: "Paso 2: Restricción Año 1",
             prompt: "Escribe la ecuación de balance para el inicio del Año 1. Tienes un capital inicial de 100,000 que debes repartir.",
-            correct: "$$ x_{A1} + x_{B1} + e_1 = 100\\,000 $$",
+            correct: "$$x_{A1} + x_{B1} + e_1 = 100\\,000$$",
             explanation: "El total del dinero inicial se divide en lo que inviertes en A, lo que inviertes en B y lo que dejas en efectivo."
         },
         {
             title: "Paso 3: Restricción Año 2",
             prompt: "Escribe la restricción para el inicio del Año 2. Considera que el dinero invertido en el plan A durante el año 1 ya maduró (con un retorno de 1.70 por dólar), y tienes el efectivo que guardaste.",
-            correct: "$$ x_{A2} + x_{B2} + e_2 = e_1 + 1.7\\,x_{A1} $$",
+            correct: "$$x_{A2} + x_{B2} + e_2 = e_1 + 1.7\\,x_{A1}$$",
             explanation: "El lado derecho es el dinero disponible (efectivo guardado + lo ganado en el Plan A). El lado izquierdo es en qué lo inviertes este segundo año. El Plan B del año 1 aún no madura."
         },
         {
             title: "Paso 4: Restricción Año 3",
             prompt: "Escribe la restricción para el inicio del Año 3. Ahora madura el Plan A del año 2, ¡y también el Plan B del año 1 (con un retorno de 3.00)! Ya no puedes invertir en el Plan B.",
-            correct: "$$ x_{A3} + e_3 = e_2 + 1.7\\,x_{A2} + 3\\,x_{B1} $$",
+            correct: "$$x_{A3} + e_3 = e_2 + 1.7\\,x_{A2} + 3\\,x_{B1}$$",
             explanation: "Solo puedes invertir en el Plan A o dejarlo en efectivo. El dinero disponible viene del efectivo del año 2, las ganancias del Plan A del año 2, y las ganancias del Plan B del año 1."
         },
         {
             title: "Paso 5: Función Objetivo",
             prompt: "Escribe la función objetivo. Quieres maximizar tu capital final al término del Año 3.",
-            correct: "$$ \\text{Maximizar } F = 1.7\\,x_{A3} + 3\\,x_{B2} + e_3 $$",
+            correct: "$$\\text{Maximizar } F = 1.7\\,x_{A3} + 3\\,x_{B2} + e_3$$",
             explanation: "Al final del año 3, recoges los frutos del Plan A del año 3, el Plan B del año 2 (que tardó 2 años en madurar), y el efectivo sobrante del último año."
         },
         {
             title: "Paso 6: Condición de No Negatividad",
             prompt: "Para completar el modelo, ¿cuál es la restricción lógica que aplican a todas las variables en la programación lineal?",
-            correct: "$$ x_{A1}, x_{A2}, x_{A3}, x_{B1}, x_{B2}, e_1, e_2, e_3 \\geq 0 $$",
+            correct: "$$x_{A1}, x_{A2}, x_{A3}, x_{B1}, x_{B2}, e_1, e_2, e_3 \\geq 0$$",
             explanation: "No puedes invertir cantidades negativas de dinero."
         }
     ];
 
     let currentStep = 0;
 
-    // Función segura para actualizar las matemáticas
     function renderMath() {
         if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
-            MathJax.typesetPromise().catch(function(err) {
-                console.warn('Error en MathJax:', err.message);
-            });
+            MathJax.typesetPromise()
+                .catch(function(err) {
+                    console.error('Error en MathJax:', err);
+                });
         }
     }
 
     function renderStep() {
-        document.getElementById('step-title').innerHTML = steps[currentStep].title;
-        document.getElementById('step-prompt').innerHTML = steps[currentStep].prompt;
+        document.getElementById('step-title').textContent = steps[currentStep].title;
+        document.getElementById('step-prompt').textContent = steps[currentStep].prompt;
         document.getElementById('user-input').value = "";
         
         document.getElementById('input-area').style.display = "block";
         document.getElementById('feedback-box').style.display = "none";
-        renderMath();
+        
+        setTimeout(renderMath, 100);
     }
 
     function checkAnswer() {
@@ -205,13 +206,12 @@
         }
 
         document.getElementById('input-area').style.display = "none";
-        // .textContent evita que se ejecute código HTML malicioso si el usuario escribe etiquetas
         document.getElementById('user-display').textContent = userInput;
         document.getElementById('correct-display').innerHTML = steps[currentStep].correct;
-        document.getElementById('explanation-display').innerHTML = steps[currentStep].explanation;
+        document.getElementById('explanation-display').textContent = steps[currentStep].explanation;
         
         document.getElementById('feedback-box').style.display = "block";
-        renderMath();
+        setTimeout(renderMath, 100);
     }
 
     function nextStep() {
@@ -237,13 +237,12 @@
         
         contentDiv.innerHTML = html;
         summaryDiv.style.display = "block";
-        renderMath();
+        setTimeout(renderMath, 100);
     }
 
-    // Asegurarse de que el script cargue al iniciar la ventana
-    window.onload = function() {
+    window.addEventListener('load', function() {
         renderStep();
-    };
+    });
 </script>
 
 </body>
