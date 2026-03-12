@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\begin{document}
+
+\section*{Modelo de programación lineal para la inversión de Joe y Jill}
+En anticipación a los fuertes gastos académicos, Joe y Jill iniciaron un programa de inversión anual en el octavo cumpleaños de su hijo, el cual terminará hasta que cumpla dieciocho años. Planean invertir las siguientes cantidades al principio de cada año:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Año & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+\hline
+Cantidad (\$) & 2000 & 2000 & 2500 & 2500 & 3000 & 3500 & 3500 & 4000 & 4000 & 5000 \\
+\hline
+\end{tabular}
+\end{center}
+
+Para evitar sorpresas desagradables, quieren invertir el dinero sin riesgo en las siguientes opciones: Ahorros asegurados con rendimiento anual de 7.5\%, bonos del gobierno a seis años que rinden 7.9\% y cuyo precio de mercado actual es de 98\% de su valor nominal, además de bonos municipales a 9 años que rinden 8.5\% y cuyo precio de mercado actual es de 1.02 de su valor nominal. ¿Cómo debería invertirse el dinero?
+\section{Solución}
+
+\subsection*{Variables de decisión}
+\begin{align*}
+G_i & : \text{valor nominal (en \$) de bonos del gobierno a 6 años comprados al inicio del año } i,\quad i = 1,\dots,5 \\
+M_i & : \text{valor nominal (en \$) de bonos municipales a 9 años comprados al inicio del año } i,\quad i = 1,2 \\
+A_i & : \text{cantidad (en \$) depositada en la cuenta de ahorros al inicio del año } i,\quad i = 1,\dots,10 \\
+& \text{Todas las variables son no negativas.}
+\end{align*}
+
+
+
+\subsection*{Restricciones de flujo de efectivo}
+Para cada año \( t = 1,\dots,10 \), el efectivo disponible debe igualar a lo invertido.
+
+\begin{align}
+\text{Año 1:}&\quad A_1 + 0.98 G_1 + 1.02 M_1 = 2000 \label{eq:ano1} \\
+\text{Año 2:}&\quad A_2 + 0.98 G_2 + 1.02 M_2 =1.075 A_1 + 0.079 G_1 + 0.085 M_1 + 2000 \label{eq:ano2} \\
+\text{Año 3:}&\quad  A_3 + 0.98 G_3 =1.075 A_2 + 0.079(G_1 + G_2) + 0.085(M_1 + M_2) + 2500 \label{eq:ano3} \\
+\text{Año 4:}&\quad A_4 + 0.98 G_4=1.075 A_3 + 0.079(G_1 + G_2 + G_3) + 0.085(M_1 + M_2) + 2500  \label{eq:ano4} \\
+\text{Año 5:}&\quad A_5 + 0.98 G_5=1.075 A_4 + 0.079(G_1 + G_2 + G_3 + G_4) + 0.085(M_1 + M_2) + 3000  \label{eq:ano5} \\
+\text{Año 6:}&\quad A_6=1.075 A_5 + 0.079(G_1 + G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + 3500  \label{eq:ano6} \\
+\text{Año 7:}&\quad A_7=1.075 A_6 + 0.079(G_1 + G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_1 + 3500  \label{eq:ano7} \\
+\text{Año 8:}&\quad A_8=1.075 A_7 + 0.079(G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_2 + 4000  \label{eq:ano8} \\
+\text{Año 9:}&\quad  A_9 =1.075 A_8 + 0.079(G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_3 + 4000 \label{eq:ano9} \\
+\text{Año 10:}&\quad A_9=1.075 A_9 + 0.079(G_4 + G_5) + 0.085(M_1 + M_2) + G_4 + M_1 + 5000  \label{eq:ano10}
+\end{align}
+
+\subsection*{Funci\'on objetivo}
+Maximizar el capital al inicio del año 11 (cuando el hijo cumple 18 años):
+\[
+V = 1.075 A_9 + 1.079 G_5 + 1.085 M_2
+\]
+
+\end{document}
