@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inversión en Planes A y B - Ejercicio Interactivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #2c3e50; }
+        .problem-box {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .interactive-section {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .step-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #2ecc71; }
+        .feedback {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-left: 5px solid #27ae60;
+            border-radius: 5px;
+        }
+        .explanation {
+            font-size: 0.95em;
+            color: #555;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        #final-summary { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Modelo de Programación Lineal: Planes de Inversión</h1>
+    
+    <div class="problem-box">
+        <h3>El Problema del Ejecutivo</h3>
+        <p>Un ejecutivo empresarial tiene la opción de invertir en dos planes:</p>
+        <ul>
+            <li><strong>Plan A:</strong> Garantiza que cada dólar invertido ganará $0.70 al año (es decir, recibes $1.70 al finalizar el año). Las inversiones pueden hacerse anualmente.</li>
+            <li><strong>Plan B:</strong> Garantiza que cada dólar invertido ganará $2 después de 2 años (es decir, recibes $3.00 al finalizar el periodo). Solo se permiten inversiones durante periodos que sean múltiplos de 2 años.</li>
+        </ul>
+        <p>¿Cómo debe invertir el ejecutivo <strong>$100,000</strong> para maximizar las ganancias al final de 3 años?</p>
+    </div>
+
+    <div class="interactive-section" id="interactive-box">
+        <div class="step-title" id="step-title">Cargando...</div>
+        <p id="step-prompt">Cargando...</p>
+        
+        <div id="input-area">
+            <textarea id="user-input" placeholder="Escribe tu respuesta aquí..."></textarea>
+            <br>
+            <button id="submit-btn" onclick="checkAnswer()">Comprobar</button>
+        </div>
+
+        <div class="feedback" id="feedback-box">
+            <strong>Tu respuesta:</strong>
+            <p id="user-display" style="font-family: monospace; background: #fff; padding: 10px; border: 1px dashed #ccc;"></p>
+            <strong>Respuesta Correcta:</strong>
+            <div id="correct-display"></div>
+            <div class="explanation" id="explanation-display"></div>
+            <br>
+            <button onclick="nextStep()" style="background-color: #3498db;">Siguiente Paso ➔</button>
+        </div>
+    </div>
+
+    <div id="final-summary">
+        <h2>Resumen del Modelo Completo</h2>
+        <div id="summary-content" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 8px;"></div>
+    </div>
+</div>
+
+<script>
+    const steps = [
+        {
+            title: "Paso 1: Variables de Decisión",
+            prompt: "Define las variables de decisión. Necesitas variables para lo que inviertes en el Plan A cada año, en el Plan B, y el dinero que decides guardar en efectivo (no invertido) al inicio de cada periodo.",
+            correct: `$$ x_{A1}, x_{A2}, x_{A3} : \\text{montos invertidos en el plan A al inicio de los años 1, 2 y 3.} $$
+                      $$ x_{B1}, x_{B2} : \\text{montos invertidos en el plan B al inicio de los años 1 y 2.} $$
+                      $$ e_1, e_2, e_3 : \\text{efectivo no invertido al inicio de los años 1, 2 y 3 respectivamente (o al final del periodo anterior).} $$`,
+            explanation: "Es fundamental incluir una variable de 'efectivo' (slack) porque el ejecutivo no está obligado a invertir todo su dinero si guardarlo para el siguiente año da un mejor rendimiento global."
+        },
+        {
+            title: "Paso 2: Restricción Año 1",
+            prompt: "Escribe la ecuación de balance para el inicio del Año 1. Tienes un capital inicial de 100,000 que debes repartir entre tus opciones disponibles.",
+            correct: "$$ x_{A1} + x_{B1} + e_1 = 100\\,000 $$",
+            explanation: "El total del dinero inicial se divide en lo que inviertes en A, lo que inviertes en B y lo que dejas en efectivo."
+        },
+        {
+            title: "Paso 3: Restricción Año 2",
+            prompt: "Escribe la restricción para el inicio del Año 2. Considera que el dinero invertido en el plan A durante el año 1 ya maduró (con un retorno de 1.70 por dólar), y tienes el efectivo que guardaste. ¿En qué lo puedes asignar ahora?",
+            correct: "$$ x_{A2} + x_{B2} + e_2 = e_1 + 1.7\\,x_{A1} $$",
+            explanation: "El lado derecho es el dinero disponible (el efectivo guardado + lo ganado en el Plan A). El lado izquierdo es en qué lo inviertes para este segundo año. Nota que el Plan B del año 1 aún no madura, así que no entra aquí."
+        },
+        {
+            title: "Paso 4: Restricción Año 3",
+            prompt: "Escribe la restricción para el inicio del Año 3. Ahora madura el Plan A del año 2, ¡y también el Plan B del año 1 (con un retorno de 3.00 por dólar)! Ya no puedes invertir en el Plan B porque tardaría 2 años y el horizonte es de 3.",
+            correct: "$$ x_{A3} + e_3 = e_2 + 1.7\\,x_{A2} + 3\\,x_{B1} $$",
+            explanation: "Solo puedes invertir en el Plan A o dejarlo en efectivo. El dinero disponible viene del efectivo del año 2, las ganancias del Plan A del año 2, y por fin, las ganancias del Plan B iniciado en el año 1."
+        },
+        {
+            title: "Paso 5: Función Objetivo",
+            prompt: "Escribe la función objetivo. Quieres maximizar tu capital final al término del Año 3. Piensa en qué inversiones maduran exactamente al final del tercer año.",
+            correct: "$$ \\text{Maximizar } F = 1.7\\,x_{A3} + 3\\,x_{B2} + e_3 $$",
+            explanation: "Al final del año 3, recoges los frutos del Plan A del año 3, el Plan B del año 2 (que tardó 2 años en madurar), y el efectivo sobrante del último año."
+        },
+        {
+            title: "Paso 6: Condición de No Negatividad",
+            prompt: "Para completar el modelo, ¿cuál es la restricción lógica que aplican a todas las variables en la programación lineal?",
+            correct: "$$ x_{A1}, x_{A2}, x_{A3}, x_{B1}, x_{B2}, e_1, e_2, e_3 \\geq 0 $$",
+            explanation: "No puedes invertir cantidades negativas de dinero."
+        }
+    ];
+
+    let currentStep = 0;
+
+    function renderStep() {
+        document.getElementById('step-title').innerText = steps[currentStep].title;
+        document.getElementById('step-prompt').innerText = steps[currentStep].prompt;
+        document.getElementById('user-input').value = "";
+        
+        document.getElementById('input-area').style.display = "block";
+        document.getElementById('feedback-box').style.display = "none";
+    }
+
+    function checkAnswer() {
+        const userInput = document.getElementById('user-input').value;
+        if(userInput.trim() === "") {
+            alert("Por favor escribe algo antes de comprobar.");
+            return;
+        }
+
+        document.getElementById('input-area').style.display = "none";
+        document.getElementById('user-display').innerText = userInput;
+        document.getElementById('correct-display').innerHTML = steps[currentStep].correct;
+        document.getElementById('explanation-display').innerText = steps[currentStep].explanation;
+        
+        document.getElementById('feedback-box').style.display = "block";
+        
+        // Renderizar las matemáticas
+        MathJax.typesetPromise();
+    }
+
+    function nextStep() {
+        currentStep++;
+        if (currentStep < steps.length) {
+            renderStep();
+        } else {
+            showSummary();
+        }
+    }
+
+    function showSummary() {
+        document.getElementById('interactive-box').style.display = "none";
+        const summaryDiv = document.getElementById('final-summary');
+        const contentDiv = document.getElementById('summary-content');
+        
+        let html = "";
+        steps.forEach(step => {
+            html += `<h3>${step.title}</h3>`;
+            html += `<div>${step.correct}</div>`;
+            html += `<hr style="border: 0; border-top: 1px solid #eee;">`;
+        });
+        
+        contentDiv.innerHTML = html;
+        summaryDiv.style.display = "block";
+        
+        MathJax.typesetPromise();
+    }
+
+    // Iniciar
+    window.onload = renderStep;
+</script>
+
+</body>
+</html>
