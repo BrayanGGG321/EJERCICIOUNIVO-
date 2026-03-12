@@ -1,55 +1,288 @@
-\documentclass{article}
-\usepackage[utf8]{inputenc}
-\usepackage{amsmath}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inversión de Joe y Jill - Ejercicio Interactivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 { color: #2c3e50; }
+        .problem-box {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            text-align: center;
+        }
+        th { background-color: #ecf0f1; }
+        .interactive-section {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .step-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #2ecc71; }
+        .feedback {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-left: 5px solid #27ae60;
+            border-radius: 5px;
+        }
+        .explanation {
+            font-size: 0.95em;
+            color: #555;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        #final-summary { display: none; }
+    </style>
+</head>
+<body>
 
-\begin{document}
+<div class="container">
+    <h1>Modelo de Programación Lineal</h1>
+    
+    <div class="problem-box">
+        <h3>La Inversión de Joe y Jill</h3>
+        <p>En anticipación a los fuertes gastos académicos, Joe y Jill iniciaron un programa de inversión anual en el octavo cumpleaños de su hijo, el cual terminará hasta que cumpla dieciocho años. Planean invertir las siguientes cantidades al principio de cada año:</p>
+        
+        <table>
+            <tr>
+                <th>Año</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+            </tr>
+            <tr>
+                <th>Cantidad ($)</th><td>2000</td><td>2000</td><td>2500</td><td>2500</td><td>3000</td><td>3500</td><td>3500</td><td>4000</td><td>4000</td><td>5000</td>
+            </tr>
+        </table>
+        
+        <p>Para evitar sorpresas desagradables, quieren invertir el dinero sin riesgo en las siguientes opciones:</p>
+        <ul>
+            <li><strong>Ahorros asegurados:</strong> Rendimiento anual de 7.5%.</li>
+            <li><strong>Bonos del gobierno (6 años):</strong> Rinden 7.9% anual y su precio actual es de 98% de su valor nominal.</li>
+            <li><strong>Bonos municipales (9 años):</strong> Rinden 8.5% anual y su precio actual es de 102% de su valor nominal.</li>
+        </ul>
+        <p>¿Cómo debería invertirse el dinero?</p>
+    </div>
 
-\section*{Modelo de programación lineal para la inversión de Joe y Jill}
-En anticipación a los fuertes gastos académicos, Joe y Jill iniciaron un programa de inversión anual en el octavo cumpleaños de su hijo, el cual terminará hasta que cumpla dieciocho años. Planean invertir las siguientes cantidades al principio de cada año:
+    <div class="interactive-section" id="interactive-box">
+        <div class="step-title" id="step-title">Cargando...</div>
+        <p id="step-prompt">Cargando...</p>
+        
+        <div id="input-area">
+            <textarea id="user-input" placeholder="Escribe tu respuesta aquí..."></textarea>
+            <br>
+            <button id="submit-btn" onclick="checkAnswer()">Comprobar</button>
+        </div>
 
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
-\hline
-Año & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
-\hline
-Cantidad (\$) & 2000 & 2000 & 2500 & 2500 & 3000 & 3500 & 3500 & 4000 & 4000 & 5000 \\
-\hline
-\end{tabular}
-\end{center}
+        <div class="feedback" id="feedback-box">
+            <strong>Tu respuesta:</strong>
+            <p id="user-display" style="font-family: monospace; background: #fff; padding: 10px; border: 1px dashed #ccc;"></p>
+            <strong>Respuesta Correcta:</strong>
+            <div id="correct-display"></div>
+            <div class="explanation" id="explanation-display"></div>
+            <br>
+            <button onclick="nextStep()" style="background-color: #3498db;">Siguiente Paso ➔</button>
+        </div>
+    </div>
 
-Para evitar sorpresas desagradables, quieren invertir el dinero sin riesgo en las siguientes opciones: Ahorros asegurados con rendimiento anual de 7.5\%, bonos del gobierno a seis años que rinden 7.9\% y cuyo precio de mercado actual es de 98\% de su valor nominal, además de bonos municipales a 9 años que rinden 8.5\% y cuyo precio de mercado actual es de 1.02 de su valor nominal. ¿Cómo debería invertirse el dinero?
-\section{Solución}
+    <div id="final-summary">
+        <h2>Resumen del Modelo Completo</h2>
+        <div id="summary-content" style="background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 8px;"></div>
+    </div>
+</div>
 
-\subsection*{Variables de decisión}
-\begin{align*}
-G_i & : \text{valor nominal (en \$) de bonos del gobierno a 6 años comprados al inicio del año } i,\quad i = 1,\dots,5 \\
-M_i & : \text{valor nominal (en \$) de bonos municipales a 9 años comprados al inicio del año } i,\quad i = 1,2 \\
-A_i & : \text{cantidad (en \$) depositada en la cuenta de ahorros al inicio del año } i,\quad i = 1,\dots,10 \\
-& \text{Todas las variables son no negativas.}
-\end{align*}
+<script>
+    const steps = [
+        {
+            title: "Paso 1: Variables de Decisión",
+            prompt: "Define las variables de decisión. Piensa en qué decisiones deben tomar Joe y Jill al inicio de cada año para las 3 opciones de inversión (Bonos de gobierno G, Bonos Municipales M y Ahorros A). Define también los subíndices.",
+            correct: `$$ G_i : \\text{valor nominal (en \\$) de bonos del gobierno a 6 años comprados al inicio del año } i, \\quad i = 1,\\dots,5 $$
+                      $$ M_i : \\text{valor nominal (en \\$) de bonos municipales a 9 años comprados al inicio del año } i, \\quad i = 1,2 $$
+                      $$ A_i : \\text{cantidad (en \\$) depositada en la cuenta de ahorros al inicio del año } i, \\quad i = 1,\\dots,10 $$
+                      <p><em>Todas las variables son no negativas.</em></p>`,
+            explanation: "Limitamos la compra de bonos del gobierno hasta el año 5, porque a 6 años madurarían después de que el hijo cumpla 18. Igual con los municipales (hasta el año 2)."
+        },
+        {
+            title: "Paso 2: Restricción Año 1",
+            prompt: "Para cada año, el efectivo disponible debe igualar a lo invertido. Escribe la restricción para el Año 1 (Invierten $2000). Considera los precios de compra de los bonos (98% y 102%).",
+            correct: "$$ A_1 + 0.98 G_1 + 1.02 M_1 = 2000 $$",
+            explanation: "El capital se divide en ahorros, y la compra de bonos a sus precios de mercado actuales (0.98 para gobierno y 1.02 para municipales)."
+        },
+        {
+            title: "Paso 3: Restricción Año 2",
+            prompt: "Escribe la restricción para el Año 2. Ahora, además de los $2000 nuevos, reciben el capital+interés de los ahorros del Año 1, y los intereses de los bonos comprados en el Año 1.",
+            correct: "$$ A_2 + 0.98 G_2 + 1.02 M_2 = 1.075 A_1 + 0.079 G_1 + 0.085 M_1 + 2000 $$",
+            explanation: "Retiran los ahorros del año 1 con 7.5% de interés (1.075), cobran el cupón de 7.9% y 8.5% de los bonos, y suman los $2000 de aportación de este año para reinvertirlo todo."
+        },
+        {
+            title: "Paso 4: Restricción Año 3",
+            prompt: "Escribe la restricción para el Año 3 (Aportación de $2500). Ya no pueden comprar bonos municipales porque madurarían después del año 11.",
+            correct: "$$ A_3 + 0.98 G_3 = 1.075 A_2 + 0.079(G_1 + G_2) + 0.085(M_1 + M_2) + 2500 $$",
+            explanation: "Siguen cobrando cupones de todos los bonos comprados en años anteriores. Notarás que ya no se invierte en M_3."
+        },
+        {
+            title: "Paso 5: Restricción Año 4",
+            prompt: "Escribe la restricción para el Año 4 (Aportación de $2500).",
+            correct: "$$ A_4 + 0.98 G_4 = 1.075 A_3 + 0.079(G_1 + G_2 + G_3) + 0.085(M_1 + M_2) + 2500 $$",
+            explanation: "Sigue la misma lógica, sumando los intereses de G_3."
+        },
+        {
+            title: "Paso 6: Restricción Año 5",
+            prompt: "Escribe la restricción para el Año 5 (Aportación de $3000). Es el último año donde pueden comprar bonos de gobierno.",
+            correct: "$$ A_5 + 0.98 G_5 = 1.075 A_4 + 0.079(G_1 + G_2 + G_3 + G_4) + 0.085(M_1 + M_2) + 3000 $$",
+            explanation: "Igual que el año anterior, pero se añade G_4 al grupo de cupones ganados."
+        },
+        {
+            title: "Paso 7: Restricción Año 6",
+            prompt: "Escribe la restricción para el Año 6 (Aportación de $3500). Ya no hay compra de bonos, todo va a ahorros.",
+            correct: "$$ A_6 = 1.075 A_5 + 0.079(G_1 + G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + 3500 $$",
+            explanation: "Solo se deposita en la cuenta de ahorros (A_6), ya que ninguna otra inversión maduraría a tiempo."
+        },
+        {
+            title: "Paso 8: Restricción Año 7",
+            prompt: "Escribe la restricción para el Año 7 (Aportación de $3500). ¡Ojo! Los bonos de gobierno del Año 1 maduran aquí (6 años después), por lo que recuperan su valor nominal completo.",
+            correct: "$$ A_7 = 1.075 A_6 + 0.079(G_1 + G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_1 + 3500 $$",
+            explanation: "Además de los intereses, se suma + G_1 porque el gobierno devuelve el principal invertido hace 6 años."
+        },
+        {
+            title: "Paso 9: Restricción Año 8",
+            prompt: "Escribe la restricción para el Año 8 (Aportación de $4000). Maduran los bonos de gobierno comprados en el Año 2.",
+            correct: "$$ A_8 = 1.075 A_7 + 0.079(G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_2 + 4000 $$",
+            explanation: "Entra el principal de G_2. Nota que los intereses del 7.9% de G_1 ya no se reciben porque ya maduró."
+        },
+        {
+            title: "Paso 10: Restricción Año 9",
+            prompt: "Escribe la restricción para el Año 9 (Aportación de $4000). Maduran los bonos de gobierno del Año 3.",
+            correct: "$$ A_9 = 1.075 A_8 + 0.079(G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_3 + 4000 $$",
+            explanation: "Se suma G_3 como devolución de principal. Ya no hay intereses de G_2."
+        },
+        {
+            title: "Paso 11: Restricción Año 10",
+            prompt: "Escribe la restricción para el Año 10 (Aportación de $5000). Maduran los bonos de gobierno del Año 4, ¡y también los bonos municipales del Año 1 (a 9 años)!",
+            correct: "$$ A_{10} = 1.075 A_9 + 0.079(G_4 + G_5) + 0.085(M_1 + M_2) + G_4 + M_1 + 5000 $$",
+            explanation: "Esta es la última aportación. Se recuperan el principal de G_4 y M_1."
+        },
+        {
+            title: "Paso 12: Función Objetivo",
+            prompt: "Finalmente, escribe la Función Objetivo. Quieren maximizar el capital total disponible al inicio del año 11 (cuando el hijo cumple 18 años).",
+            correct: "$$ \\text{Maximizar } V = 1.075 A_{10} + 1.079 G_5 + 1.085 M_2 $$",
+            explanation: "El valor final V se compone de: ahorros del año 10 con su interés (1.075 A_{10}), el principal+interés de los bonos de gobierno del año 5 (1.079 G_5) y los bonos municipales del año 2 (1.085 M_2)."
+        }
+    ];
 
+    let currentStep = 0;
 
+    function renderStep() {
+        document.getElementById('step-title').innerText = steps[currentStep].title;
+        document.getElementById('step-prompt').innerText = steps[currentStep].prompt;
+        document.getElementById('user-input').value = "";
+        
+        document.getElementById('input-area').style.display = "block";
+        document.getElementById('feedback-box').style.display = "none";
+    }
 
-\subsection*{Restricciones de flujo de efectivo}
-Para cada año \( t = 1,\dots,10 \), el efectivo disponible debe igualar a lo invertido.
+    function checkAnswer() {
+        const userInput = document.getElementById('user-input').value;
+        if(userInput.trim() === "") {
+            alert("Por favor escribe algo antes de comprobar.");
+            return;
+        }
 
-\begin{align}
-\text{Año 1:}&\quad A_1 + 0.98 G_1 + 1.02 M_1 = 2000 \label{eq:ano1} \\
-\text{Año 2:}&\quad A_2 + 0.98 G_2 + 1.02 M_2 =1.075 A_1 + 0.079 G_1 + 0.085 M_1 + 2000 \label{eq:ano2} \\
-\text{Año 3:}&\quad  A_3 + 0.98 G_3 =1.075 A_2 + 0.079(G_1 + G_2) + 0.085(M_1 + M_2) + 2500 \label{eq:ano3} \\
-\text{Año 4:}&\quad A_4 + 0.98 G_4=1.075 A_3 + 0.079(G_1 + G_2 + G_3) + 0.085(M_1 + M_2) + 2500  \label{eq:ano4} \\
-\text{Año 5:}&\quad A_5 + 0.98 G_5=1.075 A_4 + 0.079(G_1 + G_2 + G_3 + G_4) + 0.085(M_1 + M_2) + 3000  \label{eq:ano5} \\
-\text{Año 6:}&\quad A_6=1.075 A_5 + 0.079(G_1 + G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + 3500  \label{eq:ano6} \\
-\text{Año 7:}&\quad A_7=1.075 A_6 + 0.079(G_1 + G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_1 + 3500  \label{eq:ano7} \\
-\text{Año 8:}&\quad A_8=1.075 A_7 + 0.079(G_2 + G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_2 + 4000  \label{eq:ano8} \\
-\text{Año 9:}&\quad  A_9 =1.075 A_8 + 0.079(G_3 + G_4 + G_5) + 0.085(M_1 + M_2) + G_3 + 4000 \label{eq:ano9} \\
-\text{Año 10:}&\quad A_9=1.075 A_9 + 0.079(G_4 + G_5) + 0.085(M_1 + M_2) + G_4 + M_1 + 5000  \label{eq:ano10}
-\end{align}
+        document.getElementById('input-area').style.display = "none";
+        document.getElementById('user-display').innerText = userInput;
+        document.getElementById('correct-display').innerHTML = steps[currentStep].correct;
+        document.getElementById('explanation-display').innerText = steps[currentStep].explanation;
+        
+        document.getElementById('feedback-box').style.display = "block";
+        
+        // Renderizar las matemáticas inyectadas
+        MathJax.typesetPromise();
+    }
 
-\subsection*{Funci\'on objetivo}
-Maximizar el capital al inicio del año 11 (cuando el hijo cumple 18 años):
-\[
-V = 1.075 A_9 + 1.079 G_5 + 1.085 M_2
-\]
+    function nextStep() {
+        currentStep++;
+        if (currentStep < steps.length) {
+            renderStep();
+        } else {
+            showSummary();
+        }
+    }
 
-\end{document}
+    function showSummary() {
+        document.getElementById('interactive-box').style.display = "none";
+        const summaryDiv = document.getElementById('final-summary');
+        const contentDiv = document.getElementById('summary-content');
+        
+        let html = "";
+        steps.forEach(step => {
+            html += `<h3>${step.title}</h3>`;
+            html += `<div>${step.correct}</div>`;
+            html += `<hr style="border: 0; border-top: 1px solid #eee;">`;
+        });
+        
+        contentDiv.innerHTML = html;
+        summaryDiv.style.display = "block";
+        
+        MathJax.typesetPromise();
+    }
+
+    // Iniciar
+    window.onload = renderStep;
+</script>
+
+</body>
+</html>
