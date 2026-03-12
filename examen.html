@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inversión en Planes A y B - Interactivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .problem-box {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .interactive-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #e67e22;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: monospace;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        button:hover { background-color: #2ecc71; }
+        .feedback {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-left: 5px solid #27ae60;
+        }
+        #final-summary { display: none; }
+        .math-text { font-size: 1.1em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Planes de Inversión A y B</h1>
+    
+    <div class="problem-box">
+        <p>Un ejecutivo empresarial tiene la opción de invertir en dos planes:</p>
+        <ul>
+            <li><strong>Plan A:</strong> Gana $0.70 por cada dólar al año (inversión anual).</li>
+            <li><strong>Plan B:</strong> Gana $2.00 por cada dólar después de 2 años (inversión en múltiplos de 2 años).</li>
+        </ul>
+        <p>¿Cómo debe invertir el ejecutivo <strong>$100,000</strong> para maximizar las ganancias al final de 3 años?</p>
+    </div>
+
+    <div class="interactive-section" id="interactive-box">
+        <div class="step-title" id="step-title">Cargando...</div>
+        <p id="step-prompt">Cargando...</p>
+        
+        <div id="input-area">
+            <textarea id="user-input" placeholder="Escribe tu respuesta aquí..."></textarea><br>
+            <button onclick="checkAnswer()">Comprobar</button>
+        </div>
+
+        <div class="feedback" id="feedback-box">
+            <strong>Tu respuesta:</strong>
+            <p id="user-display" style="font-family: monospace; background: #fff; padding: 10px; border: 1px dashed #ccc;"></p>
+            <strong>Respuesta Correcta:</strong>
+            <div id="correct-display" class="math-text"></div>
+            <p id="explanation-display" style="color: #555; font-style: italic;"></p>
+            <button onclick="nextStep()" style="background-color: #3498db;">Siguiente ➔</button>
+        </div>
+    </div>
+
+    <div id="final-summary">
+        <h2>Resumen del Modelo Completo</h2>
+        <div id="summary-content" style="background: #fff; padding: 20px; border: 1px solid #ccc;"></div>
+    </div>
+</div>
+
+<script>
+    const steps = [
+        {
+            title: "Paso 1: Variables de Decisión",
+            prompt: "Define las variables para el Plan A (cada año), Plan B (años 1 y 2) y el efectivo guardado (e) para los 3 años.",
+            correct: "\\( x_{A1}, x_{A2}, x_{A3} \\): Inversión en plan A (años 1, 2, 3)<br>\\( x_{B1}, x_{B2} \\): Inversión en plan B (años 1, 2)<br>\\( e_1, e_2, e_3 \\): Efectivo guardado al inicio de los años 1, 2, 3",
+            explanation: "Se necesita la variable 'e' por si conviene más guardar el dinero sin invertir un año para meterlo al plan B al año siguiente."
+        },
+        {
+            title: "Paso 2: Restricción Año 1",
+            prompt: "Balance del Año 1: Tienes 100,000 iniciales.",
+            correct: "\\( x_{A1} + x_{B1} + e_1 = 100,000 \\)",
+            explanation: "El capital se reparte entre el Plan A, el Plan B y el efectivo guardado."
+        },
+        {
+            title: "Paso 3: Restricción Año 2",
+            prompt: "Balance del Año 2: Recibes el capital y ganancia del Plan A (1 + 0.70 = 1.70) y tienes tu efectivo del año anterior.",
+            correct: "\\( x_{A2} + x_{B2} + e_2 = e_1 + 1.7x_{A1} \\)",
+            explanation: "El plan B del año 1 aún no madura, así que no te da dinero todavía."
+        },
+        {
+            title: "Paso 4: Restricción Año 3",
+            prompt: "Balance del Año 3: Madura el Plan A del año 2 y, por fin, el Plan B del año 1 (retorno de 3.00).",
+            correct: "\\( x_{A3} + e_3 = e_2 + 1.7x_{A2} + 3x_{B1} \\)",
+            explanation: "Ya no puedes invertir en el Plan B porque tardaría 2 años y el juego se acaba al final del año 3."
+        },
+        {
+            title: "Paso 5: Función Objetivo",
+            prompt: "Maximizar el dinero al final del Año 3. ¿Qué inversiones maduran exactamente al cerrar el tercer año?",
+            correct: "Maximizar \\( F = 1.7x_{A3} + 3x_{B2} + e_3 \\)",
+            explanation: "Recoges el Plan A del año 3, el Plan B del año 2 y el efectivo que guardaste al inicio del año 3."
+        },
+        {
+            title: "Paso 6: No Negatividad",
+            prompt: "Condición básica de programación lineal.",
+            correct: "\\( x_{A1}, x_{A2}, x_{A3}, x_{B1}, x_{B2}, e_1, e_2, e_3 \\geq 0 \\)",
+            explanation: "Todas las variables deben ser mayores o iguales a cero."
+        }
+    ];
+
+    let currentStep = 0;
+
+    function renderMath() {
+        if (window.MathJax) {
+            MathJax.typesetPromise();
+        }
+    }
+
+    function renderStep() {
+        document.getElementById('step-title').innerHTML = steps[currentStep].title;
+        document.getElementById('step-prompt').innerHTML = steps[currentStep].prompt;
+        document.getElementById('user-input').value = "";
+        
+        document.getElementById('input-area').style.display = "block";
+        document.getElementById('feedback-box').style.display = "none";
+        renderMath();
+    }
+
+    function checkAnswer() {
+        const userInput = document.getElementById('user-input').value;
+        if(userInput.trim() === "") {
+            alert("Escribe algo antes de comprobar.");
+            return;
+        }
+
+        document.getElementById('input-area').style.display = "none";
+        document.getElementById('user-display').innerText = userInput;
+        document.getElementById('correct-display').innerHTML = steps[currentStep].correct;
+        document.getElementById('explanation-display').innerHTML = steps[currentStep].explanation;
+        
+        document.getElementById('feedback-box').style.display = "block";
+        renderMath();
+    }
+
+    function nextStep() {
+        currentStep++;
+        if (currentStep < steps.length) {
+            renderStep();
+        } else {
+            document.getElementById('interactive-box').style.display = "none";
+            let html = "";
+            steps.forEach(step => {
+                html += `<h3>${step.title}</h3><p class="math-text">${step.correct}</p><hr>`;
+            });
+            document.getElementById('summary-content').innerHTML = html;
+            document.getElementById('final-summary').style.display = "block";
+            renderMath();
+        }
+    }
+
+    window.onload = renderStep;
+</script>
+
+</body>
+</html>
