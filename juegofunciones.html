@@ -3,388 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Desafío de las Funciones</title>
-    <!-- MathJax para renderizar fórmulas matemáticas -->
+    <title>Juego: Clasificador de Funciones</title>
+    <!-- MathJax para renderizar ecuaciones correctamente -->
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --correct: #16a34a;
-            --incorrect: #dc2626;
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --text-light: #f8fafc;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             margin: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
-        }
-
-        .container {
-            background-color: var(--card-bg);
-            width: 90%;
-            max-width: 800px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            padding: 30px;
-            text-align: center;
             overflow: hidden;
         }
 
-        h1 {
-            color: var(--primary);
-            margin-bottom: 5px;
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
         }
 
-        .theory-box {
-            background-color: #e0f2fe;
-            border-left: 5px solid var(--primary);
+        /* HUD: Vidas y Puntuación */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .lives { color: var(--danger); }
+        .score { color: var(--accent); }
+
+        /* Barra de Tiempo */
+        .timer-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #334155;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background-color: var(--success);
+            transition: width 0.1s linear, background-color 0.3s;
+        }
+
+        /* Tarjeta Central (La que hay que clasificar) */
+        .card {
+            background-color: #cbd5e1;
+            color: #0f172a;
+            padding: 40px 20px;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 0 #94a3b8;
+            transition: transform 0.1s;
+        }
+
+        .card.shake {
+            animation: shake 0.4s;
+            background-color: #fca5a5;
+        }
+
+        /* Botones de Clasificación */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-concepto {
+            grid-column: span 2;
+            background-color: var(--warning);
+            box-shadow: 0 5px 0 #d97706;
+        }
+
+        .btn-funcion {
+            background-color: var(--success);
+            box-shadow: 0 5px 0 #059669;
+        }
+
+        .btn-nofuncion {
+            background-color: var(--danger);
+            box-shadow: 0 5px 0 #b91c1c;
+        }
+
+        .control-btn {
+            color: white;
+            border: none;
             padding: 15px;
-            text-align: left;
-            margin-bottom: 25px;
-            border-radius: 4px;
-            font-size: 0.95em;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s, box-shadow 0.1s;
         }
 
-        .btn {
-            background-color: var(--primary);
+        .control-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* Modal Didáctico (El aprendizaje) */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 16px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal h2 { margin-top: 0; color: var(--danger); }
+        .modal p { font-size: 1.1rem; line-height: 1.5; margin-bottom: 25px; }
+
+        .btn-continue {
+            background-color: var(--accent);
             color: white;
             border: none;
             padding: 12px 25px;
-            font-size: 16px;
+            font-size: 1.1rem;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 15px;
         }
 
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        /* Pantallas del juego */
-        #screen-start, #screen-game, #screen-result {
-            display: none;
-        }
-
-        #screen-start.active, #screen-game.active, #screen-result.active {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-
-        /* Opciones del quiz */
-        .options-grid {
+        /* Pantallas de Inicio y Fin */
+        #start-screen, #game-over-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--panel-bg);
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-top: 20px;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .option-btn {
-            background-color: #f1f5f9;
-            border: 2px solid #cbd5e1;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-        }
+        #start-screen { display: flex; }
 
-        .option-btn:hover:not(:disabled) {
-            background-color: #e2e8f0;
-            border-color: #94a3b8;
-        }
-
-        .option-btn.correct {
-            background-color: #dcfce7;
-            border-color: var(--correct);
-            color: #14532d;
-        }
-
-        .option-btn.incorrect {
-            background-color: #fee2e2;
-            border-color: var(--incorrect);
-            color: #7f1d1d;
-        }
-
-        .feedback {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-            text-align: left;
-            font-weight: 500;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background-color: #e2e8f0;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .score-display {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary);
-            margin: 20px 0;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="game-container">
     
     <!-- PANTALLA DE INICIO -->
-    <div id="screen-start" class="active">
-        <h1>🔍 El Desafío de las Funciones</h1>
-        <p>Demuestra tus conocimientos sobre el comportamiento matemático.</p>
-        
-        <div class="theory-box">
-            <strong>📚 Repaso Rápido:</strong>
-            <ul>
-                <li><strong>Función:</strong> Una relación donde a cada elemento del conjunto de entrada (x) le corresponde <b>un único</b> elemento del conjunto de salida (y).</li>
-                <li><strong>Dominio:</strong> Todos los valores posibles que puede tomar "x" (la variable independiente).</li>
-                <li><strong>Rango (o Recorrido):</strong> Todos los valores posibles que resultan en "y" (la variable dependiente).</li>
-                <li><strong>Prueba de la Línea Vertical:</strong> Si una línea vertical cruza una gráfica en más de un punto, <b>no</b> es una función.</li>
-            </ul>
-        </div>
-
-        <button class="btn" onclick="startGame()">Comenzar Desafío</button>
+    <div id="start-screen">
+        <h1 style="color: var(--accent);">⚙️ Clasificador de Funciones</h1>
+        <p>Aparecerán tarjetas. Clasifícalas rápido antes de que se agote el tiempo.</p>
+        <ul style="text-align: left; margin-bottom: 30px;">
+            <li>💚 <b>Es Función:</b> Una 'x' da una sola 'y'.</li>
+            <li>🔴 <b>No es Función:</b> Una 'x' da múltiples 'y' (falla prueba de línea vertical).</li>
+            <li>🟡 <b>Concepto:</b> Definiciones teóricas (Dominio, Rango).</li>
+        </ul>
+        <button class="btn-continue" onclick="startGame()">¡Iniciar Juego!</button>
     </div>
 
-    <!-- PANTALLA DE JUEGO -->
-    <div id="screen-game">
-        <div class="progress-bar">
-            <div id="progress" class="progress-fill"></div>
-        </div>
-        <h3 id="question-text">Pregunta aquí</h3>
-        
-        <div class="options-grid" id="options-container">
-            <!-- Las opciones se inyectan con JS -->
-        </div>
-
-        <div id="feedback-box" class="feedback">
-            <!-- La explicación se inyecta con JS -->
-        </div>
-
-        <button id="next-btn" class="btn" style="display: none;" onclick="nextQuestion()">Siguiente Pregunta</button>
+    <!-- HUD Y JUEGO -->
+    <div class="hud">
+        <div class="lives" id="lives-display">❤️❤️❤️</div>
+        <div class="score">Puntos: <span id="score-display">0</span></div>
     </div>
 
-    <!-- PANTALLA DE RESULTADOS -->
-    <div id="screen-result">
-        <h1>¡Desafío Completado! 🎓</h1>
-        <div class="score-display">Puntuación: <span id="final-score"></span> / 5</div>
-        <p id="result-message"></p>
-        <button class="btn" onclick="resetGame()">Volver a Jugar</button>
+    <div class="timer-bar-container">
+        <div class="timer-bar" id="timer-bar"></div>
+    </div>
+
+    <div class="card" id="current-card">
+        <!-- El contenido se inyecta aquí -->
+    </div>
+
+    <div class="controls">
+        <button class="control-btn btn-funcion" onclick="checkAnswer('funcion')">Es Función</button>
+        <button class="control-btn btn-nofuncion" onclick="checkAnswer('no-funcion')">No es Función</button>
+        <button class="control-btn btn-concepto" onclick="checkAnswer('concepto')">Concepto Teórico</button>
+    </div>
+
+    <!-- MODAL DE APRENDIZAJE (FEEDBACK) -->
+    <div class="modal" id="feedback-modal">
+        <h2>¡Fallo en el sistema! 💥</h2>
+        <p id="feedback-text">Aquí va la explicación didáctica.</p>
+        <button class="btn-continue" onclick="resumeGame()">Entendido, continuar</button>
+    </div>
+
+    <!-- PANTALLA DE FIN DE JUEGO -->
+    <div id="game-over-screen" style="display: none;">
+        <h1 style="color: var(--danger);">Juego Terminado</h1>
+        <p style="font-size: 1.5rem;">Puntuación Final: <span id="final-score" style="color: var(--accent); font-weight: bold;">0</span></p>
+        <button class="btn-continue" style="margin-top: 20px;" onclick="location.reload()">Jugar de Nuevo</button>
     </div>
 
 </div>
 
 <script>
-    // Base de datos de preguntas
-    const questions = [
-        {
-            question: "¿Cuál de los siguientes conjuntos de coordenadas NO representa una función?",
-            options: [
-                "A = { (1, 2), (2, 3), (3, 4) }",
-                "B = { (1, 5), (2, 5), (3, 5) }",
-                "C = { (1, 4), (1, 6), (2, 8) }",
-                "D = { (-1, 1), (1, 1), (2, 4) }"
-            ],
-            correct: 2, // Índice de la respuesta correcta (empieza en 0)
-            explanation: "En el conjunto C, el valor x=1 está asociado a dos valores diferentes de 'y' (el 4 y el 6). En una función real, un elemento del dominio no puede tener dos imágenes distintas."
+    // BASE DE DATOS DE TARJETAS (Nivel didáctico)
+    const cardsDatabase = [
+        { 
+            content: "Conjunto: { (1,2), (2,3), (3,4) }", 
+            type: "funcion", 
+            explanation: "Para cada valor del conjunto de entrada (las 'x'), existe un único valor de salida (las 'y')." 
         },
-        {
-            question: "Geométricamente, ¿cómo comprobamos si una gráfica trazada en el plano cartesiano representa una función?",
-            options: [
-                "Observando si cruza el origen (0,0).",
-                "Utilizando la Prueba de la Línea Vertical.",
-                "Verificando si la gráfica es una línea recta.",
-                "Utilizando la Prueba de la Línea Horizontal."
-            ],
-            correct: 1,
-            explanation: "La Prueba de la Línea Vertical indica que si trazamos una línea recta paralela al eje 'y' y esta toca la gráfica en más de un punto, entonces NO es una función (porque una misma 'x' tendría varias 'y')."
+        { 
+            content: "Conjunto: { (2,5), (2,8), (3,1) }", 
+            type: "no-funcion", 
+            explanation: "¡Atención! El número 2 en 'x' está intentando apuntar a dos resultados diferentes (5 y 8). Eso no está permitido en una función." 
         },
-        {
-            question: "Determina el DOMINIO de la siguiente función racional: \\( f(x) = \\frac{1}{x - 3} \\)",
-            options: [
-                "Todos los números reales.",
-                "Todos los números reales, excepto el 0.",
-                "Todos los números reales, excepto el 3.",
-                "Solo los números positivos."
-            ],
-            correct: 2,
-            explanation: "El denominador de una fracción no puede ser cero. Si x = 3, el denominador (3 - 3) se vuelve 0, causando una división indefinida. Por lo tanto, el dominio es \\( \\mathbb{R} - \\{3\\} \\)."
+        { 
+            content: "\\( f(x) = x^3 - 3x^2 + 2 \\)", 
+            type: "funcion", 
+            explanation: "Es una función polinomial cúbica válida. Si le asignas cualquier valor a 'x', la ecuación te devolverá un único valor para 'y'." 
         },
-        {
-            question: "Si tenemos la función cuadrática \\( f(x) = x^2 \\), ¿cuál es su RANGO?",
-            options: [
-                "Todos los números reales (\\( -\\infty, \\infty \\))",
-                "Todos los números reales mayores o iguales a cero \\( [0, \\infty) \\)",
-                "Solo los números impares.",
-                "Todos los números reales menores que cero \\( (-\\infty, 0) \\)"
-            ],
-            correct: 1,
-            explanation: "Cualquier número real elevado al cuadrado (ya sea positivo o negativo) dará como resultado un número positivo o cero. Por lo tanto, el rango no incluye números negativos."
+        { 
+            content: "Una gráfica de un círculo perfecto en el plano cartesiano.", 
+            type: "no-funcion", 
+            explanation: "Falla la 'Prueba de la Línea Vertical'. Si trazas una línea recta hacia abajo a través del círculo, lo cortará en dos puntos." 
         },
-        {
-            question: "Una característica clave de las funciones es que cruzan los ejes. ¿Cómo encontramos el intercepto en el eje 'y' de una función \\( f(x) \\)?",
-            options: [
-                "Igualando \\( f(x) \\) a cero y despejando 'x'.",
-                "Evaluando la función cuando \\( x = 0 \\), es decir, calculando \\( f(0) \\).",
-                "Buscando el valor máximo de la gráfica.",
-                "Calculando la pendiente de la línea."
-            ],
-            correct: 1,
-            explanation: "El intercepto en el eje 'y' ocurre justo donde la gráfica cruza la línea vertical central, es decir, cuando la coordenada x vale estrictamente 0. Por eso calculamos \\( f(0) \\)."
+        { 
+            content: "Todos los valores posibles que puede tomar la variable independiente (x).", 
+            type: "concepto", 
+            explanation: "Esa es exactamente la definición matemática de DOMINIO." 
+        },
+        { 
+            content: "Todos los valores resultantes de la variable dependiente (y).", 
+            type: "concepto", 
+            explanation: "Esa es exactamente la definición matemática de RANGO o RECORRIDO." 
+        },
+        { 
+            content: "\\( y = \\pm \\sqrt{x} \\)", 
+            type: "no-funcion", 
+            explanation: "El símbolo ± indica que para una misma 'x' positiva (ej. x=4), obtendrás dos resultados (y=2 y y=-2). Por tanto, no es una función." 
+        },
+        { 
+            content: "Conjunto: { (1,4), (2,4), (3,4) }", 
+            type: "funcion", 
+            explanation: "Aunque todas las 'x' apunten al mismo '4', es válido. Cada 'x' individualmente tiene un solo destino. Piensa en varias personas (x) que viven en la misma casa (y)." 
         }
     ];
 
-    let currentQuestionIndex = 0;
+    let currentCard;
     let score = 0;
-    let answered = false;
+    let lives = 3;
+    let timeLeft = 100; // Porcentaje
+    let timerInterval;
+    let timeSpeed = 0.5; // Qué tan rápido baja la barra
+    let gameActive = false;
 
-    // Funciones de navegación de pantallas
-    function showScreen(screenId) {
-        document.querySelectorAll('.container > div').forEach(div => {
-            div.classList.remove('active');
-        });
-        document.getElementById(screenId).classList.add('active');
+    // Mezclar las tarjetas para que salgan en orden aleatorio
+    function shuffleArray(array) {
+        return array.sort(() => Math.random() - 0.5);
     }
+    
+    let playDeck = [];
 
     function startGame() {
-        currentQuestionIndex = 0;
+        document.getElementById('start-screen').style.display = 'none';
         score = 0;
-        showScreen('screen-game');
-        loadQuestion();
+        lives = 3;
+        timeSpeed = 0.5;
+        updateHUD();
+        playDeck = shuffleArray([...cardsDatabase]); // Clonar y mezclar
+        gameActive = true;
+        nextCard();
     }
 
-    function loadQuestion() {
-        answered = false;
-        const q = questions[currentQuestionIndex];
-        
-        // Actualizar progreso
-        const progressPct = ((currentQuestionIndex) / questions.length) * 100;
-        document.getElementById('progress').style.width = `${progressPct}%`;
+    function updateHUD() {
+        document.getElementById('score-display').innerText = score;
+        let livesText = "";
+        for(let i=0; i<lives; i++) livesText += "❤️";
+        document.getElementById('lives-display').innerText = livesText;
+    }
 
-        // Renderizar pregunta
-        document.getElementById('question-text').innerHTML = `${currentQuestionIndex + 1}. ${q.question}`;
+    function nextCard() {
+        if (playDeck.length === 0) {
+            // Si se acaban, recargar mazo, aumentar dificultad
+            playDeck = shuffleArray([...cardsDatabase]);
+            timeSpeed += 0.2; // Más rápido
+        }
         
-        // Limpiar opciones previas y feedback
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
+        currentCard = playDeck.pop();
         
-        const feedbackBox = document.getElementById('feedback-box');
-        feedbackBox.style.display = 'none';
-        feedbackBox.className = 'feedback';
+        const cardElement = document.getElementById('current-card');
+        cardElement.innerHTML = currentCard.content;
+        cardElement.classList.remove('shake');
         
-        document.getElementById('next-btn').style.display = 'none';
+        // Renderizar ecuaciones si es necesario
+        if (window.MathJax) {
+            MathJax.typesetPromise();
+        }
 
-        // Crear botones de opciones
-        q.options.forEach((opt, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerHTML = opt;
-            btn.onclick = () => checkAnswer(index, btn);
-            optionsContainer.appendChild(btn);
-        });
+        // Reiniciar barra de tiempo
+        timeLeft = 100;
+        document.getElementById('timer-bar').style.width = '100%';
+        document.getElementById('timer-bar').style.backgroundColor = 'var(--success)';
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 50); // Actualiza la barra cada 50ms
+    }
 
-        // Re-renderizar fórmulas de MathJax
+    function updateTimer() {
+        if (!gameActive) return;
+        
+        timeLeft -= timeSpeed;
+        const timerBar = document.getElementById('timer-bar');
+        timerBar.style.width = timeLeft + '%';
+
+        // Cambiar color según el tiempo
+        if (timeLeft < 40 && timeLeft > 15) timerBar.style.backgroundColor = 'var(--warning)';
+        if (timeLeft <= 15) timerBar.style.backgroundColor = 'var(--danger)';
+
+        if (timeLeft <= 0) {
+            // Se acabó el tiempo = equivalente a fallar
+            handleMistake("¡Se agotó el tiempo!");
+        }
+    }
+
+    function checkAnswer(selectedType) {
+        if (!gameActive) return;
+
+        if (selectedType === currentCard.type) {
+            // Acierto
+            score += 10;
+            updateHUD();
+            nextCard();
+        } else {
+            // Fallo
+            document.getElementById('current-card').classList.add('shake');
+            handleMistake("Clasificación incorrecta");
+        }
+    }
+
+    function handleMistake(titleMsg) {
+        clearInterval(timerInterval);
+        gameActive = false;
+        lives -= 1;
+        updateHUD();
+
+        const modal = document.getElementById('feedback-modal');
+        modal.querySelector('h2').innerText = titleMsg + " 💥";
+        
+        // Aquí está la clave didáctica: Mostrar por qué falló
+        document.getElementById('feedback-text').innerHTML = 
+            `<strong>Análisis del objeto:</strong><br><br>${currentCard.explanation}`;
+        
+        modal.classList.add('active');
+
+        // Renderizar MathJax en el modal por si la explicación tiene ecuaciones
         if (window.MathJax) {
             MathJax.typesetPromise();
         }
     }
 
-    function checkAnswer(selectedIndex, btnElement) {
-        if (answered) return;
-        answered = true;
-
-        const q = questions[currentQuestionIndex];
-        const options = document.querySelectorAll('.option-btn');
-        const feedbackBox = document.getElementById('feedback-box');
-
-        // Deshabilitar botones
-        options.forEach(opt => opt.disabled = true);
-
-        if (selectedIndex === q.correct) {
-            btnElement.classList.add('correct');
-            score++;
-            feedbackBox.innerHTML = `<strong>¡Correcto! ✅</strong><br>${q.explanation}`;
-            feedbackBox.style.backgroundColor = '#dcfce7';
-            feedbackBox.style.color = '#14532d';
-            feedbackBox.style.border = '1px solid #16a34a';
-        } else {
-            btnElement.classList.add('incorrect');
-            options[q.correct].classList.add('correct'); // Resaltar la correcta
-            feedbackBox.innerHTML = `<strong>Incorrecto ❌</strong><br>${q.explanation}`;
-            feedbackBox.style.backgroundColor = '#fee2e2';
-            feedbackBox.style.color = '#7f1d1d';
-            feedbackBox.style.border = '1px solid #dc2626';
-        }
-
-        feedbackBox.style.display = 'block';
-        document.getElementById('next-btn').style.display = 'inline-block';
+    function resumeGame() {
+        document.getElementById('feedback-modal').classList.remove('active');
         
-        // Re-renderizar MathJax en la explicación si es necesario
-        if (window.MathJax) {
-            MathJax.typesetPromise();
-        }
-    }
-
-    function nextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            loadQuestion();
+        if (lives > 0) {
+            gameActive = true;
+            nextCard();
         } else {
-            showResults();
+            gameOver();
         }
     }
 
-    function showResults() {
-        showScreen('screen-result');
+    function gameOver() {
+        document.getElementById('game-over-screen').style.display = 'flex';
         document.getElementById('final-score').innerText = score;
-        
-        const msgElement = document.getElementById('result-message');
-        if (score === 5) {
-            msgElement.innerText = "¡Excelente trabajo! Tienes un dominio perfecto de los conceptos base de funciones.";
-        } else if (score >= 3) {
-            msgElement.innerText = "¡Buen trabajo! Has comprendido la mayoría de las características, pero un pequeño repaso no vendría mal.";
-        } else {
-            msgElement.innerText = "Sigue practicando. Las funciones tienen detalles clave como el dominio y el rango que requieren algo de paciencia para dominar.";
-        }
-    }
-
-    function resetGame() {
-        startGame();
     }
 </script>
 </body>
