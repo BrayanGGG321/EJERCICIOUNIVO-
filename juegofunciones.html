@@ -1,419 +1,436 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego: Clasificador de Funciones</title>
-    <!-- MathJax para renderizar ecuaciones correctamente -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --panel-bg: #1e293b;
-            --text-light: #f8fafc;
-            --accent: #3b82f6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detective de Funciones</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --card2:#0f1730;
+      --txt:#e9ecff;
+      --muted:#a9b3df;
+      --accent:#6ea8fe;
+      --good:#35d07f;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --border:rgba(255,255,255,.12);
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 700px at 20% 0%, #182457 0%, var(--bg) 55%);
+      color:var(--txt);
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:14px 0 6px;
+    }
+    h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:.2px;
+    }
+    .badge{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      padding:8px 12px;
+      border-radius:12px;
+      color:var(--muted);
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:16px;
+      margin-top:14px;
+    }
+    @media (max-width: 920px){
+      .grid{ grid-template-columns:1fr; }
+    }
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size:15px;
+      color:var(--muted);
+      font-weight:600;
+    }
 
-        .game-container {
-            width: 100%;
-            max-width: 600px;
-            background: var(--panel-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            text-align: center;
-            position: relative;
-        }
+    /* Panel de juego */
+    .stage{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .ruleRow{
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .control{
+      flex: 1 1 160px;
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      min-width: 170px;
+    }
+    label{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:8px;
+    }
+    .value{
+      font-weight:700;
+      color:var(--txt);
+      background:rgba(110,168,254,.15);
+      border:1px solid rgba(110,168,254,.35);
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:13px;
+    }
+    input[type="range"]{
+      width:100%;
+    }
+    select, button{
+      font:inherit;
+    }
+    .btns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:6px;
+    }
+    button{
+      cursor:pointer;
+      border-radius:12px;
+      padding:11px 14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--txt);
+      transition:.15s transform, .15s background;
+    }
+    button:hover{ transform: translateY(-1px); background:rgba(255,255,255,.07); }
+    button.primary{
+      background: rgba(110,168,254,.18);
+      border-color: rgba(110,168,254,.45);
+    }
+    button.danger{
+      background: rgba(255,92,122,.14);
+      border-color: rgba(255,92,122,.35);
+    }
+    .formula{
+      font-size:18px;
+      font-weight:800;
+      margin:6px 0 2px;
+    }
+    .help{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      margin-top:6px;
+    }
 
-        /* HUD: Vidas y Puntuación */
-        .hud {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
+    /* Visualización */
+    .tests{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .rowTest{
+      display:grid;
+      grid-template-columns: 80px 1fr 1fr 120px;
+      gap:8px;
+      align-items:center;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+    }
+    .pill{
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:800;
+      font-size:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      text-align:center;
+    }
+    .in{ color:#cfe0ff; }
+    .exp{ color:#b7ffe3; }
+    .calc{ color:#ffe0a6; }
+    .status{
+      text-align:center;
+      font-weight:900;
+      border-radius:12px;
+      padding:8px 10px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+    }
+    .status.good{ border-color: rgba(53,208,127,.5); background: rgba(53,208,127,.12); color: var(--good); }
+    .status.bad{ border-color: rgba(255,92,122,.5); background: rgba(255,92,122,.12); color: var(--bad); }
 
-        .lives { color: var(--danger); }
-        .score { color: var(--accent); }
-
-        /* Barra de Tiempo */
-        .timer-bar-container {
-            width: 100%;
-            height: 10px;
-            background-color: #334155;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        .timer-bar {
-            height: 100%;
-            width: 100%;
-            background-color: var(--success);
-            transition: width 0.1s linear, background-color 0.3s;
-        }
-
-        /* Tarjeta Central (La que hay que clasificar) */
-        .card {
-            background-color: #cbd5e1;
-            color: #0f172a;
-            padding: 40px 20px;
-            border-radius: 12px;
-            font-size: 1.5rem;
-            font-weight: 600;
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-            box-shadow: 0 6px 0 #94a3b8;
-            transition: transform 0.1s;
-        }
-
-        .card.shake {
-            animation: shake 0.4s;
-            background-color: #fca5a5;
-        }
-
-        /* Botones de Clasificación */
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .btn-concepto {
-            grid-column: span 2;
-            background-color: var(--warning);
-            box-shadow: 0 5px 0 #d97706;
-        }
-
-        .btn-funcion {
-            background-color: var(--success);
-            box-shadow: 0 5px 0 #059669;
-        }
-
-        .btn-nofuncion {
-            background-color: var(--danger);
-            box-shadow: 0 5px 0 #b91c1c;
-        }
-
-        .control-btn {
-            color: white;
-            border: none;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: transform 0.1s, box-shadow 0.1s;
-        }
-
-        .control-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 0 0 transparent;
-        }
-
-        /* Modal Didáctico (El aprendizaje) */
-        .modal {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            border-radius: 16px;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 10;
-        }
-
-        .modal.active { display: flex; }
-
-        .modal h2 { margin-top: 0; color: var(--danger); }
-        .modal p { font-size: 1.1rem; line-height: 1.5; margin-bottom: 25px; }
-
-        .btn-continue {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        /* Pantallas de Inicio y Fin */
-        #start-screen, #game-over-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--panel-bg);
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        #start-screen { display: flex; }
-
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-            100% { transform: translateX(0); }
-        }
-    </style>
+    /* Panel lateral */
+    .side{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .big{
+      font-size:16px;
+      font-weight:800;
+      margin:0;
+    }
+    .note{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      margin-top:6px;
+    }
+    .log{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      background: rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      color: #dbe3ff;
+      min-height: 110px;
+      white-space: pre-wrap;
+    }
+    .footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <h1>🕵️‍♀️ Detective de Funciones</h1>
+      <div class="badge">Regla: <strong>una función</strong> transforma entradas → salidas</div>
+    </header>
 
-<div class="game-container">
-    
-    <!-- PANTALLA DE INICIO -->
-    <div id="start-screen">
-        <h1 style="color: var(--accent);">⚙️ Clasificador de Funciones</h1>
-        <p>Aparecerán tarjetas. Clasifícalas rápido antes de que se agote el tiempo.</p>
-        <ul style="text-align: left; margin-bottom: 30px;">
-            <li>💚 <b>Es Función:</b> Una 'x' da una sola 'y'.</li>
-            <li>🔴 <b>No es Función:</b> Una 'x' da múltiples 'y' (falla prueba de línea vertical).</li>
-            <li>🟡 <b>Concepto:</b> Definiciones teóricas (Dominio, Rango).</li>
-        </ul>
-        <button class="btn-continue" onclick="startGame()">¡Iniciar Juego!</button>
+    <div class="grid">
+      <!-- Juego -->
+      <section class="card stage">
+        <h2>🎯 Reto</h2>
+        <div class="help">
+          La “función objetivo” está oculta. Tú eliges una regla lineal:
+          <span class="formula" id="formulaLabel">y = a·x + b</span>
+          <br/>Luego prueba con varios valores de <strong>x</strong>.
+        </div>
+
+        <div class="ruleRow">
+          <div class="control">
+            <label>
+              <span>a (multiplica x)</span>
+              <span class="value" id="aVal">1</span>
+            </label>
+            <input id="aRange" type="range" min="-5" max="5" value="1" step="1"/>
+          </div>
+
+          <div class="control">
+            <label>
+              <span>b (desplaza)</span>
+              <span class="value" id="bVal">0</span>
+            </label>
+            <input id="bRange" type="range" min="-10" max="10" value="0" step="1"/>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="btnProbar">✅ Probar función</button>
+          <button class="danger" id="btnNuevo">🎲 Nuevo reto</button>
+        </div>
+
+        <div class="tests" id="tests"></div>
+      </section>
+
+      <!-- Panel lateral -->
+      <aside class="side">
+        <div class="card">
+          <h2>📚 Lo importante</h2>
+          <p class="big">¿Qué es una función?</p>
+          <div class="note">
+            Una función es una <strong>regla</strong> que asigna a cada entrada <strong>x</strong> una salida <strong>y</strong>.
+            <br/><br/>
+            En este juego:
+            <ul>
+              <li>Tu regla genera un <strong>y</strong> para cada <strong>x</strong></li>
+              <li>Si coincide con la salida esperada en todas las pruebas, ¡es correcta!</li>
+              <li>La función debe ser consistente: misma <strong>x</strong> → misma <strong>y</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🧾 Registro</h2>
+          <div class="log" id="log"></div>
+        </div>
+      </aside>
     </div>
 
-    <!-- HUD Y JUEGO -->
-    <div class="hud">
-        <div class="lives" id="lives-display">❤️❤️❤️</div>
-        <div class="score">Puntos: <span id="score-display">0</span></div>
+    <div class="footer">
+      Sugerencia: usa este juego en clase y pide que expliquen por qué su regla falló o acertó. ✨
     </div>
+  </div>
 
-    <div class="timer-bar-container">
-        <div class="timer-bar" id="timer-bar"></div>
-    </div>
+  <script>
+    // Reto: la "función objetivo" es y = A*x + B (oculta).
+    // El jugador elige a y b para su función.
+    const testsEl = document.getElementById('tests');
+    const logEl = document.getElementById('log');
 
-    <div class="card" id="current-card">
-        <!-- El contenido se inyecta aquí -->
-    </div>
+    const aRange = document.getElementById('aRange');
+    const bRange = document.getElementById('bRange');
+    const aVal = document.getElementById('aVal');
+    const bVal = document.getElementById('bVal');
 
-    <div class="controls">
-        <button class="control-btn btn-funcion" onclick="checkAnswer('funcion')">Es Función</button>
-        <button class="control-btn btn-nofuncion" onclick="checkAnswer('no-funcion')">No es Función</button>
-        <button class="control-btn btn-concepto" onclick="checkAnswer('concepto')">Concepto Teórico</button>
-    </div>
+    const formulaLabel = document.getElementById('formulaLabel');
 
-    <!-- MODAL DE APRENDIZAJE (FEEDBACK) -->
-    <div class="modal" id="feedback-modal">
-        <h2>¡Fallo en el sistema! 💥</h2>
-        <p id="feedback-text">Aquí va la explicación didáctica.</p>
-        <button class="btn-continue" onclick="resumeGame()">Entendido, continuar</button>
-    </div>
+    const btnProbar = document.getElementById('btnProbar');
+    const btnNuevo = document.getElementById('btnNuevo');
 
-    <!-- PANTALLA DE FIN DE JUEGO -->
-    <div id="game-over-screen" style="display: none;">
-        <h1 style="color: var(--danger);">Juego Terminado</h1>
-        <p style="font-size: 1.5rem;">Puntuación Final: <span id="final-score" style="color: var(--accent); font-weight: bold;">0</span></p>
-        <button class="btn-continue" style="margin-top: 20px;" onclick="location.reload()">Jugar de Nuevo</button>
-    </div>
+    let objetivo = {A: 2, B: -1};
+    let xs = [];
 
-</div>
-
-<script>
-    // BASE DE DATOS DE TARJETAS (Nivel didáctico)
-    const cardsDatabase = [
-        { 
-            content: "Conjunto: { (1,2), (2,3), (3,4) }", 
-            type: "funcion", 
-            explanation: "Para cada valor del conjunto de entrada (las 'x'), existe un único valor de salida (las 'y')." 
-        },
-        { 
-            content: "Conjunto: { (2,5), (2,8), (3,1) }", 
-            type: "no-funcion", 
-            explanation: "¡Atención! El número 2 en 'x' está intentando apuntar a dos resultados diferentes (5 y 8). Eso no está permitido en una función." 
-        },
-        { 
-            content: "\\( f(x) = x^3 - 3x^2 + 2 \\)", 
-            type: "funcion", 
-            explanation: "Es una función polinomial cúbica válida. Si le asignas cualquier valor a 'x', la ecuación te devolverá un único valor para 'y'." 
-        },
-        { 
-            content: "Una gráfica de un círculo perfecto en el plano cartesiano.", 
-            type: "no-funcion", 
-            explanation: "Falla la 'Prueba de la Línea Vertical'. Si trazas una línea recta hacia abajo a través del círculo, lo cortará en dos puntos." 
-        },
-        { 
-            content: "Todos los valores posibles que puede tomar la variable independiente (x).", 
-            type: "concepto", 
-            explanation: "Esa es exactamente la definición matemática de DOMINIO." 
-        },
-        { 
-            content: "Todos los valores resultantes de la variable dependiente (y).", 
-            type: "concepto", 
-            explanation: "Esa es exactamente la definición matemática de RANGO o RECORRIDO." 
-        },
-        { 
-            content: "\\( y = \\pm \\sqrt{x} \\)", 
-            type: "no-funcion", 
-            explanation: "El símbolo ± indica que para una misma 'x' positiva (ej. x=4), obtendrás dos resultados (y=2 y y=-2). Por tanto, no es una función." 
-        },
-        { 
-            content: "Conjunto: { (1,4), (2,4), (3,4) }", 
-            type: "funcion", 
-            explanation: "Aunque todas las 'x' apunten al mismo '4', es válido. Cada 'x' individualmente tiene un solo destino. Piensa en varias personas (x) que viven en la misma casa (y)." 
-        }
-    ];
-
-    let currentCard;
-    let score = 0;
-    let lives = 3;
-    let timeLeft = 100; // Porcentaje
-    let timerInterval;
-    let timeSpeed = 0.5; // Qué tan rápido baja la barra
-    let gameActive = false;
-
-    // Mezclar las tarjetas para que salgan en orden aleatorio
-    function shuffleArray(array) {
-        return array.sort(() => Math.random() - 0.5);
-    }
-    
-    let playDeck = [];
-
-    function startGame() {
-        document.getElementById('start-screen').style.display = 'none';
-        score = 0;
-        lives = 3;
-        timeSpeed = 0.5;
-        updateHUD();
-        playDeck = shuffleArray([...cardsDatabase]); // Clonar y mezclar
-        gameActive = true;
-        nextCard();
+    function randInt(min, max){
+      return Math.floor(Math.random()*(max-min+1))+min;
     }
 
-    function updateHUD() {
-        document.getElementById('score-display').innerText = score;
-        let livesText = "";
-        for(let i=0; i<lives; i++) livesText += "❤️";
-        document.getElementById('lives-display').innerText = livesText;
+    function generarReto(){
+      // Elegimos A y B al azar, pero evitando casos demasiado ambiguos
+      objetivo.A = randInt(-4, 4);
+      objetivo.B = randInt(-8, 8);
+
+      // Generamos entradas x
+      xs = [];
+      const count = 6; // número de pruebas
+      while(xs.length < count){
+        const x = randInt(-6, 6);
+        if(!xs.includes(x)) xs.push(x);
+      }
+
+      logEl.textContent = "";
+      renderTests(); // muestra con “sin probar aún”
     }
 
-    function nextCard() {
-        if (playDeck.length === 0) {
-            // Si se acaban, recargar mazo, aumentar dificultad
-            playDeck = shuffleArray([...cardsDatabase]);
-            timeSpeed += 0.2; // Más rápido
-        }
-        
-        currentCard = playDeck.pop();
-        
-        const cardElement = document.getElementById('current-card');
-        cardElement.innerHTML = currentCard.content;
-        cardElement.classList.remove('shake');
-        
-        // Renderizar ecuaciones si es necesario
-        if (window.MathJax) {
-            MathJax.typesetPromise();
-        }
-
-        // Reiniciar barra de tiempo
-        timeLeft = 100;
-        document.getElementById('timer-bar').style.width = '100%';
-        document.getElementById('timer-bar').style.backgroundColor = 'var(--success)';
-        
-        clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimer, 50); // Actualiza la barra cada 50ms
+    function yObjetivo(x){
+      return objetivo.A * x + objetivo.B;
     }
 
-    function updateTimer() {
-        if (!gameActive) return;
-        
-        timeLeft -= timeSpeed;
-        const timerBar = document.getElementById('timer-bar');
-        timerBar.style.width = timeLeft + '%';
-
-        // Cambiar color según el tiempo
-        if (timeLeft < 40 && timeLeft > 15) timerBar.style.backgroundColor = 'var(--warning)';
-        if (timeLeft <= 15) timerBar.style.backgroundColor = 'var(--danger)';
-
-        if (timeLeft <= 0) {
-            // Se acabó el tiempo = equivalente a fallar
-            handleMistake("¡Se agotó el tiempo!");
-        }
+    function yJugador(x, a, b){
+      return a * x + b;
     }
 
-    function checkAnswer(selectedType) {
-        if (!gameActive) return;
+    function renderTests(){
+      testsEl.innerHTML = "";
+      for(const x of xs){
+        const yExp = yObjetivo(x);
+        const row = document.createElement('div');
+        row.className = 'rowTest';
 
-        if (selectedType === currentCard.type) {
-            // Acierto
-            score += 10;
-            updateHUD();
-            nextCard();
+        row.innerHTML = `
+          <div class="pill in">x = ${x}</div>
+          <div class="pill exp">y esp = ${yExp}</div>
+          <div class="pill calc">y tu = —</div>
+          <div class="status" data-x="${x}">Pendiente</div>
+        `;
+        testsEl.appendChild(row);
+      }
+    }
+
+    function probrar(){
+      const a = Number(aRange.value);
+      const b = Number(bRange.value);
+      aVal.textContent = a;
+      bVal.textContent = b;
+      formulaLabel.textContent = `y = ${a}·x + ${b}`;
+
+      const statusByX = new Map();
+      let aciertos = 0;
+
+      for(const x of xs){
+        const yExp = yObjetivo(x);
+        const yTu = yJugador(x, a, b);
+        if(yTu === yExp) aciertos++;
+
+        // Actualizar UI
+        // buscar fila por x
+        const statusEl = testsEl.querySelector(`.status[data-x="${x}"]`);
+        const row = statusEl.closest('.rowTest');
+        const pills = row.querySelectorAll('.pill');
+        // pills[2] es y tu
+        pills[2].textContent = `y tu = ${yTu}`;
+
+        if(yTu === yExp){
+          statusEl.textContent = '✅ OK';
+          statusEl.className = 'status good';
         } else {
-            // Fallo
-            document.getElementById('current-card').classList.add('shake');
-            handleMistake("Clasificación incorrecta");
+          statusEl.textContent = `❌ Falla`;
+          statusEl.className = 'status bad';
         }
+      }
+
+      const total = xs.length;
+      const msg = `Intento con y = ${a}·x + ${b}\n` +
+                  `Aciertos: ${aciertos}/${total}\n` +
+                  (aciertos === total
+                    ? '🏆 ¡Función correcta! Coincide con toda la tabla.'
+                    : '🔧 Ajusta a y b para que la salida coincida.');
+      logEl.textContent = msg;
     }
 
-    function handleMistake(titleMsg) {
-        clearInterval(timerInterval);
-        gameActive = false;
-        lives -= 1;
-        updateHUD();
+    // Eventos
+    aRange.addEventListener('input', () => {
+      aVal.textContent = aRange.value;
+      formulaLabel.textContent = `y = ${aRange.value}·x + ${bRange.value}`;
+    });
 
-        const modal = document.getElementById('feedback-modal');
-        modal.querySelector('h2').innerText = titleMsg + " 💥";
-        
-        // Aquí está la clave didáctica: Mostrar por qué falló
-        document.getElementById('feedback-text').innerHTML = 
-            `<strong>Análisis del objeto:</strong><br><br>${currentCard.explanation}`;
-        
-        modal.classList.add('active');
+    bRange.addEventListener('input', () => {
+      bVal.textContent = bRange.value;
+      formulaLabel.textContent = `y = ${aRange.value}·x + ${bRange.value}`;
+    });
 
-        // Renderizar MathJax en el modal por si la explicación tiene ecuaciones
-        if (window.MathJax) {
-            MathJax.typesetPromise();
-        }
-    }
+    btnProbar.addEventListener('click', probrar);
 
-    function resumeGame() {
-        document.getElementById('feedback-modal').classList.remove('active');
-        
-        if (lives > 0) {
-            gameActive = true;
-            nextCard();
-        } else {
-            gameOver();
-        }
-    }
+    btnNuevo.addEventListener('click', () => {
+      generarReto();
+      // Ajustar valores de controles “visualmente”
+      aRange.value = 1;
+      bRange.value = 0;
+      aVal.textContent = '1';
+      bVal.textContent = '0';
+      formulaLabel.textContent = 'y = 1·x + 0';
+    });
 
-    function gameOver() {
-        document.getElementById('game-over-screen').style.display = 'flex';
-        document.getElementById('final-score').innerText = score;
-    }
-</script>
+    // Inicial
+    generarReto();
+  </script>
 </body>
 </html>
