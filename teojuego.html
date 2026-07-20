@@ -194,14 +194,14 @@
     </div>
 
     <script>
-        const CORRECT_CODE = "7869"; // <--- AQUÍ CONFIGURAS LA CONTRASEÑA
+        const CORRECT_CODE = "502565711668"; // <--- AQUÍ CONFIGURAS LA CONTRASEÑA
         let currentInput = "";
         const displayElement = document.getElementById('display');
         const doorElement = document.getElementById('safeDoor');
 
         // Función para agregar números
         function addNumber(num) {
-            if (currentInput.length < 4) { // Limita a 4 dígitos
+            if (currentInput.length < 12) { // Limita a 4 dígitos
                 currentInput += num;
                 updateDisplay();
             }
