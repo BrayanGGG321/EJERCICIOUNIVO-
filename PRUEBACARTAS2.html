@@ -12,11 +12,11 @@
                 inlineMath: [['\\(', '\\)']],
                 displayMath: [['\\[', '\\]']],
                 macros: {
-                    sen: "\\operatorname{sen}"
+                    sen: "\\operatorname{sen}" // Asegura que \sen se renderice correctamente
                 }
             },
             startup: {
-                typeset: false
+                typeset: false // Evita que MathJax renderice todo antes de abrir la ventana
             }
         };
     </script>
@@ -178,12 +178,6 @@
             font-size: 1.3rem;
             color: #2c3e50;
             line-height: 1.6;
-            /* Asegurar que el texto negro contraste bien sobre el fondo blanco */
-        }
-
-        /* Estilo específico para las matemáticas en el modal para asegurar que se vean */
-        .modal-content .MathJax {
-            color: black !important;
         }
 
         .close-btn {
@@ -234,10 +228,7 @@
     </div>
 
     <script>
-        // EL PROBLEMA ESTABA EN CÓMO SE PASABA LA VARIABLE AL BOTÓN ONCLICK
-        // Para solucionarlo, vamos a guardar el contenido en el objeto data
-        // y pasaremos el índice de la carta al botón en lugar de todo el string HTML.
-        
+        // EJERCICIO 1 (LaTeX con doble barra invertida para que JavaScript lo lea bien)
         const ejercicio1 = `
             <h3>Ejercicio:</h3>
             <p>Determine el error en el siguiente proceso:</p>
@@ -246,7 +237,7 @@
             \\sen^2(x)+\\cos^2(x)&=1&&\\text{Identidad pitagórica.}\\\\
             \\sen^2(x)&=1-\\cos^2(x)&&a-a=0, \\forall a\\in \\mathbb{R}\\\\
             \\sen^2(x)&=(1+\\cos(x))(1-\\cos(x))&&a^2-b^2=(a+b)(a-b), \\forall { a,b }\\in \\mathbb{R}\\\\
-            \\left(\\sen^2(x)\\right)^{\\frac12} &= \\left((1+\\cos(x))(1-\\cos(x))\\right)^{\\frac12}&&\\text{Elevo ambos miembros a la potencia } \\frac{1}{2}\\\\
+            \\left(\\sen^2(x)\\right)^{\\frac12} &= \\left((1+\\cos(x))(1-\\cos(x))\\right)^{\\frac12}&&\\text{Elevo ambos miembros a la potencia }  \\frac{1}{2}\\\\
             \\sen(x)&=\\left((1+\\cos(x))(1-\\cos(x))\\right)^{\\frac12}&& (a^n)^\\frac{1}{n}=a, \\forall a\\in \\mathbb{R},\\ n\\in\\mathbb{N} \\\\
             \\sen(x)&=(1+\\cos(x))^{\\frac12}(1-\\cos(x))^{\\frac12}&& (ab)^n=a^nb^n, \\forall a,b \\in \\mathbb{R},\\ n\\in\\mathbb{N}\\\\
             \\end{aligned}
@@ -254,33 +245,26 @@
         `;
 
         // Definición de las 30 cartas
+        // Dejamos el Ejercicio 1 en la primera posición, y 19 vacíos para los que me darás luego.
         const exercises = [
-            { id: "ej_1", text: "Ejercicio 1", type: "exercise", content: ejercicio1 },
-            ...Array(19).fill().map((_, i) => ({ id: \`ej_\${i+2}\`, text: \`Ejercicio \${i+2}\`, type: "exercise", content: "<p>Próximamente...</p>" }))
+            { text: "Ejercicio 1", type: "exercise", content: ejercicio1 },
+            ...Array(19).fill().map((_, i) => ({ text: `Ejercicio ${i+2}`, type: "exercise", content: "<p>Próximamente...</p>" }))
         ];
 
         const specialCards = [
-            { id: "sp_1", text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
-            { id: "sp_2", text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
-            { id: "sp_3", text: "¡Has ganado la pizza para el grado!", type: "special" },
-            { id: "sp_4", text: "Pierdes un punto", type: "penalty" },
-            { id: "sp_5", text: "Pierdes un punto", type: "penalty" },
-            { id: "sp_6", text: "Ganas 5 minutos con el cuaderno para el parcial I", type: "special" },
-            { id: "sp_7", text: "Ganas 2 puntos al parcial si tu nota es ≥ 7", type: "special" },
-            { id: "sp_8", text: "Ganas 2 puntos al parcial si tu nota es ≥ 7", type: "special" },
-            { id: "sp_9", text: "Pierdes todos tus puntos", type: "penalty" },
-            { id: "sp_10", text: "Ganas 5 puntos", type: "special" }
+            { text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
+            { text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
+            { text: "¡Has ganado la pizza para el grado!", type: "special" },
+            { text: "Pierdes un punto", type: "penalty" },
+            { text: "Pierdes un punto", type: "penalty" },
+            { text: "Ganas 5 minutos con el cuaderno para el parcial I", type: "special" },
+            { text: "Ganas 2 puntos al parcial si tu nota es ≥ 7", type: "special" },
+            { text: "Ganas 2 puntos al parcial si tu nota es ≥ 7", type: "special" },
+            { text: "Pierdes todos tus puntos", type: "penalty" },
+            { text: "Ganas 5 puntos", type: "special" }
         ];
 
         const cardsData = [...exercises, ...specialCards];
-
-        // Crear un diccionario (objeto) para acceder rápido al contenido por ID
-        const contentDict = {};
-        cardsData.forEach(card => {
-            if(card.type === 'exercise') {
-                contentDict[card.id] = card.content;
-            }
-        });
 
         // Función para mezclar aleatoriamente (Fisher-Yates)
         function shuffle(array) {
@@ -300,22 +284,22 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                let backContent = \`<span>\${data.text}</span>\`;
-                // EN LUGAR DE PASAR EL STRING COMPLETO, PASAMOS EL ID AL ONCLICK
+                let backContent = `<span>${data.text}</span>`;
+                // Si es ejercicio, agregamos un botón para abrir en pantalla completa
                 if(data.type === 'exercise') {
-                    backContent += \`<button class="btn-abrir" onclick="openModal(event, '\${data.id}')">Abrir Ejercicio</button>\`;
+                    backContent += `<button class="btn-abrir" onclick="openModal(event, \`${data.content}\`)">Abrir Ejercicio</button>`;
                 }
 
-                card.innerHTML = \`
+                card.innerHTML = `
                     <div class="card-inner">
                         <div class="card-face card-front">
-                            \${index + 1}
+                            ${index + 1}
                         </div>
-                        <div class="card-face card-back \${data.type}">
-                            \${backContent}
+                        <div class="card-face card-back ${data.type}">
+                            ${backContent}
                         </div>
                     </div>
-                \`;
+                `;
 
                 // Voltear la carta al hacer clic
                 card.addEventListener('click', () => {
@@ -329,14 +313,10 @@
         }
 
         // Lógica para la pantalla completa de los ejercicios
-        // AHORA RECIBE EL ID Y BUSCA EL CONTENIDO EN EL DICCIONARIO
-        function openModal(event, cardId) {
+        function openModal(event, content) {
             event.stopPropagation(); // Evita que se vuelva a disparar el clic de la carta
             const modal = document.getElementById('exerciseModal');
             const modalBody = document.getElementById('modalBody');
-            
-            // Obtener el contenido usando el ID
-            const content = contentDict[cardId];
             
             modalBody.innerHTML = content;
             modal.classList.add('active');
