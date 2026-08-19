@@ -3,25 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dinámica de Cartas - Parcial I</title>
+    <title>Dinámica de Cartas - Parcial I (Beamer)</title>
     
-    <!-- Configuración e importación de MathJax para leer LaTeX -->
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['\\(', '\\)']],
-                displayMath: [['\\[', '\\]']],
-                macros: {
-                    sen: "\\operatorname{sen}" // Asegura que \sen se renderice correctamente
-                }
-            },
-            startup: {
-                typeset: false // Evita que MathJax renderice todo antes de abrir la ventana
-            }
-        };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -156,47 +139,6 @@
             border-color: #c0392b;
         }
 
-        /* ESTILOS DEL MODAL (PANTALLA COMPLETA) */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: white;
-            z-index: 1000;
-            overflow-y: auto;
-            padding: 40px;
-            box-sizing: border-box;
-        }
-
-        .modal-overlay.active {
-            display: block;
-        }
-
-        .modal-content {
-            max-width: 900px;
-            margin: 0 auto;
-            font-size: 1.3rem;
-            color: #2c3e50;
-            line-height: 1.6;
-        }
-
-        .close-btn {
-            position: fixed;
-            top: 20px;
-            right: 30px;
-            font-size: 40px;
-            color: var(--card-penalty);
-            cursor: pointer;
-            background: none;
-            border: none;
-            font-weight: bold;
-            z-index: 1001;
-        }
-        
-        .close-btn:hover {
-            color: #c0392b;
-        }
-
         @media (max-width: 1024px) {
             .grid-container { grid-template-columns: repeat(5, 1fr); }
         }
@@ -205,7 +147,6 @@
             .grid-container { grid-template-columns: repeat(4, 1fr); }
             .card-face { font-size: 0.9rem; padding: 10px; }
             .card-front { font-size: 1.5rem; }
-            .modal-content { font-size: 1.1rem; }
         }
 
         @media (max-width: 480px) {
@@ -219,38 +160,53 @@
     <h1>Actividad de Repaso - Parcial I</h1>
     <div class="grid-container" id="cardGrid"></div>
 
-    <!-- Contenedor del Modal (Pantalla en blanco para los ejercicios) -->
-    <div id="exerciseModal" class="modal-overlay">
-        <button class="close-btn" onclick="closeModal()">×</button>
-        <div id="modalBody" class="modal-content">
-            <!-- El contenido matemático se inyectará aquí -->
-        </div>
-    </div>
-
     <script>
-        // EJERCICIO 1 (LaTeX con doble barra invertida para que JavaScript lo lea bien)
-        const ejercicio1 = `
-            <h3>Ejercicio:</h3>
-            <p>Determine el error en el siguiente proceso:</p>
-            \\[
-            \\begin{aligned}
-            \\sen^2(x)+\\cos^2(x)&=1&&\\text{Identidad pitagórica.}\\\\
-            \\sen^2(x)&=1-\\cos^2(x)&&a-a=0, \\forall a\\in \\mathbb{R}\\\\
-            \\sen^2(x)&=(1+\\cos(x))(1-\\cos(x))&&a^2-b^2=(a+b)(a-b), \\forall { a,b }\\in \\mathbb{R}\\\\
-            \\left(\\sen^2(x)\\right)^{\\frac12} &= \\left((1+\\cos(x))(1-\\cos(x))\\right)^{\\frac12}&&\\text{Elevo ambos miembros a la potencia }  \\frac{1}{2}\\\\
-            \\sen(x)&=\\left((1+\\cos(x))(1-\\cos(x))\\right)^{\\frac12}&& (a^n)^\\frac{1}{n}=a, \\forall a\\in \\mathbb{R},\\ n\\in\\mathbb{N} \\\\
-            \\sen(x)&=(1+\\cos(x))^{\\frac12}(1-\\cos(x))^{\\frac12}&& (ab)^n=a^nb^n, \\forall a,b \\in \\mathbb{R},\\ n\\in\\mathbb{N}\\\\
-            \\end{aligned}
-            \\]
-        `;
-
-        // Definición de las 30 cartas
-        // Dejamos el Ejercicio 1 en la primera posición, y 19 vacíos para los que me darás luego.
-        const exercises = [
-            { text: "Ejercicio 1", type: "exercise", content: ejercicio1 },
-            ...Array(19).fill().map((_, i) => ({ text: `Ejercicio ${i+2}`, type: "exercise", content: "<p>Próximamente...</p>" }))
+        // ==========================================
+        // 🛠️ ZONA DE CONFIGURACIÓN (LO QUE DEBES EDITAR)
+        // ==========================================
+        
+        // 1. Pega aquí tu enlace al archivo PDF subido a Canvas
+        const enlacePDF = "https://univo.instructure.com/courses/2114/pages/clase-4-funciones-especiales?module_item_id=132884"; 
+        
+        // 2. Define en qué número de página está cada ejercicio en tu presentación Beamer.
+        // Hay 20 números, uno para cada ejercicio.
+        const paginasEjercicios = [
+            2,  // Página para el Ejercicio 1
+            3,  // Página para el Ejercicio 2
+            4,  // Página para el Ejercicio 3
+            5,  // Página para el Ejercicio 4
+            6,  // Página para el Ejercicio 5
+            7,  // Página para el Ejercicio 6
+            8,  // Página para el Ejercicio 7
+            9,  // Página para el Ejercicio 8
+            10, // Página para el Ejercicio 9
+            11, // Página para el Ejercicio 10
+            12, // Página para el Ejercicio 11
+            13, // Página para el Ejercicio 12
+            14, // Página para el Ejercicio 13
+            15, // Página para el Ejercicio 14
+            16, // Página para el Ejercicio 15
+            17, // Página para el Ejercicio 16
+            18, // Página para el Ejercicio 17
+            19, // Página para el Ejercicio 18
+            20, // Página para el Ejercicio 19
+            21  // Página para el Ejercicio 20
         ];
 
+        // ==========================================
+        // FIN DE ZONA DE CONFIGURACIÓN
+        // ==========================================
+
+        // Crear los 20 ejercicios vinculados al PDF
+        const exercises = paginasEjercicios.map((numPagina, index) => {
+            return {
+                text: `Ejercicio ${index + 1}`,
+                type: "exercise",
+                link: `${enlacePDF}#page=${numPagina}`
+            };
+        });
+
+        // Las 10 cartas especiales/dinámicas
         const specialCards = [
             { text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
             { text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
@@ -266,7 +222,7 @@
 
         const cardsData = [...exercises, ...specialCards];
 
-        // Función para mezclar aleatoriamente (Fisher-Yates)
+        // Función para mezclar
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -285,9 +241,10 @@
                 card.className = 'card';
                 
                 let backContent = `<span>${data.text}</span>`;
-                // Si es ejercicio, agregamos un botón para abrir en pantalla completa
+                
+                // Si es ejercicio, agregamos el botón que abre el PDF en una nueva pestaña
                 if(data.type === 'exercise') {
-                    backContent += `<button class="btn-abrir" onclick="openModal(event, \`${data.content}\`)">Abrir Ejercicio</button>`;
+                    backContent += `<button class="btn-abrir" onclick="abrirPDF(event, '${data.link}')">Ver Ejercicio</button>`;
                 }
 
                 card.innerHTML = `
@@ -301,7 +258,7 @@
                     </div>
                 `;
 
-                // Voltear la carta al hacer clic
+                // Voltear
                 card.addEventListener('click', () => {
                     if(!card.classList.contains('flipped')){
                         card.classList.add('flipped');
@@ -312,28 +269,12 @@
             });
         }
 
-        // Lógica para la pantalla completa de los ejercicios
-        function openModal(event, content) {
-            event.stopPropagation(); // Evita que se vuelva a disparar el clic de la carta
-            const modal = document.getElementById('exerciseModal');
-            const modalBody = document.getElementById('modalBody');
-            
-            modalBody.innerHTML = content;
-            modal.classList.add('active');
-
-            // Le decimos a MathJax que renderice las ecuaciones matemáticas en el modal
-            if (window.MathJax) {
-                MathJax.typesetPromise([modalBody]).catch((err) => console.log(err.message));
-            }
+        // Función para abrir el PDF
+        function abrirPDF(event, url) {
+            event.stopPropagation(); // Evita que la carta intente voltearse de nuevo
+            window.open(url, '_blank');
         }
 
-        function closeModal() {
-            const modal = document.getElementById('exerciseModal');
-            modal.classList.remove('active');
-            document.getElementById('modalBody').innerHTML = ''; // Limpiar
-        }
-
-        // Cargar el juego al iniciar
         window.onload = initGame;
     </script>
 
