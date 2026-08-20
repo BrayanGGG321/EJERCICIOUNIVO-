@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dinámica de Cartas - Parcial I</title>
+    <title>Dinámica de Cartas - Parcial I (Beamer)</title>
+    
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -96,12 +97,33 @@
         .card-back {
             transform: rotateY(180deg);
             border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .card-back.exercise {
             background-color: var(--card-exercise);
             color: white;
             border-color: #1f618d;
+        }
+
+        .btn-abrir {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: white;
+            color: var(--card-exercise);
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.2s;
+        }
+        
+        .btn-abrir:hover {
+            background-color: #ecf0f1;
         }
 
         .card-back.special {
@@ -139,25 +161,68 @@
     <div class="grid-container" id="cardGrid"></div>
 
     <script>
-        // Definición de las 30 cartas
-        const cardsData = [
-            // 20 de Ejercicio
-            ...Array(20).fill({ text: "Ejercicio", type: "exercise" }),
-            
-            // 10 Especiales / Dinámicas
+        // ==========================================
+        // 🛠️ ZONA DE CONFIGURACIÓN (LO QUE DEBES EDITAR)
+        // ==========================================
+        
+        // 1. Pega aquí tu enlace al archivo PDF subido a Canvas
+        const enlacePDF = "EJ.pdf";
+        
+        // 2. Define en qué número de página está cada ejercicio en tu presentación Beamer.
+        // Hay 20 números, uno para cada ejercicio.
+        const paginasEjercicios = [
+            1,  // Página para el Ejercicio 1
+            2,  // Página para el Ejercicio 2
+            3,  // Página para el Ejercicio 3
+            4,  // Página para el Ejercicio 4
+            5,  // Página para el Ejercicio 5
+            6,  // Página para el Ejercicio 6
+            7,  // Página para el Ejercicio 7
+            8,  // Página para el Ejercicio 8
+            9, // Página para el Ejercicio 9
+            10, // Página para el Ejercicio 10
+            11, // Página para el Ejercicio 11
+            12, // Página para el Ejercicio 12
+            13, // Página para el Ejercicio 13
+            14, // Página para el Ejercicio 14
+            15, // Página para el Ejercicio 15
+            16, // Página para el Ejercicio 16
+            17, // Página para el Ejercicio 17
+            18, // Página para el Ejercicio 18
+            19, // Página para el Ejercicio 19
+            20  // Página para el Ejercicio 20
+        ];
+
+        // ==========================================
+        // FIN DE ZONA DE CONFIGURACIÓN
+        // ==========================================
+
+        // Crear los 20 ejercicios vinculados al PDF
+        const exercises = paginasEjercicios.map((numPagina, index) => {
+            return {
+                text: `Ejercicio ${index + 1}`,
+                type: "exercise",
+                link: `${enlacePDF}#page=${numPagina}`
+            };
+        });
+
+        // Las 10 cartas especiales/dinámicas
+        const specialCards = [
             { text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
             { text: "Intercambia puntos obligatoriamente con cualquier grupo", type: "special" },
-            { text: "¡Has ganado la pizza para el grado!", type: "special" },
+            { text: "Has ganado un punto libre", type: "special" },
             { text: "Pierdes un punto", type: "penalty" },
             { text: "Pierdes un punto", type: "penalty" },
             { text: "Ganas 5 minutos con el cuaderno para el parcial I", type: "special" },
             { text: "Ganas 2 puntos al parcial si tu nota es ≥ 7", type: "special" },
-            { text: "Ganas 2 puntos al parcial si tu nota es ≥ 7", type: "special" },
-            { text: "Pierdes todos tus puntos", type: "penalty" },
+            { text: "Se vuelven a barajear las cartas", type: "special" },
+            { text: "Pierdes la mitad de tus puntos", type: "penalty" },
             { text: "Ganas 5 puntos", type: "special" }
         ];
 
-        // Función para mezclar aleatoriamente (Fisher-Yates)
+        const cardsData = [...exercises, ...specialCards];
+
+        // Función para mezclar
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -175,27 +240,41 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 
+                let backContent = `<span>${data.text}</span>`;
+                
+                // Si es ejercicio, agregamos el botón que abre el PDF en una nueva pestaña
+                if(data.type === 'exercise') {
+                    backContent += `<button class="btn-abrir" onclick="abrirPDF(event, '${data.link}')">Ver Ejercicio</button>`;
+                }
+
                 card.innerHTML = `
                     <div class="card-inner">
                         <div class="card-face card-front">
                             ${index + 1}
                         </div>
                         <div class="card-face card-back ${data.type}">
-                            ${data.text}
+                            ${backContent}
                         </div>
                     </div>
                 `;
 
-                // Evento para voltear la carta
+                // Voltear
                 card.addEventListener('click', () => {
-                    card.classList.toggle('flipped');
+                    if(!card.classList.contains('flipped')){
+                        card.classList.add('flipped');
+                    }
                 });
 
                 grid.appendChild(card);
             });
         }
 
-        // Cargar el juego al iniciar
+        // Función para abrir el PDF
+        function abrirPDF(event, url) {
+            event.stopPropagation(); // Evita que la carta intente voltearse de nuevo
+            window.open(url, '_blank');
+        }
+
         window.onload = initGame;
     </script>
 
