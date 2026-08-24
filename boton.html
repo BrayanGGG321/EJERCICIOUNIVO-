@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulsador de Clase en Vivo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-4">
+
+  <!-- Selector de Rol -->
+  <header class="w-full max-w-md flex justify-between items-center mb-6 bg-slate-800 p-2 rounded-xl border border-slate-700">
+    <button onclick="setRole('student')" id="btn-role-student" class="flex-1 py-2 rounded-lg font-bold transition bg-indigo-600">Estudiante</button>
+    <button onclick="setRole('teacher')" id="btn-role-teacher" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400">Docente / Proyector</button>
+  </header>
+
+  <!-- ================= VISTA ESTUDIANTE ================= -->
+  <main id="view-student" class="w-full max-w-md flex flex-col items-center gap-5">
+    <!-- Registro de Equipo -->
+    <div id="student-register-box" class="w-full bg-slate-800 p-6 rounded-2xl border border-slate-700">
+      <h2 class="text-xl font-bold text-center mb-4 text-indigo-400">Registro de Equipo</h2>
+      <input type="text" id="input-team-name" placeholder="Ej: Equipo Los Matemáticos" class="w-full p-3 rounded-xl bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 mb-4 text-center font-semibold">
+      <button onclick="saveTeamName()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition">Unirse a la Sala</button>
+    </div>
+
+    <!-- Botón Pulsador -->
+    <div id="student-buzzer-box" class="w-full flex flex-col items-center gap-4 hidden">
+      <div class="text-center">
+        <p class="text-slate-400 text-sm">Equipo registrado:</p>
+        <h3 id="display-team-name" class="text-2xl font-black text-indigo-300"></h3>
+      </div>
+
+      <button id="main-buzzer-btn" onclick="pressBuzzer()" class="w-64 h-64 rounded-full bg-red-600 hover:bg-red-500 active:scale-95 shadow-[0_0_50px_rgba(239,68,68,0.5)] flex flex-col items-center justify-center font-black text-3xl tracking-wider transition-all cursor-pointer select-none">
+        <span>¡PULSAR!</span>
+      </button>
+
+      <p id="student-status-text" class="text-center font-semibold text-slate-400 mt-2">Esperando que el docente active la pregunta...</p>
+    </div>
+  </main>
+
+  <!-- ================= VISTA DOCENTE ================= -->
+  <main id="view-teacher" class="w-full max-w-2xl flex flex-col gap-6 hidden">
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-indigo-400">Control de Ronda</h2>
+        <p id="teacher-status-indicator" class="text-sm text-yellow-400 font-semibold">Estado: Pulsadores bloqueados</p>
+      </div>
+      <div class="flex gap-3 w-full md:w-auto">
+        <button onclick="activateRound()" class="flex-1 md:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-xl transition shadow-lg">
+          ▶ Iniciar Ronda
+        </button>
+        <button onclick="resetRound()" class="flex-1 md:flex-none px-6 py-3 bg-slate-700 hover:bg-slate-600 font-bold rounded-xl transition">
+          ↺ Reiniciar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tablero de Ganador / Resultados -->
+    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+      <h3 class="text-lg font-bold text-slate-300 mb-4 border-b border-slate-700 pb-2">Orden de Llegada</h3>
+      
+      <div id="first-place-banner" class="hidden mb-6 p-5 bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border-2 border-yellow-500 rounded-xl text-center animate-pulse">
+        <span class="text-yellow-400 font-bold tracking-widest text-xs uppercase">Primer lugar en responder</span>
+        <h1 id="first-place-team" class="text-3xl font-black text-yellow-300 mt-1"></h1>
+        <p id="first-place-time" class="text-xs text-yellow-200/70 mt-1"></p>
+      </div>
+
+      <ul id="buzz-list" class="space-y-2">
+        <li class="text-slate-500 text-center py-4">Aún no hay pulsaciones registradas.</li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    // 1. CONFIGURACIÓN DE FIREBASE (Reemplaza con tus claves de Firebase Console)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_PROYECTO.firebaseapp.com",
+      databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+      projectId: "TU_PROYECTO",
+      storageBucket: "TU_PROYECTO.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const roomRef = db.ref("sala_clase");
+
+    let currentTeam = localStorage.getItem("team_name") || "";
+    let isRoundActive = false;
+    let hasPressedThisRound = false;
+
+    // Control de Vistas / Roles
+    function setRole(role) {
+      const isStudent = role === 'student';
+      document.getElementById('view-student').classList.toggle('hidden', !isStudent);
+      document.getElementById('view-teacher').classList.toggle('hidden', isStudent);
+      
+      document.getElementById('btn-role-student').className = isStudent ? 'flex-1 py-2 rounded-lg font-bold transition bg-indigo-600 text-white' : 'flex-1 py-2 rounded-lg font-bold transition text-slate-400';
+      document.getElementById('btn-role-teacher').className = !isStudent ? 'flex-1 py-2 rounded-lg font-bold transition bg-indigo-600 text-white' : 'flex-1 py-2 rounded-lg font-bold transition text-slate-400';
+    }
+
+    // Lógica Estudiante
+    function saveTeamName() {
+      const name = document.getElementById('input-team-name').value.trim();
+      if (!name) return alert("Por favor escribe el nombre de tu equipo.");
+      currentTeam = name;
+      localStorage.setItem("team_name", name);
+      checkStudentState();
+    }
+
+    function checkStudentState() {
+      if (currentTeam) {
+        document.getElementById('student-register-box').classList.add('hidden');
+        document.getElementById('student-buzzer-box').classList.remove('hidden');
+        document.getElementById('display-team-name').innerText = currentTeam;
+      }
+    }
+
+    function pressBuzzer() {
+      if (!isRoundActive) return alert("¡El docente aún no ha iniciado la ronda!");
+      if (hasPressedThisRound) return;
+
+      hasPressedThisRound = true;
+      const buzzerBtn = document.getElementById('main-buzzer-btn');
+      buzzerBtn.classList.add('opacity-40', 'pointer-events-none');
+      document.getElementById('student-status-text').innerText = "¡Pulsación enviada!";
+
+      // Enviar timestamp del servidor para máxima precisión
+      roomRef.child("pulsaciones").push({
+        equipo: currentTeam,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    // Lógica Docente
+    function activateRound() {
+      roomRef.set({
+        activa: true,
+        pulsaciones: null
+      });
+    }
+
+    function resetRound() {
+      roomRef.set({
+        activa: false,
+        pulsaciones: null
+      });
+    }
+
+    // Escuchador en tiempo real de Firebase
+    roomRef.on('value', (snapshot) => {
+      const data = snapshot.val() || {};
+      isRoundActive = !!data.activa;
+
+      // Actualizar UI Docente
+      const teacherIndicator = document.getElementById('teacher-status-indicator');
+      teacherIndicator.innerText = isRoundActive ? "Estado: ¡Ronda ACTIVA! (Pulsadores habilitados)" : "Estado: Pulsadores bloqueados";
+      teacherIndicator.className = isRoundActive ? "text-sm text-emerald-400 font-bold" : "text-sm text-yellow-400 font-semibold";
+
+      // Actualizar UI Estudiante
+      const buzzerBtn = document.getElementById('main-buzzer-btn');
+      const studentStatus = document.getElementById('student-status-text');
+
+      if (!isRoundActive) {
+        hasPressedThisRound = false;
+        buzzerBtn.classList.remove('opacity-40', 'pointer-events-none', 'bg-emerald-600');
+        buzzerBtn.classList.add('bg-red-600');
+        studentStatus.innerText = "Esperando que el docente active la pregunta...";
+      } else if (!hasPressedThisRound) {
+        buzzerBtn.classList.remove('opacity-40', 'pointer-events-none');
+        studentStatus.innerText = "¡RONDA EN VIVO! ¡Presiona el botón!";
+      }
+
+      // Procesar lista de pulsaciones
+      const listContainer = document.getElementById('buzz-list');
+      const firstPlaceBanner = document.getElementById('first-place-banner');
+      listContainer.innerHTML = "";
+
+      if (data.pulsaciones) {
+        const entries = Object.values(data.pulsaciones).sort((a, b) => a.timestamp - b.timestamp);
+        
+        entries.forEach((item, index) => {
+          if (index === 0) {
+            firstPlaceBanner.classList.remove('hidden');
+            document.getElementById('first-place-team').innerText = item.equipo;
+            document.getElementById('first-place-time').innerText = new Date(item.timestamp).toLocaleTimeString();
+          }
+
+          const li = document.createElement('li');
+          li.className = `flex justify-between items-center p-3 rounded-xl border ${index === 0 ? 'bg-yellow-500/10 border-yellow-500/40 text-yellow-300 font-bold' : 'bg-slate-900/60 border-slate-700 text-slate-300'}`;
+          li.innerHTML = `
+            <span><span class="mr-2 opacity-70">#${index + 1}</span> ${item.equipo}</span>
+            <span class="text-xs font-mono opacity-60">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', fractionalSecondDigits: 2})}</span>
+          `;
+          listContainer.appendChild(li);
+        });
+      } else {
+        firstPlaceBanner.classList.add('hidden');
+        listContainer.innerHTML = `<li class="text-slate-500 text-center py-4">Aún no hay pulsaciones registradas.</li>`;
+      }
+    });
+
+    // Inicializar
+    checkStudentState();
+  </script>
+</body>
+</html>
