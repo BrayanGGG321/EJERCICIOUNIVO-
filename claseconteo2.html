@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Interactiva: Técnicas de Conteo</title>
+    <style>
+        :root {
+            --primary: #003366; /* Azul oscuro UNIVO */
+            --secondary: #FEB400; /* Dorado UNIVO */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--primary);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .progress {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .context-badge {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .exercise-box {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .input-group.full-width {
+            grid-column: span 2;
+            background: #eef2f5;
+            border-color: var(--primary);
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-size: 1.1em;
+        }
+
+        .helper-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        input[type="number"] {
+            width: 80%;
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 1.2em;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--secondary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.2em;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #002244;
+        }
+
+        .btn-next {
+            background-color: var(--success);
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .btn-next:hover {
+            background-color: #218838;
+        }
+
+        #feedback {
+            margin-top: 25px;
+            display: none;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            line-height: 1.5;
+            font-size: 1.1em;
+        }
+
+        .alert-error { background-color: #f8d7da; border-left: 5px solid var(--danger); color: #721c24;}
+        .alert-success { background-color: #d4edda; border-left: 5px solid var(--success); color: #155724; }
+        .alert-warning { background-color: #fff3cd; border-left: 5px solid var(--warning); color: #856404; }
+
+        .formula-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 1.2em;
+            text-align: center;
+            border: 1px dashed #ccc;
+        }
+
+        @media (max-width: 600px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .input-group.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Análisis de Probabilidad</h1>
+    <div class="subtitle">Laboratorio de Cálculos: Aplicación de Fórmulas</div>
+    
+    <div class="progress">
+        <span id="progressText">Ejercicio 1 de 8</span>
+        <span id="methodHint" style="color:var(--secondary);"></span>
+    </div>
+    
+    <div id="exerciseContainer">
+        <span class="context-badge" id="contextBadge">Contexto</span>
+        <div class="exercise-box" id="exerciseText">Cargando ejercicio...</div>
+
+        <div class="input-grid">
+            <div class="input-group">
+                <label>Parámetro <i>m</i></label>
+                <span class="helper-text">(Población total disponible)</span>
+                <input type="number" id="inputM" placeholder="Ej: 10" min="0">
+            </div>
+            
+            <div class="input-group">
+                <label>Parámetro <i>n</i></label>
+                <span class="helper-text">(Muestra / Subgrupo a tomar)</span>
+                <input type="number" id="inputN" placeholder="Ej: 3" min="0">
+            </div>
+
+            <div class="input-group full-width">
+                <label>Resultado Final</label>
+                <span class="helper-text">Calcula el resultado (usa tu calculadora) y colócalo aquí</span>
+                <input type="number" id="inputResult" placeholder="Ej: 120" min="0">
+            </div>
+        </div>
+
+        <button id="btnEvaluate" onclick="evaluateExercise()">Verificar Respuesta</button>
+    </div>
+
+    <div id="feedback"></div>
+    
+    <button id="btnNext" class="btn-next" onclick="nextExercise()">¡Correcto! Siguiente Ejercicio ➔</button>
+
+</div>
+
+<script>
+    // Base de datos de ejercicios con las respuestas exactas matemáticas
+    const exercises = [
+        {
+            context: "Ingeniería de Software",
+            text: "Un sistema operativo necesita ejecutar 5 microservicios específicos en una secuencia determinada durante el arranque para evitar errores fatales. ¿Cuántas secuencias de arranque diferentes son posibles?",
+            method: "Permutación",
+            m: 5,
+            n: 5,
+            result: 120,
+            formula: "P_5 = 5! = 5 × 4 × 3 × 2 × 1 = 120"
+        },
+        {
+            context: "Educación Física",
+            text: "Un entrenador de baloncesto necesita elegir a 4 jugadores titulares de una plantilla disponible de 12 jugadores para iniciar el partido. ¿De cuántas formas puede armar este grupo titular?",
+            method: "Combinación",
+            m: 12,
+            n: 4,
+            result: 495,
+            formula: "C_{12,4} = 12! / [4! × (12-4)!] = 495"
+        },
+        {
+            context: "Comunicaciones",
+            text: "El director de una emisora de radio tiene una lista de 10 canciones exitosas, pero solo tiene tiempo para programar 3 canciones en el siguiente segmento. ¿Cuántas listas de reproducción diferentes puede crear?",
+            method: "Variación",
+            m: 10,
+            n: 3,
+            result: 720,
+            formula: "V_{10,3} = 10! / (10-3)! = 10 × 9 × 8 = 720"
+        },
+        {
+            context: "Ingeniería de Software",
+            text: "Un equipo de desarrollo cuenta con 8 programadores. El líder técnico necesita formar un comité de 3 personas para revisar y aprobar el código (Code Review). ¿Cuántos comités distintos se pueden formar?",
+            method: "Combinación",
+            m: 8,
+            n: 3,
+            result: 56,
+            formula: "C_{8,3} = 8! / [3! × (8-3)!] = (8 × 7 × 6) / (3 × 2 × 1) = 56"
+        },
+        {
+            context: "Educación Física",
+            text: "En la final de los 100 metros planos compiten 8 corredores. Suponiendo que no hay empates, ¿De cuántas maneras diferentes pueden llegar a la meta y ocupar las 8 posiciones?",
+            method: "Permutación",
+            m: 8,
+            n: 8,
+            result: 40320,
+            formula: "P_8 = 8! = 8 × 7 × ... × 1 = 40,320"
+        },
+        {
+            context: "Comunicaciones",
+            text: "Una agencia de relaciones públicas tiene 7 periodistas disponibles. Necesitan asignar a 4 de ellos en cargos distintos para cubrir un evento: un Fotógrafo, un Redactor, un Entrevistador y un Editor. ¿De cuántas formas pueden asignar los roles?",
+            method: "Variación",
+            m: 7,
+            n: 4,
+            result: 840,
+            formula: "V_{7,4} = 7! / (7-4)! = 7 × 6 × 5 × 4 = 840"
+        },
+        {
+            context: "Ingeniería de Software",
+            text: "Un líder de proyecto tiene 6 tareas de desarrollo urgente diferentes (Backend, Frontend, Base de datos, etc.) y las debe asignar todas a sus 6 desarrolladores senior (una tarea a cada uno). ¿De cuántas maneras se pueden repartir?",
+            method: "Permutación",
+            m: 6,
+            n: 6,
+            result: 720,
+            formula: "P_6 = 6! = 6 × 5 × 4 × 3 × 2 × 1 = 720"
+        },
+        {
+            context: "Comunicaciones",
+            text: "Un presentador de noticias tiene 5 reportajes listos, pero por falta de tiempo solo podrá leer 2 al aire. A él no le importa cuál va primero o segundo, solo quiere saber cuáles 2 emitir. ¿De cuántas formas puede seleccionarlos?",
+            method: "Combinación",
+            m: 5,
+            n: 2,
+            result: 10,
+            formula: "C_{5,2} = 5! / [2! × (5-2)!] = (5 × 4) / 2 = 10"
+        }
+    ];
+
+    let currentIndex = 0;
+
+    function loadExercise() {
+        // Limpiar inputs
+        document.getElementById('inputM').value = "";
+        document.getElementById('inputN').value = "";
+        document.getElementById('inputResult').value = "";
+        
+        // Bloquear temporalmente el input de resultado para forzar paso a paso
+        // document.getElementById('inputResult').disabled = false; // Descomentar si quieres que lo llenen todo de golpe
+
+        // Ocultar feedback y botón siguiente
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('btnNext').style.display = 'none';
+        document.getElementById('btnEvaluate').style.display = 'block';
+        
+        // Cargar texto
+        document.getElementById('progressText').innerText = `Ejercicio ${currentIndex + 1} de ${exercises.length}`;
+        
+        const ex = exercises[currentIndex];
+        document.getElementById('contextBadge').innerText = ex.context;
+        document.getElementById('exerciseText').innerText = ex.text;
+        
+        // Pequeña pista del método (para que se centren en el cálculo)
+        document.getElementById('methodHint').innerText = `Método a aplicar: ${ex.method}`;
+    }
+
+    function evaluateExercise() {
+        const uM = parseInt(document.getElementById('inputM').value);
+        const uN = parseInt(document.getElementById('inputN').value);
+        const uResult = parseInt(document.getElementById('inputResult').value);
+
+        if(isNaN(uM) || isNaN(uN) || isNaN(uResult)) {
+            showError("⚠️ Debes llenar los tres campos con números antes de verificar.");
+            return;
+        }
+
+        const ex = exercises[currentIndex];
+        let feedbackHTML = "";
+        let isCorrect = true;
+
+        // Validaciones granulares
+        if (uM !== ex.m) {
+            isCorrect = false;
+            feedbackHTML += `<div class="alert alert-error">❌ <strong>Error en el parámetro <i>m</i>:</strong> Has colocado ${uM}. Recuerda que <i>m</i> es la población total disponible para este experimento. Vuelve a leer el problema.</div>`;
+        } else {
+            feedbackHTML += `<div class="alert alert-success">✅ Parámetro <i>m</i> = ${ex.m} (Correcto)</div>`;
+        }
+
+        if (uN !== ex.n) {
+            isCorrect = false;
+            if (uM === ex.m) { // Solo mostrar error de n si m está bien, para no abrumar
+                feedbackHTML += `<div class="alert alert-error">❌ <strong>Error en el parámetro <i>n</i>:</strong> Has colocado ${uN}. Recuerda que <i>n</i> es el tamaño del subgrupo que vas a formar o utilizar.</div>`;
+            }
+        } else {
+            feedbackHTML += `<div class="alert alert-success">✅ Parámetro <i>n</i> = ${ex.n} (Correcto)</div>`;
+        }
+
+        // Si m y n están bien, pero el resultado está mal
+        if (uM === ex.m && uN === ex.n && uResult !== ex.result) {
+            isCorrect = false;
+            feedbackHTML += `<div class="alert alert-warning">⚠️ <strong>Tus parámetros están bien, pero el cálculo es incorrecto.</strong><br>Aplicaste la fórmula de ${ex.method} con m=${ex.m} y n=${ex.n}, pero tu resultado (${uResult}) no es el esperado. ¡Revisa el uso de los factoriales (!) en tu calculadora!</div>`;
+        }
+
+        // Si todo está perfecto
+        if (uM === ex.m && uN === ex.n && uResult === ex.result) {
+            feedbackHTML = `
+                <div class="alert alert-success" style="text-align:center; font-size:1.3em;">
+                    🎉 <strong>¡Excelente! Resultado Correcto.</strong> 🎉
+                </div>
+                <div class="formula-box">
+                    <strong>Desarrollo Matemático:</strong><br><br>
+                    ${ex.formula}
+                </div>
+            `;
+            document.getElementById('btnEvaluate').style.display = 'none';
+            
+            if (currentIndex < exercises.length - 1) {
+                document.getElementById('btnNext').style.display = 'block';
+            } else {
+                document.getElementById('btnNext').style.display = 'block';
+                document.getElementById('btnNext').innerText = "🏆 ¡Práctica Completada! Reiniciar ➔";
+                document.getElementById('btnNext').onclick = () => { location.reload(); };
+            }
+        }
+
+        document.getElementById('feedback').innerHTML = feedbackHTML;
+        document.getElementById('feedback').style.display = 'block';
+    }
+
+    function showError(msg) {
+        document.getElementById('feedback').innerHTML = `<div class="alert alert-warning">${msg}</div>`;
+        document.getElementById('feedback').style.display = 'block';
+    }
+
+    function nextExercise() {
+        currentIndex++;
+        loadExercise();
+    }
+
+    // Inicializar
+    window.onload = loadExercise;
+
+</script>
+
+</body>
+</html>
