@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Técnicas de Conteo</title>
+    <style>
+        :root {
+            --primary: #003366; /* Azul oscuro */
+            --secondary: #FEB400; /* Dorado UNIVO */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--secondary);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .progress {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .context-badge {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .exercise-box {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .question-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .question-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #002244;
+        }
+
+        .btn-next {
+            background-color: var(--secondary);
+            color: #000;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .btn-next:hover {
+            background-color: #e0a000;
+        }
+
+        #feedback {
+            margin-top: 25px;
+            display: none;
+        }
+
+        .feedback-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .correct-bg { background-color: #d4edda; border-left: 5px solid var(--success); }
+        .incorrect-bg { background-color: #f8d7da; border-left: 5px solid var(--danger); }
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Análisis de Probabilidad</h1>
+    <div class="subtitle">Laboratorio Interactivo: Técnicas de Conteo</div>
+    
+    <div class="progress" id="progressText">Ejercicio 1 de 8</div>
+    
+    <div id="exerciseContainer">
+        <span class="context-badge" id="contextBadge">Contexto</span>
+        <div class="exercise-box" id="exerciseText">Cargando ejercicio...</div>
+
+        <div class="question-group">
+            <label>1. ¿Qué método de conteo se debe aplicar?</label>
+            <select id="selMethod">
+                <option value="">-- Selecciona un método --</option>
+                <option value="Variación">Variación</option>
+                <option value="Permutación">Permutación</option>
+                <option value="Combinación">Combinación</option>
+            </select>
+        </div>
+
+        <div class="question-group">
+            <label>2. ¿Importa el orden en que se agrupan los elementos?</label>
+            <select id="selOrder">
+                <option value="">-- Selecciona --</option>
+                <option value="Sí">Sí</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <div class="question-group">
+            <label>3. ¿Se utilizan TODOS los elementos disponibles (m = n)?</label>
+            <select id="selAll">
+                <option value="">-- Selecciona --</option>
+                <option value="Sí">Sí</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <button id="btnEvaluate" onclick="evaluateExercise()">Evaluar Respuesta</button>
+    </div>
+
+    <div id="feedback">
+        <!-- Aquí se inyectarán las respuestas -->
+    </div>
+    
+    <button id="btnNext" class="btn-next" onclick="nextExercise()">Siguiente Ejercicio ➔</button>
+
+</div>
+
+<script>
+    // Base de datos de ejercicios
+    const exercises = [
+        {
+            context: "Ingeniería de Software",
+            text: "Un sistema operativo necesita ejecutar 5 microservicios específicos en una secuencia determinada durante el arranque para evitar errores fatales. ¿Cuántas secuencias de arranque diferentes son posibles?",
+            cMethod: "Permutación",
+            cOrder: "Sí",
+            cAll: "Sí",
+            expOrder: "Al cambiar la secuencia en que arrancan los microservicios, el resultado cambia (puede haber errores). Por tanto, el orden importa.",
+            expAll: "Hay 5 microservicios en total (m=5) y los 5 deben ejecutarse (n=5).",
+            expMethod: "Como importa el orden y se utilizan todos los elementos, la técnica adecuada es la Permutación."
+        },
+        {
+            context: "Educación Física",
+            text: "Un entrenador de baloncesto necesita elegir a 4 jugadores titulares de una plantilla disponible de 12 jugadores para iniciar el partido. ¿De cuántas formas puede armar este grupo titular?",
+            cMethod: "Combinación",
+            cOrder: "No",
+            cAll: "No",
+            expOrder: "Ser elegido en 1er lugar o en 4to lugar para ser titular da exactamente el mismo resultado: formar parte del grupo. El orden no cambia al equipo.",
+            expAll: "Tenemos 12 jugadores disponibles (m=12) pero solo necesitamos 4 (n=4).",
+            expMethod: "Al NO importar el orden y NO utilizar todos los elementos, la técnica obligatoria es la Combinación."
+        },
+        {
+            context: "Comunicaciones",
+            text: "El director de una emisora de radio tiene una lista de 10 canciones exitosas, pero solo tiene tiempo para programar 3 canciones en el siguiente segmento. ¿Cuántas listas de reproducción diferentes puede crear?",
+            cMethod: "Variación",
+            cOrder: "Sí",
+            cAll: "No",
+            expOrder: "En una lista de reproducción de radio, escuchar la canción A seguida de la B no es la misma experiencia que escuchar la B seguida de la A. El orden importa.",
+            expAll: "Dispone de 10 canciones (m=10) pero solo reproducirá 3 (n=3).",
+            expMethod: "Como SÍ importa el orden, pero NO se usan todos los elementos, aplicamos Variación."
+        },
+        {
+            context: "Ingeniería de Software",
+            text: "Un equipo de desarrollo cuenta con 8 programadores. El líder técnico necesita formar un comité de 3 personas para revisar y aprobar el código (Code Review). ¿Cuántos comités distintos se pueden formar?",
+            cMethod: "Combinación",
+            cOrder: "No",
+            cAll: "No",
+            expOrder: "Dentro de un comité todos tienen el mismo estatus o función en este contexto. No importa quién fue llamado primero.",
+            expAll: "Hay 8 programadores (m=8) y solo se necesitan 3 (n=3).",
+            expMethod: "Como NO importa el orden y NO se usan todos, es una Combinación."
+        },
+        {
+            context: "Educación Física",
+            text: "En la final de los 100 metros planos compiten 8 corredores. Suponiendo que no hay empates, ¿De cuántas maneras diferentes pueden llegar a la meta y ocupar las 8 posiciones?",
+            cMethod: "Permutación",
+            cOrder: "Sí",
+            cAll: "Sí",
+            expOrder: "Llegar en 1er lugar (Oro) es completamente distinto a llegar en 2do (Plata). El orden es fundamental.",
+            expAll: "Hay 8 corredores en la pista (m=8) y los 8 cruzarán la meta ocupando un lugar (n=8).",
+            expMethod: "Al importar el orden y ordenar a TODOS los elementos disponibles, usamos Permutación."
+        },
+        {
+            context: "Comunicaciones",
+            text: "Una agencia de relaciones públicas tiene 7 periodistas disponibles. Necesitan asignar a 4 de ellos en cargos distintos para cubrir un evento: un Fotógrafo, un Redactor, un Entrevistador y un Editor. ¿De cuántas formas pueden asignar los roles?",
+            cMethod: "Variación",
+            cOrder: "Sí",
+            cAll: "No",
+            expOrder: "Como los cargos son diferentes, si cambias a las mismas personas de posición, el equipo de trabajo es distinto. El orden/asignación importa.",
+            expAll: "Tienen 7 periodistas (m=7) pero solo asignarán a 4 (n=4).",
+            expMethod: "Como el orden importa y no se usan todos los periodistas, es una Variación."
+        },
+        {
+            context: "Ingeniería de Software",
+            text: "Un líder de proyecto tiene 6 tareas de desarrollo urgente diferentes (Backend, Frontend, Base de datos, etc.) y las debe asignar todas a sus 6 desarrolladores senior (una tarea a cada uno). ¿De cuántas maneras se pueden repartir?",
+            cMethod: "Permutación",
+            cOrder: "Sí",
+            cAll: "Sí",
+            expOrder: "Las tareas son distintas. Asignar 'Base de Datos' al Dev1 es distinto a asignarle 'Frontend'. El orden de asignación importa.",
+            expAll: "Hay 6 desarrolladores (m=6) y 6 tareas (n=6). Todos participan.",
+            expMethod: "Como importa el orden y se utilizan todos los elementos (m=n), usamos Permutación."
+        },
+        {
+            context: "Comunicaciones",
+            text: "Un presentador de noticias tiene 5 reportajes listos, pero por falta de tiempo solo podrá leer 2 al aire. A él no le importa cuál va primero o segundo, solo quiere saber cuáles 2 emitir. ¿De cuántas formas puede seleccionarlos?",
+            cMethod: "Combinación",
+            cOrder: "No",
+            cAll: "No",
+            expOrder: "El enunciado aclara que no le importa cuál va primero o segundo, solo el grupo seleccionado. El orden no importa.",
+            expAll: "Tiene 5 reportajes (m=5) y solo elegirá 2 (n=2).",
+            expMethod: "Como NO importa el orden y NO se usan todos los elementos, es una Combinación."
+        }
+    ];
+
+    let currentIndex = 0;
+
+    function loadExercise() {
+        document.getElementById('selMethod').value = "";
+        document.getElementById('selOrder').value = "";
+        document.getElementById('selAll').value = "";
+        
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('btnNext').style.display = 'none';
+        document.getElementById('btnEvaluate').style.display = 'block';
+        
+        document.getElementById('progressText').innerText = `Ejercicio ${currentIndex + 1} de ${exercises.length}`;
+        
+        const ex = exercises[currentIndex];
+        document.getElementById('contextBadge').innerText = ex.context;
+        document.getElementById('exerciseText').innerText = ex.text;
+    }
+
+    function evaluateExercise() {
+        const uMethod = document.getElementById('selMethod').value;
+        const uOrder = document.getElementById('selOrder').value;
+        const uAll = document.getElementById('selAll').value;
+
+        if(!uMethod || !uOrder || !uAll) {
+            alert("Por favor, responde las 3 preguntas para evaluar.");
+            return;
+        }
+
+        const ex = exercises[currentIndex];
+        let feedbackHTML = "";
+
+        // 1. Evaluar Orden
+        if (uOrder === ex.cOrder) {
+            feedbackHTML += `<div class="feedback-item correct-bg">✅ <strong>Orden: Correcto.</strong> ${ex.expOrder}</div>`;
+        } else {
+            feedbackHTML += `<div class="feedback-item incorrect-bg">❌ <strong>Orden: Incorrecto.</strong> Seleccionaste que ${uOrder} importa, pero la realidad es que <strong>${ex.cOrder}</strong> importa el orden. ${ex.expOrder}</div>`;
+        }
+
+        // 2. Evaluar Todos los datos
+        if (uAll === ex.cAll) {
+            feedbackHTML += `<div class="feedback-item correct-bg">✅ <strong>Elementos: Correcto.</strong> ${ex.expAll}</div>`;
+        } else {
+            feedbackHTML += `<div class="feedback-item incorrect-bg">❌ <strong>Elementos: Incorrecto.</strong> Seleccionaste que ${uAll} se usan todos los elementos, pero la respuesta es <strong>${ex.cAll}</strong>. ${ex.expAll}</div>`;
+        }
+
+        // 3. Evaluar Método (con lógica adaptativa de error)
+        if (uMethod === ex.cMethod) {
+            feedbackHTML += `<div class="feedback-item correct-bg">🎯 <strong>Método: ¡Excelente! (${ex.cMethod})</strong> ${ex.expMethod}</div>`;
+        } else {
+            let whyWrong = "";
+            
+            if (uMethod === "Combinación") {
+                whyWrong = "en las combinaciones NO importa el orden, y aquí acabamos de determinar que SÍ importa.";
+            } else if (uMethod === "Permutación") {
+                whyWrong = "en las permutaciones se utilizan TODOS los elementos (m=n), y en este escenario no utilizamos todos.";
+            } else if (uMethod === "Variación") {
+                if (ex.cMethod === "Combinación") whyWrong = "en las variaciones SÍ importa el orden, y aquí el orden NO importa.";
+                if (ex.cMethod === "Permutación") whyWrong = "en las variaciones NO se usan todos los elementos, pero aquí SÍ se usan todos.";
+            }
+
+            feedbackHTML += `<div class="feedback-item incorrect-bg">
+                ❌ <strong>Método: Incorrecto.</strong> Elegiste <em>${uMethod}</em>, pero esto es un error porque ${whyWrong} <br><br>
+                <strong>El método correcto es: ${ex.cMethod}.</strong> ${ex.expMethod}
+            </div>`;
+        }
+
+        document.getElementById('feedback').innerHTML = feedbackHTML;
+        document.getElementById('feedback').style.display = 'block';
+        document.getElementById('btnEvaluate').style.display = 'none';
+
+        if (currentIndex < exercises.length - 1) {
+            document.getElementById('btnNext').style.display = 'block';
+        } else {
+            document.getElementById('btnNext').style.display = 'block';
+            document.getElementById('btnNext').innerText = "¡Has completado todos los ejercicios! Reiniciar ➔";
+            document.getElementById('btnNext').onclick = () => { location.reload(); };
+        }
+    }
+
+    function nextExercise() {
+        currentIndex++;
+        loadExercise();
+    }
+
+    // Cargar el primer ejercicio al inicio
+    window.onload = loadExercise;
+
+</script>
+
+</body>
+</html>
