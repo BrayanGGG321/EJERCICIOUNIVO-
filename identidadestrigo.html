@@ -3,14 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Memoria - Identidades Trigonométricas</title>
+    <title>Juego Multijugador - Identidades Trigonométricas</title>
     
-    <!-- MathJax para renderizar LaTeX -->
+    <!-- Tailwind para la estructura general -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax para renderizar LaTeX de las fórmulas matemáticas -->
     <script>
         window.MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: {
+                typeset: false // Lo controlaremos manualmente
             }
         };
     </script>
@@ -18,243 +24,199 @@
 
     <style>
         :root {
-            --primary: #1a5276;
-            --secondary: #2980b9;
-            --accent: #f39c12;
-            --bg: #ecf0f1;
+            --primary: #1e3a8a; /* Blue 900 */
+            --secondary: #3b82f6; /* Blue 500 */
+            --accent: #f59e0b; /* Amber 500 */
+            --bg: #f3f4f6; /* Gray 100 */
             --card-bg: #ffffff;
-            --text: #2c3e50;
-            --success: #27ae60;
-            --error: #e74c3c;
+            --success: #10b981;
+            --error: #ef4444;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); }
 
-        h1 { color: var(--primary); text-align: center; }
-
-        /* Pantalla de Inicio */
-        #setup-screen {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            margin-top: 50px;
-        }
-
-        input {
-            padding: 10px;
-            margin: 10px;
-            border: 2px solid #bdc3c7;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        button {
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 15px;
-        }
-
-        button:hover { background-color: var(--primary); }
-
-        /* Pantalla de Juego */
-        #game-screen { display: none; width: 100%; max-width: 1200px; }
-
-        .scoreboard {
-            display: flex;
-            justify-content: space-between;
-            background: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .team-active {
-            color: var(--accent);
-            text-decoration: underline;
-            text-decoration-thickness: 3px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            perspective: 1000px;
-        }
+        .perspective-1000 { perspective: 1000px; }
+        
+        .transform-style-3d { transform-style: preserve-3d; }
+        
+        .backface-hidden { backface-visibility: hidden; }
 
         .card {
             width: 100%;
             aspect-ratio: 1 / 1;
             cursor: pointer;
             position: relative;
-            transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
         }
 
         .card.flipped { transform: rotateY(180deg); }
-        .card.matched { transform: rotateY(180deg); opacity: 0.7; cursor: default; }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 10px;
-            box-sizing: border-box;
-        }
+        .card.matched { transform: rotateY(180deg); opacity: 0.5; cursor: default; }
 
         .card-front {
             background: linear-gradient(135deg, var(--secondary), var(--primary));
             color: white;
-            font-size: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
             font-weight: bold;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .card-back {
             background-color: var(--card-bg);
-            color: var(--text);
             transform: rotateY(180deg);
             border: 2px solid var(--secondary);
-            font-size: 1em;
-            text-align: center;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* Modal para ver cartas en grande */
-        #zoom-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 90%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .modal-cards-container {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-
+        /* Contenedor Modal */
+        #zoom-modal { backdrop-filter: blur(5px); }
+        
         .large-card {
             background: white;
             border: 4px solid var(--secondary);
-            border-radius: 15px;
-            padding: 30px;
-            min-width: 200px;
-            min-height: 150px;
+            border-radius: 1rem;
+            padding: 2rem;
+            min-width: 250px;
+            min-height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em; /* Hace que el MathJax se vea mucho más grande */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        #modal-result {
-            font-size: 1.8em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            min-height: 40px;
-        }
-
-        #modal-btn {
-            font-size: 1.2em;
-            padding: 15px 40px;
-        }
-
-        /* Pantalla de Ganador */
-        #winner-screen {
-            display: none;
-            text-align: center;
-            margin-top: 50px;
+            font-size: 2.5rem; /* Fórmula en grande */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
         
-        #winner-screen h2 { color: var(--accent); font-size: 2.5em; }
+        .math-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
-<body>
+<body class="min-h-screen text-gray-800 flex flex-col items-center py-8 px-4">
 
-    <h1>Emparejamiento Trigonométrico</h1>
+    <h1 class="text-3xl md:text-4xl font-extrabold text-blue-900 mb-8 text-center drop-shadow-sm">
+        Desafío Trigonométrico Multijugador
+    </h1>
 
-    <div id="setup-screen">
-        <h2>Configuración de Equipos</h2>
-        <input type="text" id="team1-name" placeholder="Nombre del Equipo 1" value="Equipo 1">
-        <br>
-        <input type="text" id="team2-name" placeholder="Nombre del Equipo 2" value="Equipo 2">
-        <br>
-        <button onclick="startGame()">¡Iniciar Juego!</button>
-    </div>
-
-    <div id="game-screen">
-        <div class="scoreboard">
-            <div id="score-team1" class="team-active">Equipo 1: 0</div>
-            <div id="turn-indicator" style="color: #7f8c8d; font-weight: normal;">Turno del Equipo 1</div>
-            <div id="score-team2">Equipo 2: 0</div>
+    <!-- Pantalla 1: Registro y Sala de Espera -->
+    <div id="setup-screen" class="w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-center">
+        <h2 class="text-2xl font-bold mb-6 text-gray-700">Unirse a la Partida</h2>
+        <div id="join-form">
+            <input type="text" id="team-name" placeholder="Nombre de tu Equipo" 
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 mb-6 text-lg">
+            <button id="btn-join" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                Entrar al Juego
+            </button>
         </div>
-        <div class="grid" id="card-grid"></div>
+        <div id="waiting-msg" class="hidden flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p class="text-lg text-gray-600 font-medium">Esperando a que se una el equipo rival...</p>
+            <p class="text-sm text-gray-400 mt-2">Dile al otro equipo que ingrese desde su dispositivo.</p>
+        </div>
     </div>
 
-    <!-- Modal para visualización en grande -->
-    <div id="zoom-modal">
-        <div class="modal-content">
-            <div id="modal-result" style="color: var(--text);">¿Son equivalentes?</div>
-            <div class="modal-cards-container">
+    <!-- Pantalla 2: El Juego -->
+    <div id="game-screen" class="hidden w-full max-w-5xl">
+        
+        <!-- Marcador Multijugador -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white rounded-xl shadow-md p-4 mb-8">
+            <div id="player1-score" class="text-xl font-bold px-4 py-2 rounded-lg transition-colors">
+                Equipo 1: 0
+            </div>
+            
+            <div id="turn-indicator" class="text-lg font-semibold my-2 md:my-0 px-6 py-2 bg-gray-100 rounded-full text-center">
+                Cargando estado...
+            </div>
+            
+            <div id="player2-score" class="text-xl font-bold px-4 py-2 rounded-lg transition-colors">
+                Equipo 2: 0
+            </div>
+        </div>
+
+        <!-- Tablero de Cartas -->
+        <div class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 perspective-1000" id="card-grid">
+            <!-- Las cartas se inyectarán aquí -->
+        </div>
+    </div>
+
+    <!-- Pantalla 3: Modal Sincronizado para Verificar -->
+    <div id="zoom-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex-col justify-center items-center p-4">
+        <div class="bg-white rounded-2xl p-6 md:p-10 text-center max-w-4xl w-full">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-800 mb-8">¿Son equivalentes?</h3>
+            
+            <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-10">
                 <div id="modal-card-1" class="large-card"></div>
+                <div class="text-3xl font-bold text-gray-400">=</div>
                 <div id="modal-card-2" class="large-card"></div>
             </div>
-            <button id="modal-btn">Verificar</button>
+
+            <!-- Interfaz dinámica según el turno -->
+            <div id="modal-active-ui" class="hidden">
+                <button id="btn-verify" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-10 rounded-lg text-xl transition-colors shadow-lg">
+                    Verificar Pareja
+                </button>
+            </div>
+            <div id="modal-waiting-ui" class="hidden">
+                <p class="text-xl text-gray-500 animate-pulse font-semibold" id="waiting-verify-text">
+                    Esperando a que el rival verifique...
+                </p>
+            </div>
+            
+            <div id="modal-result-ui" class="hidden mt-6">
+                <p id="result-text" class="text-3xl font-extrabold"></p>
+            </div>
         </div>
     </div>
 
-    <div id="winner-screen">
-        <h2 id="winner-text"></h2>
-        <button onclick="location.reload()">Jugar de Nuevo</button>
+    <!-- Pantalla 4: Fin del Juego -->
+    <div id="winner-screen" class="hidden w-full max-w-md bg-white rounded-xl shadow-xl p-8 text-center mt-10">
+        <h2 class="text-4xl font-extrabold text-amber-500 mb-4">¡Juego Terminado!</h2>
+        <p id="winner-text" class="text-2xl text-gray-700 font-bold mb-8"></p>
+        <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg w-full">
+            Volver al Inicio
+        </button>
     </div>
 
-    <script>
+    <script type="module">
+        // Importaciones estrictas de Firebase SDK 11.6.1
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración de entorno inyectada
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-trigo-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            // Fallback si corre fuera del entorno (no funcionará sin config real, pero previene errores sintácticos)
+            projectId: "demo-project"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Identificadores globales
+        let userId = null;
+        const ROOM_ID = 'trigo_room_1'; // Usamos una sala global fija para esta demostración
+        // RUTA ESTRICTA requerida por las reglas:
+        const roomPath = ['artifacts', appId, 'public', 'data', 'sessions', ROOM_ID];
+
+        // Estado local
+        let isMyTurn = false;
+        let localBoardRendered = false;
+
+        // Las 16 identidades
         const equations = [
             { id: 0, left: "\\sin^2(x) + \\cos^2(x)", right: "1" },
             { id: 1, left: "1 + \\tan^2(\\theta)", right: "\\sec^2(\\theta)" },
@@ -274,178 +236,435 @@
             { id: 15, left: "\\sin(2\\theta)", right: "2\\sin(\\theta)\\cos(\\theta)" }
         ];
 
-        let teamNames = ["", ""];
-        let scores = [0, 0];
-        let currentTurn = 0; 
-        let flippedCards = [];
-        let matchedPairs = 0;
-        let lockBoard = false;
+        // Elementos UI
+        const UI = {
+            setupScreen: document.getElementById('setup-screen'),
+            joinForm: document.getElementById('join-form'),
+            waitingMsg: document.getElementById('waiting-msg'),
+            gameScreen: document.getElementById('game-screen'),
+            cardGrid: document.getElementById('card-grid'),
+            score1: document.getElementById('player1-score'),
+            score2: document.getElementById('player2-score'),
+            turnInd: document.getElementById('turn-indicator'),
+            modal: document.getElementById('zoom-modal'),
+            modCard1: document.getElementById('modal-card-1'),
+            modCard2: document.getElementById('modal-card-2'),
+            modActiveUI: document.getElementById('modal-active-ui'),
+            modWaitingUI: document.getElementById('modal-waiting-ui'),
+            modResultUI: document.getElementById('modal-result-ui'),
+            btnVerify: document.getElementById('btn-verify'),
+            resultText: document.getElementById('result-text'),
+            winnerScreen: document.getElementById('winner-screen'),
+            winnerText: document.getElementById('winner-text')
+        };
 
-        function startGame() {
-            teamNames[0] = document.getElementById('team1-name').value || "Equipo 1";
-            teamNames[1] = document.getElementById('team2-name').value || "Equipo 2";
-            
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-            
-            updateScoreboard();
-            createBoard();
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userId = auth.currentUser.uid;
+                
+                // Si el usuario recarga la página, verificamos si ya estaba en la sala
+                checkExistingSession();
+            } catch (error) {
+                console.error("Error de autenticación:", error);
+                alert("Error al conectar con los servidores.");
+            }
         }
 
-        function createBoard() {
-            const grid = document.getElementById('card-grid');
+        async function checkExistingSession() {
+            if (!userId) return;
+            const roomRef = doc(db, ...roomPath);
+            const snap = await getDoc(roomRef);
+            
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.playerIds.includes(userId)) {
+                    // Ya somos parte del juego, ocultar formulario y conectar listener
+                    UI.joinForm.classList.add('hidden');
+                    if (data.status === 'waiting') {
+                        UI.waitingMsg.classList.remove('hidden');
+                    }
+                    listenToGame();
+                }
+            }
+        }
+
+        document.getElementById('btn-join').addEventListener('click', async () => {
+            const name = document.getElementById('team-name').value.trim() || "Equipo Anónimo";
+            if (!userId) return;
+
+            UI.btnJoin = document.getElementById('btn-join');
+            UI.btnJoin.disabled = true;
+            UI.btnJoin.innerText = "Conectando...";
+
+            try {
+                const roomRef = doc(db, ...roomPath);
+                const snap = await getDoc(roomRef);
+                
+                let isPlayer1 = false;
+                let resetRoom = false;
+
+                if (!snap.exists() || snap.data().status === 'finished') {
+                    resetRoom = true;
+                    isPlayer1 = true;
+                } else {
+                    const data = snap.data();
+                    if (data.playerIds.length >= 2 && !data.playerIds.includes(userId)) {
+                        // Sala llena, reiniciamos la sala para testing (en produccion seria "crear nueva sala")
+                        resetRoom = true;
+                        isPlayer1 = true;
+                    }
+                }
+
+                if (resetRoom) {
+                    // Crear nueva sesión / Reiniciar como Jugador 1
+                    await setDoc(roomRef, {
+                        status: 'waiting',
+                        playerIds: [userId],
+                        players: {
+                            [userId]: { name: name, score: 0 }
+                        },
+                        turn: userId,
+                        board: [],
+                        flippedCards: [],
+                        modal: { isOpen: false, showResult: false, isMatch: null }
+                    });
+                    
+                    UI.joinForm.classList.add('hidden');
+                    UI.waitingMsg.classList.remove('hidden');
+                } else {
+                    // Unirse como Jugador 2
+                    const data = snap.data();
+                    if (!data.playerIds.includes(userId)) {
+                        const newPlayers = { ...data.players };
+                        newPlayers[userId] = { name: name, score: 0 };
+                        
+                        // Generar el tablero aleatorio
+                        const newBoard = generateBoard();
+
+                        await updateDoc(roomRef, {
+                            status: 'playing',
+                            playerIds: [...data.playerIds, userId],
+                            players: newPlayers,
+                            board: newBoard
+                        });
+                    }
+                }
+
+                listenToGame(); // Iniciar sincronización en tiempo real
+
+            } catch (err) {
+                console.error("Error al unirse:", err);
+                UI.btnJoin.disabled = false;
+                UI.btnJoin.innerText = "Entrar al Juego";
+            }
+        });
+
+        function generateBoard() {
             let deck = [];
-
             equations.forEach(eq => {
-                deck.push({ id: eq.id, type: 'left', tex: `\\[ ${eq.left} \\]` });
-                deck.push({ id: eq.id, type: 'right', tex: `\\[ ${eq.right} \\]` });
+                deck.push({ id: eq.id, type: 'left', tex: `\\[ ${eq.left} \\]`, isFlipped: false, isMatched: false });
+                deck.push({ id: eq.id, type: 'right', tex: `\\[ ${eq.right} \\]`, isFlipped: false, isMatched: false });
             });
-
             deck.sort(() => Math.random() - 0.5);
+            deck.forEach((c, i) => c.index = i);
+            return deck;
+        }
 
-            deck.forEach((card, index) => {
+        function buildDOMBoard(boardData) {
+            UI.cardGrid.innerHTML = '';
+            boardData.forEach(card => {
                 const cardEl = document.createElement('div');
-                cardEl.classList.add('card');
-                cardEl.dataset.id = card.id;
-                cardEl.dataset.type = card.type;
+                cardEl.className = 'card transform-style-3d';
+                cardEl.id = `card-${card.index}`;
                 
                 cardEl.innerHTML = `
-                    <div class="card-face card-front">${index + 1}</div>
-                    <div class="card-face card-back">${card.tex}</div>
+                    <div class="card-front absolute w-full h-full backface-hidden z-10">${card.index + 1}</div>
+                    <div class="card-back absolute w-full h-full backface-hidden">
+                        <div class="math-container">${card.tex}</div>
+                    </div>
                 `;
                 
-                cardEl.addEventListener('click', () => flipCard(cardEl));
-                grid.appendChild(cardEl);
+                cardEl.addEventListener('click', () => handleCardClick(card.index));
+                UI.cardGrid.appendChild(cardEl);
+            });
+            
+            // Renderizar las fórmulas con MathJax (solo se hace una vez)
+            MathJax.typesetPromise([UI.cardGrid]).then(() => {
+                localBoardRendered = true;
+            });
+        }
+
+        let unsubscribe = null;
+        let lastGameState = null;
+
+        function listenToGame() {
+            if (unsubscribe) unsubscribe();
+            
+            const roomRef = doc(db, ...roomPath);
+            unsubscribe = onSnapshot(roomRef, (snap) => {
+                if (!snap.exists()) return;
+                
+                const state = snap.data();
+                lastGameState = state;
+                
+                // 1. Manejo de transiciones de pantalla
+                if (state.status === 'playing') {
+                    UI.setupScreen.classList.add('hidden');
+                    UI.gameScreen.classList.remove('hidden');
+                    
+                    // Si el tablero no se ha construido en el DOM, construirlo
+                    if (!localBoardRendered && state.board.length > 0) {
+                        buildDOMBoard(state.board);
+                    }
+                } else if (state.status === 'finished') {
+                    showWinner(state);
+                    return; // Detener actualizaciones visuales del juego
+                }
+
+                // 2. Actualizar Marcador y Turnos
+                if (state.status === 'playing') {
+                    const p1Id = state.playerIds[0];
+                    const p2Id = state.playerIds[1];
+                    
+                    isMyTurn = (state.turn === userId);
+
+                    UI.score1.innerText = `${state.players[p1Id].name}: ${state.players[p1Id].score}`;
+                    UI.score2.innerText = `${state.players[p2Id].name}: ${state.players[p2Id].score}`;
+
+                    // Resaltar colores según el turno
+                    if (state.turn === p1Id) {
+                        UI.score1.classList.add('bg-amber-100', 'text-amber-800', 'border-2', 'border-amber-400');
+                        UI.score2.classList.remove('bg-amber-100', 'text-amber-800', 'border-2', 'border-amber-400');
+                    } else {
+                        UI.score2.classList.add('bg-amber-100', 'text-amber-800', 'border-2', 'border-amber-400');
+                        UI.score1.classList.remove('bg-amber-100', 'text-amber-800', 'border-2', 'border-amber-400');
+                    }
+
+                    if (isMyTurn) {
+                        UI.turnInd.innerText = "¡Es tu turno!";
+                        UI.turnInd.classList.add('bg-green-100', 'text-green-800');
+                        UI.turnInd.classList.remove('bg-gray-100', 'text-gray-800');
+                    } else {
+                        const activePlayerName = state.players[state.turn].name;
+                        UI.turnInd.innerText = `Turno de: ${activePlayerName}`;
+                        UI.turnInd.classList.add('bg-gray-100', 'text-gray-800');
+                        UI.turnInd.classList.remove('bg-green-100', 'text-green-800');
+                    }
+
+                    // 3. Actualizar estado visual de las cartas
+                    if (localBoardRendered) {
+                        state.board.forEach((card, i) => {
+                            const domCard = document.getElementById(`card-${i}`);
+                            if (domCard) {
+                                if (card.isMatched) {
+                                    domCard.classList.add('matched');
+                                    domCard.classList.add('flipped');
+                                } else if (card.isFlipped) {
+                                    domCard.classList.add('flipped');
+                                } else {
+                                    domCard.classList.remove('flipped');
+                                }
+                            }
+                        });
+                    }
+
+                    // 4. Lógica del Modal Sincronizado
+                    manageModal(state);
+                }
+
+            }, (error) => {
+                console.error("Error de sincronización:", error);
+            });
+        }
+
+        async function handleCardClick(index) {
+            if (!lastGameState) return;
+            if (!isMyTurn) return; // Solo el jugador activo puede voltear
+            if (lastGameState.flippedCards.length >= 2) return; // Máximo 2 cartas
+            
+            const cardData = lastGameState.board[index];
+            if (cardData.isFlipped || cardData.isMatched) return; // No clickear cartas ya volteadas
+
+            const roomRef = doc(db, ...roomPath);
+            const newFlipped = [...lastGameState.flippedCards, index];
+            
+            // Actualizamos la carta específica en el arreglo (copia profunda simple)
+            const newBoard = JSON.parse(JSON.stringify(lastGameState.board));
+            newBoard[index].isFlipped = true;
+
+            let updatePayload = {
+                flippedCards: newFlipped,
+                board: newBoard
+            };
+
+            // Si es la segunda carta, abrimos el modal para ambos
+            if (newFlipped.length === 2) {
+                updatePayload.modal = {
+                    isOpen: true,
+                    showResult: false,
+                    isMatch: null
+                };
+            }
+
+            await updateDoc(roomRef, updatePayload);
+        }
+
+        function manageModal(state) {
+            if (state.modal.isOpen) {
+                UI.modal.classList.remove('hidden');
+                UI.modal.classList.add('flex');
+
+                // Si no estamos mostrando el resultado aún, actualizamos el contenido
+                if (!state.modal.showResult && state.flippedCards.length === 2) {
+                    const c1 = state.board[state.flippedCards[0]];
+                    const c2 = state.board[state.flippedCards[1]];
+                    
+                    UI.modCard1.innerHTML = `<div class="math-container">${c1.tex}</div>`;
+                    UI.modCard2.innerHTML = `<div class="math-container">${c2.tex}</div>`;
+                    MathJax.typesetPromise([UI.modCard1, UI.modCard2]);
+
+                    UI.modResultUI.classList.add('hidden');
+                    
+                    // Mostrar UI según de quién es el turno
+                    if (isMyTurn) {
+                        UI.modActiveUI.classList.remove('hidden');
+                        UI.modWaitingUI.classList.add('hidden');
+                    } else {
+                        UI.modActiveUI.classList.add('hidden');
+                        UI.modWaitingUI.classList.remove('hidden');
+                        const activeName = state.players[state.turn].name;
+                        document.getElementById('waiting-verify-text').innerText = `Esperando a que ${activeName} verifique...`;
+                    }
+                }
+
+                // Mostrar resultado si fue verificado
+                if (state.modal.showResult) {
+                    UI.modActiveUI.classList.add('hidden');
+                    UI.modWaitingUI.classList.add('hidden');
+                    UI.modResultUI.classList.remove('hidden');
+
+                    if (state.modal.isMatch) {
+                        UI.resultText.innerText = "¡Correcto! Punto ganado.";
+                        UI.resultText.className = "text-3xl font-extrabold text-green-600";
+                    } else {
+                        UI.resultText.innerText = "Incorrecto. No forman pareja.";
+                        UI.resultText.className = "text-3xl font-extrabold text-red-600";
+                    }
+                }
+
+            } else {
+                // Cerrar modal
+                UI.modal.classList.add('hidden');
+                UI.modal.classList.remove('flex');
+                UI.modResultUI.classList.add('hidden');
+            }
+        }
+
+        UI.btnVerify.addEventListener('click', async () => {
+            if (!isMyTurn || !lastGameState) return;
+            
+            // Prevenir doble click
+            UI.btnVerify.disabled = true;
+
+            const idx1 = lastGameState.flippedCards[0];
+            const idx2 = lastGameState.flippedCards[1];
+            const c1 = lastGameState.board[idx1];
+            const c2 = lastGameState.board[idx2];
+
+            // Regla matemática de coincidencia
+            let isMatch = (c1.id === c2.id && c1.type !== c2.type);
+            const onesIds = [0, 10, 11]; // Fórmulas que equivalen a "1"
+            if (!isMatch && onesIds.includes(c1.id) && onesIds.includes(c2.id) && c1.type !== c2.type) {
+                isMatch = true; // Permite combinar cualquier 1 con cualquier fórmula de valor 1
+            }
+
+            const roomRef = doc(db, ...roomPath);
+
+            // Primero emitimos el resultado para que ambos dispositivos lo vean
+            await updateDoc(roomRef, {
+                'modal.showResult': true,
+                'modal.isMatch': isMatch
             });
 
-            MathJax.typesetPromise();
-        }
+            // Esperamos 2.5 segundos para que los jugadores lean el resultado, 
+            // luego procesamos lógica de tablero
+            setTimeout(async () => {
+                try {
+                    const freshSnap = await getDoc(roomRef);
+                    const freshState = freshSnap.data();
+                    
+                    const newBoard = JSON.parse(JSON.stringify(freshState.board));
+                    let nextTurn = freshState.turn;
+                    let p1Score = freshState.players[freshState.playerIds[0]].score;
+                    let p2Score = freshState.players[freshState.playerIds[1]].score;
+                    let matchedCount = 0;
 
-        function flipCard(card) {
-            if (lockBoard) return;
-            if (card === flippedCards[0]) return;
-            if (card.classList.contains('matched')) return;
-
-            card.classList.add('flipped');
-            flippedCards.push(card);
-
-            if (flippedCards.length === 2) {
-                // Pequeña pausa visual antes de abrir el modal
-                setTimeout(showZoomModal, 600);
-            }
-        }
-
-        function showZoomModal() {
-            lockBoard = true;
-            let card1 = flippedCards[0];
-            let card2 = flippedCards[1];
-
-            let id1 = parseInt(card1.dataset.id);
-            let id2 = parseInt(card2.dataset.id);
-            let type1 = card1.dataset.type;
-            let type2 = card2.dataset.type;
-
-            let isMatch = (id1 === id2 && type1 !== type2);
-
-            const onesIds = [0, 10, 11];
-            if (!isMatch && onesIds.includes(id1) && onesIds.includes(id2) && type1 !== type2) {
-                isMatch = true;
-            }
-
-            // Preparar el Modal
-            const modal = document.getElementById('zoom-modal');
-            const mc1 = document.getElementById('modal-card-1');
-            const mc2 = document.getElementById('modal-card-2');
-            const modalResult = document.getElementById('modal-result');
-            const modalBtn = document.getElementById('modal-btn');
-
-            // Copiar el contenido HTML renderizado por MathJax a las cartas grandes
-            mc1.innerHTML = card1.querySelector('.card-back').innerHTML;
-            mc2.innerHTML = card2.querySelector('.card-back').innerHTML;
-
-            modalResult.innerText = '¿Son equivalentes?';
-            modalResult.style.color = 'var(--text)';
-            modalBtn.innerText = 'Verificar';
-            modalBtn.style.backgroundColor = 'var(--secondary)';
-            
-            modal.style.display = 'flex';
-
-            // Comportamiento del botón dentro del modal
-            modalBtn.onclick = function() {
-                if (modalBtn.innerText === 'Verificar') {
                     if (isMatch) {
-                        modalResult.innerText = '¡Correcto! Es una pareja.';
-                        modalResult.style.color = 'var(--success)';
-                        modalBtn.style.backgroundColor = 'var(--success)';
-                        card1.classList.add('matched');
-                        card2.classList.add('matched');
-                        scores[currentTurn]++;
-                        matchedPairs++;
+                        newBoard[idx1].isMatched = true;
+                        newBoard[idx2].isMatched = true;
+                        // Sumar punto al activo
+                        if (freshState.turn === freshState.playerIds[0]) p1Score++;
+                        else p2Score++;
+                        // El turno NO cambia (mantiene el turno por acertar)
                     } else {
-                        modalResult.innerText = 'Incorrecto. No coinciden.';
-                        modalResult.style.color = 'var(--error)';
-                        modalBtn.style.backgroundColor = 'var(--error)';
-                        card1.classList.remove('flipped');
-                        card2.classList.remove('flipped');
+                        newBoard[idx1].isFlipped = false;
+                        newBoard[idx2].isFlipped = false;
+                        // Cambiar turno
+                        nextTurn = (freshState.turn === freshState.playerIds[0]) ? freshState.playerIds[1] : freshState.playerIds[0];
                     }
-                    modalBtn.innerText = 'Continuar';
-                } else {
-                    // Cerrar modal y procesar turnos
-                    modal.style.display = 'none';
-                    resetTurn(!isMatch);
+
+                    // Contar parejas completadas para ver si el juego termina
+                    newBoard.forEach(c => { if(c.isMatched) matchedCount++; });
+                    const isFinished = (matchedCount === 32);
+
+                    const updateData = {
+                        board: newBoard,
+                        flippedCards: [],
+                        modal: { isOpen: false, showResult: false, isMatch: null },
+                        turn: nextTurn,
+                        [`players.${freshState.playerIds[0]}.score`]: p1Score,
+                        [`players.${freshState.playerIds[1]}.score`]: p2Score
+                    };
+
+                    if (isFinished) {
+                        updateData.status = 'finished';
+                    }
+
+                    await updateDoc(roomRef, updateData);
+                    UI.btnVerify.disabled = false; // Restaurar botón
+
+                } catch (e) {
+                    console.error("Error actualizando turnos:", e);
+                    UI.btnVerify.disabled = false;
                 }
-            };
-        }
+            }, 2500);
+        });
 
-        function resetTurn(changeTurn) {
-            flippedCards = [];
-            lockBoard = false;
-            
-            if (changeTurn) {
-                currentTurn = currentTurn === 0 ? 1 : 0;
-            }
-            
-            updateScoreboard();
+        function showWinner(state) {
+            UI.gameScreen.classList.add('hidden');
+            UI.modal.classList.add('hidden');
+            UI.winnerScreen.classList.remove('hidden');
 
-            if (matchedPairs === 16) {
-                setTimeout(declareWinner, 500);
-            }
-        }
+            const p1 = state.players[state.playerIds[0]];
+            const p2 = state.players[state.playerIds[1]];
 
-        function updateScoreboard() {
-            const s1 = document.getElementById('score-team1');
-            const s2 = document.getElementById('score-team2');
-            const indicator = document.getElementById('turn-indicator');
-
-            s1.innerText = `${teamNames[0]}: ${scores[0]}`;
-            s2.innerText = `${teamNames[1]}: ${scores[1]}`;
-
-            if (currentTurn === 0) {
-                s1.classList.add('team-active');
-                s2.classList.remove('team-active');
-                indicator.innerText = `Turno de: ${teamNames[0]}`;
+            if (p1.score > p2.score) {
+                UI.winnerText.innerText = `¡${p1.name} gana con ${p1.score} puntos!`;
+            } else if (p2.score > p1.score) {
+                UI.winnerText.innerText = `¡${p2.name} gana con ${p2.score} puntos!`;
             } else {
-                s2.classList.add('team-active');
-                s1.classList.remove('team-active');
-                indicator.innerText = `Turno de: ${teamNames[1]}`;
+                UI.winnerText.innerText = `¡Empate espectacular a ${p1.score} puntos!`;
             }
         }
 
-        function declareWinner() {
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('winner-screen').style.display = 'block';
-            
-            let winText = "";
-            if (scores[0] > scores[1]) {
-                winText = `¡${teamNames[0]} Gana con ${scores[0]} puntos!`;
-            } else if (scores[1] > scores[0]) {
-                winText = `¡${teamNames[1]} Gana con ${scores[1]} puntos!`;
-            } else {
-                winText = `¡Es un empate a ${scores[0]} puntos!`;
-            }
-            
-            document.getElementById('winner-text').innerText = winText;
-        }
+        // Arrancar la app
+        initAuth();
+
     </script>
 </body>
 </html>
