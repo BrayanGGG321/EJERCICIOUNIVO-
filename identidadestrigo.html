@@ -24,6 +24,8 @@
             --bg: #ecf0f1;
             --card-bg: #ffffff;
             --text: #2c3e50;
+            --success: #27ae60;
+            --error: #e74c3c;
         }
 
         body {
@@ -137,11 +139,73 @@
             color: var(--text);
             transform: rotateY(180deg);
             border: 2px solid var(--secondary);
-            font-size: 1.1em;
+            font-size: 1em;
             text-align: center;
-            overflow: auto;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        /* Modal para ver cartas en grande */
+        #zoom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .modal-cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .large-card {
+            background: white;
+            border: 4px solid var(--secondary);
+            border-radius: 15px;
+            padding: 30px;
+            min-width: 200px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em; /* Hace que el MathJax se vea mucho más grande */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        #modal-result {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 40px;
+        }
+
+        #modal-btn {
+            font-size: 1.2em;
+            padding: 15px 40px;
+        }
+
+        /* Pantalla de Ganador */
         #winner-screen {
             display: none;
             text-align: center;
@@ -155,7 +219,6 @@
 
     <h1>Emparejamiento Trigonométrico</h1>
 
-    <!-- Pantalla de Configuración -->
     <div id="setup-screen">
         <h2>Configuración de Equipos</h2>
         <input type="text" id="team1-name" placeholder="Nombre del Equipo 1" value="Equipo 1">
@@ -165,7 +228,6 @@
         <button onclick="startGame()">¡Iniciar Juego!</button>
     </div>
 
-    <!-- Pantalla del Juego -->
     <div id="game-screen">
         <div class="scoreboard">
             <div id="score-team1" class="team-active">Equipo 1: 0</div>
@@ -175,14 +237,24 @@
         <div class="grid" id="card-grid"></div>
     </div>
 
-    <!-- Pantalla de Ganador -->
+    <!-- Modal para visualización en grande -->
+    <div id="zoom-modal">
+        <div class="modal-content">
+            <div id="modal-result" style="color: var(--text);">¿Son equivalentes?</div>
+            <div class="modal-cards-container">
+                <div id="modal-card-1" class="large-card"></div>
+                <div id="modal-card-2" class="large-card"></div>
+            </div>
+            <button id="modal-btn">Verificar</button>
+        </div>
+    </div>
+
     <div id="winner-screen">
         <h2 id="winner-text"></h2>
         <button onclick="location.reload()">Jugar de Nuevo</button>
     </div>
 
     <script>
-        // Las 16 identidades extraídas de tu código LaTeX
         const equations = [
             { id: 0, left: "\\sin^2(x) + \\cos^2(x)", right: "1" },
             { id: 1, left: "1 + \\tan^2(\\theta)", right: "\\sec^2(\\theta)" },
@@ -204,7 +276,7 @@
 
         let teamNames = ["", ""];
         let scores = [0, 0];
-        let currentTurn = 0; // 0 para Equipo 1, 1 para Equipo 2
+        let currentTurn = 0; 
         let flippedCards = [];
         let matchedPairs = 0;
         let lockBoard = false;
@@ -224,16 +296,13 @@
             const grid = document.getElementById('card-grid');
             let deck = [];
 
-            // Crear las 32 cartas (Lado izquierdo y derecho)
             equations.forEach(eq => {
                 deck.push({ id: eq.id, type: 'left', tex: `\\[ ${eq.left} \\]` });
                 deck.push({ id: eq.id, type: 'right', tex: `\\[ ${eq.right} \\]` });
             });
 
-            // Mezclar cartas aleatoriamente
             deck.sort(() => Math.random() - 0.5);
 
-            // Generar HTML de las cartas
             deck.forEach((card, index) => {
                 const cardEl = document.createElement('div');
                 cardEl.classList.add('card');
@@ -249,7 +318,6 @@
                 grid.appendChild(cardEl);
             });
 
-            // Procesar las fórmulas con MathJax después de inyectarlas
             MathJax.typesetPromise();
         }
 
@@ -262,11 +330,12 @@
             flippedCards.push(card);
 
             if (flippedCards.length === 2) {
-                checkForMatch();
+                // Pequeña pausa visual antes de abrir el modal
+                setTimeout(showZoomModal, 600);
             }
         }
 
-        function checkForMatch() {
+        function showZoomModal() {
             lockBoard = true;
             let card1 = flippedCards[0];
             let card2 = flippedCards[1];
@@ -278,30 +347,54 @@
 
             let isMatch = (id1 === id2 && type1 !== type2);
 
-            // Regla especial: Las identidades 0, 10 y 11 tienen como respuesta "1".
-            // Para no frustrar a los estudiantes, permitimos que cualquier fórmula 
-            // que valga 1 haga match con cualquier tarjeta de "1".
             const onesIds = [0, 10, 11];
             if (!isMatch && onesIds.includes(id1) && onesIds.includes(id2) && type1 !== type2) {
                 isMatch = true;
             }
 
-            if (isMatch) {
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                scores[currentTurn]++;
-                matchedPairs++;
-                
-                // Si hay match, el equipo mantiene el turno
-                resetTurn(false);
-            } else {
-                // Si fallan, se voltean de nuevo y cambia el turno
-                setTimeout(() => {
-                    card1.classList.remove('flipped');
-                    card2.classList.remove('flipped');
-                    resetTurn(true);
-                }, 2500); // 2.5 segundos para que memoricen las fórmulas
-            }
+            // Preparar el Modal
+            const modal = document.getElementById('zoom-modal');
+            const mc1 = document.getElementById('modal-card-1');
+            const mc2 = document.getElementById('modal-card-2');
+            const modalResult = document.getElementById('modal-result');
+            const modalBtn = document.getElementById('modal-btn');
+
+            // Copiar el contenido HTML renderizado por MathJax a las cartas grandes
+            mc1.innerHTML = card1.querySelector('.card-back').innerHTML;
+            mc2.innerHTML = card2.querySelector('.card-back').innerHTML;
+
+            modalResult.innerText = '¿Son equivalentes?';
+            modalResult.style.color = 'var(--text)';
+            modalBtn.innerText = 'Verificar';
+            modalBtn.style.backgroundColor = 'var(--secondary)';
+            
+            modal.style.display = 'flex';
+
+            // Comportamiento del botón dentro del modal
+            modalBtn.onclick = function() {
+                if (modalBtn.innerText === 'Verificar') {
+                    if (isMatch) {
+                        modalResult.innerText = '¡Correcto! Es una pareja.';
+                        modalResult.style.color = 'var(--success)';
+                        modalBtn.style.backgroundColor = 'var(--success)';
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        scores[currentTurn]++;
+                        matchedPairs++;
+                    } else {
+                        modalResult.innerText = 'Incorrecto. No coinciden.';
+                        modalResult.style.color = 'var(--error)';
+                        modalBtn.style.backgroundColor = 'var(--error)';
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+                    }
+                    modalBtn.innerText = 'Continuar';
+                } else {
+                    // Cerrar modal y procesar turnos
+                    modal.style.display = 'none';
+                    resetTurn(!isMatch);
+                }
+            };
         }
 
         function resetTurn(changeTurn) {
