@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Memoria - Identidades Trigonométricas</title>
+    
+    <!-- MathJax para renderizar LaTeX -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --primary: #1a5276;
+            --secondary: #2980b9;
+            --accent: #f39c12;
+            --bg: #ecf0f1;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: var(--primary); text-align: center; }
+
+        /* Pantalla de Inicio */
+        #setup-screen {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 15px;
+        }
+
+        button:hover { background-color: var(--primary); }
+
+        /* Pantalla de Juego */
+        #game-screen { display: none; width: 100%; max-width: 1200px; }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .team-active {
+            color: var(--accent);
+            text-decoration: underline;
+            text-decoration-thickness: 3px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            perspective: 1000px;
+        }
+
+        .card {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+        .card.matched { transform: rotateY(180deg); opacity: 0.7; cursor: default; }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .card-back {
+            background-color: var(--card-bg);
+            color: var(--text);
+            transform: rotateY(180deg);
+            border: 2px solid var(--secondary);
+            font-size: 1.1em;
+            text-align: center;
+            overflow: auto;
+        }
+
+        #winner-screen {
+            display: none;
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        #winner-screen h2 { color: var(--accent); font-size: 2.5em; }
+    </style>
+</head>
+<body>
+
+    <h1>Emparejamiento Trigonométrico</h1>
+
+    <!-- Pantalla de Configuración -->
+    <div id="setup-screen">
+        <h2>Configuración de Equipos</h2>
+        <input type="text" id="team1-name" placeholder="Nombre del Equipo 1" value="Equipo 1">
+        <br>
+        <input type="text" id="team2-name" placeholder="Nombre del Equipo 2" value="Equipo 2">
+        <br>
+        <button onclick="startGame()">¡Iniciar Juego!</button>
+    </div>
+
+    <!-- Pantalla del Juego -->
+    <div id="game-screen">
+        <div class="scoreboard">
+            <div id="score-team1" class="team-active">Equipo 1: 0</div>
+            <div id="turn-indicator" style="color: #7f8c8d; font-weight: normal;">Turno del Equipo 1</div>
+            <div id="score-team2">Equipo 2: 0</div>
+        </div>
+        <div class="grid" id="card-grid"></div>
+    </div>
+
+    <!-- Pantalla de Ganador -->
+    <div id="winner-screen">
+        <h2 id="winner-text"></h2>
+        <button onclick="location.reload()">Jugar de Nuevo</button>
+    </div>
+
+    <script>
+        // Las 16 identidades extraídas de tu código LaTeX
+        const equations = [
+            { id: 0, left: "\\sin^2(x) + \\cos^2(x)", right: "1" },
+            { id: 1, left: "1 + \\tan^2(\\theta)", right: "\\sec^2(\\theta)" },
+            { id: 2, left: "\\frac{\\tan x}{\\sec x}", right: "\\sin x" },
+            { id: 3, left: "\\frac{\\sin x}{\\cos x}", right: "\\tan x" },
+            { id: 4, left: "\\cot(x)", right: "\\frac{\\cos(x)}{\\sin(x)}" },
+            { id: 5, left: "\\sec x", right: "\\frac{1}{\\cos x}" },
+            { id: 6, left: "\\sin(90^\\circ - x)", right: "\\cos(x)" },
+            { id: 7, left: "\\cos(90^\\circ - x)", right: "\\sin(x)" },
+            { id: 8, left: "\\tan(90^\\circ - x)", right: "\\cot(x)" },
+            { id: 9, left: "\\sec(90^\\circ - x)", right: "\\csc(x)" },
+            { id: 10, left: "\\sin x \\cdot \\csc x", right: "1" },
+            { id: 11, left: "\\cos x \\cdot \\sec x", right: "1" },
+            { id: 12, left: "\\sin^2\\frac{\\theta}{2}", right: "\\frac{1 - \\cos\\theta}{2}" },
+            { id: 13, left: "\\sin(\\alpha + \\beta)", right: "\\sin(\\alpha)\\cos(\\beta) + \\cos(\\alpha)\\sin(\\beta)" },
+            { id: 14, left: "\\sin(\\alpha) + \\sin(\\beta)", right: "2 \\sin\\left(\\frac{\\alpha + \\beta}{2}\\right) \\cos\\left(\\frac{\\alpha - \\beta}{2}\\right)" },
+            { id: 15, left: "\\sin(2\\theta)", right: "2\\sin(\\theta)\\cos(\\theta)" }
+        ];
+
+        let teamNames = ["", ""];
+        let scores = [0, 0];
+        let currentTurn = 0; // 0 para Equipo 1, 1 para Equipo 2
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false;
+
+        function startGame() {
+            teamNames[0] = document.getElementById('team1-name').value || "Equipo 1";
+            teamNames[1] = document.getElementById('team2-name').value || "Equipo 2";
+            
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            updateScoreboard();
+            createBoard();
+        }
+
+        function createBoard() {
+            const grid = document.getElementById('card-grid');
+            let deck = [];
+
+            // Crear las 32 cartas (Lado izquierdo y derecho)
+            equations.forEach(eq => {
+                deck.push({ id: eq.id, type: 'left', tex: `\\[ ${eq.left} \\]` });
+                deck.push({ id: eq.id, type: 'right', tex: `\\[ ${eq.right} \\]` });
+            });
+
+            // Mezclar cartas aleatoriamente
+            deck.sort(() => Math.random() - 0.5);
+
+            // Generar HTML de las cartas
+            deck.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.classList.add('card');
+                cardEl.dataset.id = card.id;
+                cardEl.dataset.type = card.type;
+                
+                cardEl.innerHTML = `
+                    <div class="card-face card-front">${index + 1}</div>
+                    <div class="card-face card-back">${card.tex}</div>
+                `;
+                
+                cardEl.addEventListener('click', () => flipCard(cardEl));
+                grid.appendChild(cardEl);
+            });
+
+            // Procesar las fórmulas con MathJax después de inyectarlas
+            MathJax.typesetPromise();
+        }
+
+        function flipCard(card) {
+            if (lockBoard) return;
+            if (card === flippedCards[0]) return;
+            if (card.classList.contains('matched')) return;
+
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            lockBoard = true;
+            let card1 = flippedCards[0];
+            let card2 = flippedCards[1];
+
+            let id1 = parseInt(card1.dataset.id);
+            let id2 = parseInt(card2.dataset.id);
+            let type1 = card1.dataset.type;
+            let type2 = card2.dataset.type;
+
+            let isMatch = (id1 === id2 && type1 !== type2);
+
+            // Regla especial: Las identidades 0, 10 y 11 tienen como respuesta "1".
+            // Para no frustrar a los estudiantes, permitimos que cualquier fórmula 
+            // que valga 1 haga match con cualquier tarjeta de "1".
+            const onesIds = [0, 10, 11];
+            if (!isMatch && onesIds.includes(id1) && onesIds.includes(id2) && type1 !== type2) {
+                isMatch = true;
+            }
+
+            if (isMatch) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                scores[currentTurn]++;
+                matchedPairs++;
+                
+                // Si hay match, el equipo mantiene el turno
+                resetTurn(false);
+            } else {
+                // Si fallan, se voltean de nuevo y cambia el turno
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    resetTurn(true);
+                }, 2500); // 2.5 segundos para que memoricen las fórmulas
+            }
+        }
+
+        function resetTurn(changeTurn) {
+            flippedCards = [];
+            lockBoard = false;
+            
+            if (changeTurn) {
+                currentTurn = currentTurn === 0 ? 1 : 0;
+            }
+            
+            updateScoreboard();
+
+            if (matchedPairs === 16) {
+                setTimeout(declareWinner, 500);
+            }
+        }
+
+        function updateScoreboard() {
+            const s1 = document.getElementById('score-team1');
+            const s2 = document.getElementById('score-team2');
+            const indicator = document.getElementById('turn-indicator');
+
+            s1.innerText = `${teamNames[0]}: ${scores[0]}`;
+            s2.innerText = `${teamNames[1]}: ${scores[1]}`;
+
+            if (currentTurn === 0) {
+                s1.classList.add('team-active');
+                s2.classList.remove('team-active');
+                indicator.innerText = `Turno de: ${teamNames[0]}`;
+            } else {
+                s2.classList.add('team-active');
+                s1.classList.remove('team-active');
+                indicator.innerText = `Turno de: ${teamNames[1]}`;
+            }
+        }
+
+        function declareWinner() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('winner-screen').style.display = 'block';
+            
+            let winText = "";
+            if (scores[0] > scores[1]) {
+                winText = `¡${teamNames[0]} Gana con ${scores[0]} puntos!`;
+            } else if (scores[1] > scores[0]) {
+                winText = `¡${teamNames[1]} Gana con ${scores[1]} puntos!`;
+            } else {
+                winText = `¡Es un empate a ${scores[0]} puntos!`;
+            }
+            
+            document.getElementById('winner-text').innerText = winText;
+        }
+    </script>
+</body>
+</html>
