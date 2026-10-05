@@ -116,8 +116,9 @@
         <div id="join-form">
             <input type="text" id="team-name" placeholder="Nombre de tu Equipo" 
                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 mb-6 text-lg">
-            <button id="btn-join" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
-                Entrar al Juego
+            <p id="error-msg" class="text-red-500 text-sm mb-4 hidden font-bold"></p>
+            <button id="btn-join" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 opacity-50 cursor-not-allowed" disabled>
+                Conectando al servidor...
             </button>
         </div>
         <div id="waiting-msg" class="hidden flex flex-col items-center">
@@ -195,12 +196,16 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración de entorno inyectada
+        // Configuración de entorno inyectada de forma segura
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-trigo-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // Fallback si corre fuera del entorno (no funcionará sin config real, pero previene errores sintácticos)
-            projectId: "demo-project"
-        };
+        let firebaseConfig = { projectId: "demo-project" };
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+            }
+        } catch (e) {
+            console.error("Error parseando configuración de Firebase:", e);
+        }
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -258,20 +263,34 @@
             winnerText: document.getElementById('winner-text')
         };
 
+        const errorMsg = document.getElementById('error-msg');
+        const btnJoin = document.getElementById('btn-join');
+
+        function showError(msg) {
+            errorMsg.innerText = msg;
+            errorMsg.classList.remove('hidden');
+        }
+
         async function initAuth() {
             try {
-                if (typeof __initial_auth_token !== 'undefined') {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
                 userId = auth.currentUser.uid;
                 
+                // Habilitar el botón una vez conectados
+                btnJoin.innerText = "Entrar al Juego";
+                btnJoin.disabled = false;
+                btnJoin.classList.remove('opacity-50', 'cursor-not-allowed');
+                
                 // Si el usuario recarga la página, verificamos si ya estaba en la sala
                 checkExistingSession();
             } catch (error) {
                 console.error("Error de autenticación:", error);
-                alert("Error al conectar con los servidores.");
+                showError("Error al conectar. Verifica tu conexión e intenta de nuevo.");
+                btnJoin.innerText = "Error de conexión";
             }
         }
 
@@ -293,13 +312,17 @@
             }
         }
 
-        document.getElementById('btn-join').addEventListener('click', async () => {
+        btnJoin.addEventListener('click', async () => {
             const name = document.getElementById('team-name').value.trim() || "Equipo Anónimo";
-            if (!userId) return;
+            if (!userId) {
+                showError("Aún conectando al servidor...");
+                return;
+            }
 
-            UI.btnJoin = document.getElementById('btn-join');
-            UI.btnJoin.disabled = true;
-            UI.btnJoin.innerText = "Conectando...";
+            btnJoin.disabled = true;
+            btnJoin.classList.add('opacity-50', 'cursor-not-allowed');
+            btnJoin.innerText = "Entrando...";
+            errorMsg.classList.add('hidden');
 
             try {
                 const roomRef = doc(db, ...roomPath);
@@ -359,8 +382,10 @@
 
             } catch (err) {
                 console.error("Error al unirse:", err);
-                UI.btnJoin.disabled = false;
-                UI.btnJoin.innerText = "Entrar al Juego";
+                showError("Error al unirse a la sala: " + err.message);
+                btnJoin.disabled = false;
+                btnJoin.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnJoin.innerText = "Entrar al Juego";
             }
         });
 
@@ -393,10 +418,14 @@
                 UI.cardGrid.appendChild(cardEl);
             });
             
-            // Renderizar las fórmulas con MathJax (solo se hace una vez)
-            MathJax.typesetPromise([UI.cardGrid]).then(() => {
+            // Renderizar las fórmulas con MathJax de forma segura
+            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                MathJax.typesetPromise([UI.cardGrid]).then(() => {
+                    localBoardRendered = true;
+                }).catch(err => console.error("Error en MathJax:", err));
+            } else {
                 localBoardRendered = true;
-            });
+            }
         }
 
         let unsubscribe = null;
@@ -413,9 +442,22 @@
                 lastGameState = state;
                 
                 // 1. Manejo de transiciones de pantalla
-                if (state.status === 'playing') {
+                if (state.status === 'waiting') {
+                    UI.setupScreen.classList.remove('hidden');
+                    UI.gameScreen.classList.add('hidden');
+                    UI.winnerScreen.classList.add('hidden');
+                    
+                    if (state.playerIds.includes(userId)) {
+                        UI.joinForm.classList.add('hidden');
+                        UI.waitingMsg.classList.remove('hidden');
+                    } else {
+                        UI.joinForm.classList.remove('hidden');
+                        UI.waitingMsg.classList.add('hidden');
+                    }
+                } else if (state.status === 'playing') {
                     UI.setupScreen.classList.add('hidden');
                     UI.gameScreen.classList.remove('hidden');
+                    UI.winnerScreen.classList.add('hidden');
                     
                     // Si el tablero no se ha construido en el DOM, construirlo
                     if (!localBoardRendered && state.board.length > 0) {
@@ -526,7 +568,10 @@
                     
                     UI.modCard1.innerHTML = `<div class="math-container">${c1.tex}</div>`;
                     UI.modCard2.innerHTML = `<div class="math-container">${c2.tex}</div>`;
-                    MathJax.typesetPromise([UI.modCard1, UI.modCard2]);
+                    
+                    if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                        MathJax.typesetPromise([UI.modCard1, UI.modCard2]).catch(e => console.error(e));
+                    }
 
                     UI.modResultUI.classList.add('hidden');
                     
