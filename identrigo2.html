@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Identidades Trigonométricas</title>
+    
+    <script>
+        // Configuración CRÍTICA para que \sen funcione en español
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                macros: {
+                    sen: "\\operatorname{sen}"
+                }
+            },
+            startup: {
+                typeset: false // Controlaremos el renderizado manualmente tras crear el DOM
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Estilos personalizados para animaciones y tarjetas */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
+            min-height: 100vh;
+        }
+
+        .math-card {
+            transition: all 0.2s ease-in-out;
+            touch-action: manipulation; /* Optimiza para toques en móvil */
+        }
+        
+        .math-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .math-card:active {
+            transform: scale(0.98);
+        }
+
+        .drop-slot {
+            transition: all 0.3s ease;
+        }
+        
+        .drop-slot.drag-over {
+            background-color: #dbeafe;
+            border-color: #3b82f6;
+            transform: scale(1.02);
+        }
+
+        /* Animación de desaparición cuando hacen match */
+        .match-animation {
+            animation: popOut 0.6s forwards;
+        }
+
+        @keyframes popOut {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; background-color: #4ade80; color: white;}
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* Scrollbar estilizado para las listas */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 flex flex-col h-screen text-slate-800">
+
+    <header class="text-center mb-6 shrink-0">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-blue-900 mb-2">Identidades Trigonométricas</h1>
+        <p class="text-md text-blue-700 max-w-2xl mx-auto">
+            Arrastra (o haz clic en) una tarjeta de la izquierda y otra de la derecha hacia la zona central para emparejarlas. ¡Encuentra los 10 pares correctos!
+        </p>
+    </header>
+
+    <!-- Layout principal: 3 columnas -->
+    <main class="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+        
+        <!-- Columna Izquierda (Lado izquierdo de las identidades) -->
+        <section class="flex-1 flex flex-col bg-white/60 rounded-2xl p-4 shadow-inner border border-white">
+            <h2 class="text-lg font-bold text-center text-slate-700 mb-3 shrink-0">Expresiones Izquierdas</h2>
+            <div id="left-list" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pb-2 pr-2">
+                <!-- Tarjetas inyectadas por JS -->
+            </div>
+        </section>
+
+        <!-- Columna Central (Zona de Drop) -->
+        <section class="flex-1 lg:max-w-md flex flex-col gap-4">
+            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center border border-blue-100 flex-1 justify-center">
+                <h2 class="text-xl font-extrabold text-blue-600 mb-4 text-center">Zona de Emparejamiento</h2>
+                
+                <div class="w-full flex gap-3 mb-6 relative">
+                    <!-- Slot Izquierdo -->
+                    <div id="slot-left" class="drop-slot flex-1 min-h-[140px] border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center p-2 relative"
+                         ondragover="allowDrop(event)" ondrop="drop(event, 'left')" onclick="returnToMenu('left')">
+                        <span class="text-slate-400 font-medium text-sm text-center pointer-events-none">Suelta aquí la tarjeta Izquierda</span>
+                    </div>
+
+                    <!-- Signo de Igual del medio -->
+                    <div class="flex items-center justify-center font-bold text-3xl text-slate-400">
+                        =
+                    </div>
+
+                    <!-- Slot Derecho -->
+                    <div id="slot-right" class="drop-slot flex-1 min-h-[140px] border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center p-2 relative"
+                         ondragover="allowDrop(event)" ondrop="drop(event, 'right')" onclick="returnToMenu('right')">
+                        <span class="text-slate-400 font-medium text-sm text-center pointer-events-none">Suelta aquí la tarjeta Derecha</span>
+                    </div>
+                </div>
+
+                <!-- Estadísticas y estado -->
+                <div class="w-full bg-blue-50 rounded-lg p-3 text-center border border-blue-100">
+                    <p class="text-blue-800 font-semibold text-lg">Pares formados: <span id="pairs-count" class="text-blue-600 text-2xl">0</span> / 10</p>
+                </div>
+                
+                <button onclick="resetGame()" class="mt-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-6 rounded-lg transition-colors w-full">
+                    Reiniciar Juego
+                </button>
+            </div>
+        </section>
+
+        <!-- Columna Derecha (Lado derecho de las identidades) -->
+        <section class="flex-1 flex flex-col bg-white/60 rounded-2xl p-4 shadow-inner border border-white">
+            <h2 class="text-lg font-bold text-center text-slate-700 mb-3 shrink-0">Expresiones Derechas</h2>
+            <div id="right-list" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pb-2 pr-2">
+                <!-- Tarjetas inyectadas por JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Resultados -->
+    <div id="result-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl transform transition-transform scale-95 text-center">
+            <div id="modal-icon" class="text-6xl mb-4"></div>
+            <h3 id="modal-title" class="text-2xl font-bold mb-2"></h3>
+            <p id="modal-message" class="text-slate-600 mb-6 text-lg"></p>
+            <button onclick="closeModalAndReset()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-colors text-lg">
+                Jugar de Nuevo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Datos de las identidades trigonométricas
+        const identitiesData = [
+            { id: 1, left: "\\sen(\\alpha - \\beta)", right: "\\sen \\alpha \\cos \\beta - \\cos \\alpha \\sen \\beta" },
+            { id: 2, left: "\\cos(\\alpha - \\beta)", right: "\\cos \\alpha \\cos \\beta + \\sen \\alpha \\sen \\beta" },
+            { id: 3, left: "\\tan(\\alpha + \\beta)", right: "\\frac{\\tan \\alpha + \\tan \\beta}{1 - \\tan \\alpha \\tan \\beta}" },
+            { id: 4, left: "\\tan(\\alpha - \\beta)", right: "\\frac{\\tan \\alpha - \\tan \\beta}{1 + \\tan \\alpha \\tan \\beta}" },
+            { id: 5, left: "\\sen(\\alpha + \\beta)\\sen(\\alpha - \\beta)", right: "\\cos^2 \\beta - \\cos^2 \\alpha" },
+            { id: 6, left: "\\cos(\\alpha + \\beta)\\cos(\\alpha - \\beta)", right: "\\cos^2 \\beta - \\sen^2 \\alpha" },
+            { id: 7, left: "\\sen \\alpha \\sen \\beta", right: "\\frac{1}{2}[\\cos(\\alpha - \\beta) - \\cos(\\alpha + \\beta)]" },
+            { id: 8, left: "\\sen \\alpha \\cos \\beta", right: "\\frac{1}{2}[\\sen(\\alpha + \\beta) + \\sen(\\alpha - \\beta)]" },
+            { id: 9, left: "\\cos \\alpha - \\cos \\beta", right: "-2 \\sen\\left(\\frac{\\alpha + \\beta}{2}\\right) \\sen\\left(\\frac{\\alpha - \\beta}{2}\\right)" },
+            { id: 10, left: "\\sen \\alpha - \\sen \\beta", right: "2 \\cos\\left(\\frac{\\alpha + \\beta}{2}\\right) \\sen\\left(\\frac{\\alpha - \\beta}{2}\\right)" }
+        ];
+
+        // Variables de estado
+        let pairs = []; // Guarda objetos: { leftId, rightId }
+        let isAnimating = false; // Bloquea interacciones durante la animación de emparejamiento
+
+        // Referencias del DOM
+        const leftList = document.getElementById('left-list');
+        const rightList = document.getElementById('right-list');
+        const slotLeft = document.getElementById('slot-left');
+        const slotRight = document.getElementById('slot-right');
+        const pairsCountDisplay = document.getElementById('pairs-count');
+        
+        // Utilidad para mezclar arreglos (Fisher-Yates)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function initGame() {
+            // Limpiar listas y slots
+            leftList.innerHTML = '';
+            rightList.innerHTML = '';
+            
+            // Remover cualquier tarjeta que haya quedado en los slots
+            Array.from(slotLeft.children).forEach(child => { if(child.tagName !== 'SPAN') child.remove(); });
+            Array.from(slotRight.children).forEach(child => { if(child.tagName !== 'SPAN') child.remove(); });
+            
+            pairs = [];
+            isAnimating = false;
+            updateCounter();
+
+            // Preparar arreglos desordenados
+            const leftItems = shuffleArray(identitiesData.map(item => ({ id: item.id, tex: item.left })));
+            const rightItems = shuffleArray(identitiesData.map(item => ({ id: item.id, tex: item.right })));
+
+            // Crear tarjetas en el DOM
+            leftItems.forEach(item => leftList.appendChild(createCard(item, 'left')));
+            rightItems.forEach(item => rightList.appendChild(createCard(item, 'right')));
+
+            // Renderizar LaTeX (Espera a que el DOM esté listo)
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([leftList, rightList]).catch(err => console.error("MathJax error:", err));
+            }
+        }
+
+        function createCard(item, side) {
+            const card = document.createElement('div');
+            card.id = `card-${side}-${item.id}`;
+            card.className = `math-card bg-white border-2 border-slate-200 rounded-xl p-4 cursor-pointer flex items-center justify-center min-h-[80px] shadow-sm hover:border-blue-400 select-none`;
+            
+            // Atributos para la lógica de arrastrar y soltar
+            card.setAttribute('draggable', 'true');
+            card.setAttribute('data-id', item.id);
+            card.setAttribute('data-side', side);
+            
+            // Contenido en LaTeX
+            card.innerHTML = `\\( ${item.tex} \\)`;
+
+            // Eventos nativos de arrastrar
+            card.addEventListener('dragstart', handleDragStart);
+            
+            // Evento Click (Alternativa para móviles / mayor accesibilidad)
+            card.addEventListener('click', () => handleCardClick(card));
+
+            return card;
+        }
+
+        // --- Lógica de Clic (Alternativa a Arrastrar) ---
+        function handleCardClick(card) {
+            if (isAnimating) return;
+            
+            const side = card.getAttribute('data-side');
+            const targetSlot = side === 'left' ? slotLeft : slotRight;
+            const originalList = side === 'left' ? leftList : rightList;
+
+            // Si la tarjeta ya está en el slot, la devolvemos a la lista
+            if (card.parentElement === targetSlot) {
+                originalList.appendChild(card);
+                return;
+            }
+
+            // Si el slot ya tiene una tarjeta, la devolvemos a su lista antes de poner la nueva
+            const existingCard = Array.from(targetSlot.children).find(c => c.classList.contains('math-card'));
+            if (existingCard) {
+                originalList.appendChild(existingCard);
+            }
+
+            // Mover la tarjeta al slot
+            targetSlot.appendChild(card);
+            
+            // Verificar si hay pareja lista
+            checkMatch();
+        }
+
+        // Devolver tarjeta desde el slot haciendo clic en el área vacía del slot
+        function returnToMenu(side) {
+            if (isAnimating) return;
+            const targetSlot = side === 'left' ? slotLeft : slotRight;
+            const originalList = side === 'left' ? leftList : rightList;
+            
+            const existingCard = Array.from(targetSlot.children).find(c => c.classList.contains('math-card'));
+            if (existingCard) {
+                originalList.appendChild(existingCard);
+            }
+        }
+
+        // --- Lógica de Arrastrar y Soltar (Drag & Drop) ---
+        function handleDragStart(e) {
+            if (isAnimating) {
+                e.preventDefault();
+                return;
+            }
+            e.dataTransfer.setData('text/plain', e.target.id);
+            // Efecto visual
+            setTimeout(() => e.target.classList.add('opacity-50'), 0);
+        }
+
+        // Limpiar estilos al terminar de arrastrar independientemente de si se soltó bien
+        document.addEventListener('dragend', (e) => {
+            if (e.target.classList && e.target.classList.contains('math-card')) {
+                e.target.classList.remove('opacity-50');
+            }
+            slotLeft.classList.remove('drag-over');
+            slotRight.classList.remove('drag-over');
+        });
+
+        function allowDrop(e) {
+            if (isAnimating) return;
+            e.preventDefault();
+            // Agregar feedback visual al slot
+            if (e.currentTarget.classList.contains('drop-slot')) {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function drop(e, targetSide) {
+            e.preventDefault();
+            if (isAnimating) return;
+            
+            const slot = e.currentTarget;
+            slot.classList.remove('drag-over');
+
+            const cardId = e.dataTransfer.getData('text/plain');
+            const card = document.getElementById(cardId);
+            
+            if (!card) return;
+
+            const cardSide = card.getAttribute('data-side');
+
+            // Validar que la tarjeta vaya a su lado correspondiente
+            if (cardSide !== targetSide) {
+                // Animación de error sutil
+                card.classList.add('bg-red-50', 'border-red-400');
+                setTimeout(() => card.classList.remove('bg-red-50', 'border-red-400'), 500);
+                return;
+            }
+
+            // Simular el comportamiento de clic para mover la tarjeta
+            handleCardClick(card);
+        }
+
+        // Quitar feedback visual si el drag sale del slot
+        slotLeft.addEventListener('dragleave', (e) => e.currentTarget.classList.remove('drag-over'));
+        slotRight.addEventListener('dragleave', (e) => e.currentTarget.classList.remove('drag-over'));
+
+        // --- Lógica de Emparejamiento y Evaluación ---
+        function checkMatch() {
+            const cardLeft = Array.from(slotLeft.children).find(c => c.classList.contains('math-card'));
+            const cardRight = Array.from(slotRight.children).find(c => c.classList.contains('math-card'));
+
+            // Si ambos slots están llenos
+            if (cardLeft && cardRight) {
+                isAnimating = true;
+
+                const leftId = parseInt(cardLeft.getAttribute('data-id'));
+                const rightId = parseInt(cardRight.getAttribute('data-id'));
+
+                // Registrar par
+                pairs.push({ leftId, rightId });
+                updateCounter();
+
+                // Animación de agrupación y desaparición
+                cardLeft.classList.add('match-animation', 'border-green-400');
+                cardRight.classList.add('match-animation', 'border-green-400');
+
+                // Esperar a que termine la animación
+                setTimeout(() => {
+                    cardLeft.remove();
+                    cardRight.remove();
+                    isAnimating = false;
+                    
+                    // Comprobar final de juego
+                    if (pairs.length === 10) {
+                        evaluateGame();
+                    }
+                }, 600); // 600ms coinciden con la duración de 'popOut'
+            }
+        }
+
+        function updateCounter() {
+            pairsCountDisplay.textContent = pairs.length;
+        }
+
+        function evaluateGame() {
+            let errors = 0;
+            
+            // Contar errores comparando los IDs emparejados
+            pairs.forEach(pair => {
+                if (pair.leftId !== pair.rightId) {
+                    errors++;
+                }
+            });
+
+            // Preparar Modal
+            const modal = document.getElementById('result-modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const message = document.getElementById('modal-message');
+
+            if (errors === 0) {
+                icon.textContent = "🎉";
+                title.textContent = "¡Todo Correcto!";
+                title.className = "text-3xl font-bold mb-2 text-green-600";
+                message.textContent = "Excelente trabajo. Has dominado estas identidades trigonométricas.";
+            } else {
+                icon.textContent = "🧐";
+                title.textContent = "¡Casi lo logras!";
+                title.className = "text-3xl font-bold mb-2 text-amber-500";
+                // Lógica de texto en singular o plural
+                const textoMalas = errors === 1 ? "tienes 1 pareja incorrecta" : `tienes ${errors} parejas incorrectas`;
+                message.innerHTML = `Completaste las 10 uniones, pero <strong>${textoMalas}</strong>.<br>Recuerda que no se indica cuáles son, ¡inténtalo de nuevo para perfeccionarlo!`;
+            }
+
+            // Mostrar modal
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Animación pop del modal interior
+            setTimeout(() => {
+                modal.firstElementChild.classList.remove('scale-95');
+                modal.firstElementChild.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModalAndReset() {
+            const modal = document.getElementById('result-modal');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                resetGame();
+            }, 200);
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // Iniciar el juego al cargar la ventana
+        window.addEventListener('DOMContentLoaded', initGame);
+
+    </script>
+</body>
+</html>
