@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- STREAMING_CHUNK:Configuring metadata and external resources... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emparejamiento: Probabilidad y Conjuntos</title>
+    
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configure Tailwind theme colors to match the academic aesthetic -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dorado: '#FEB400',
+                        blueice: '#D9F5F0',
+                        unamBlue: '#002B5C'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Configure MathJax BEFORE loading the script -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['[', ']']]
+            },
+            startup: {
+                typeset: false // We will manually typeset after injecting dynamic content
+            }
+        };
+    </script>
+    
+    <!-- MathJax CDN -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- STREAMING_CHUNK:Defining custom CSS styles and animations... -->
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Custom scrollbar for lists */
+        .scrollable-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-list::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 4px;
+        }
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .scrollable-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Interaction states */
+        .item-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .item-card:hover:not(.matched):not(.selected) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
+        
+        /* Selected state (Golden Yellow) */
+        .item-card.selected {
+            border-color: #FEB400;
+            background-color: #FFF9E6;
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(254, 180, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Matched state (Green) */
+        .item-card.matched {
+            border-color: #22c55e;
+            background-color: #f0fdf4;
+            color: #166534;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* Shake animation for errors */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+    <!-- STREAMING_CHUNK:Building the main header and layout structure... -->
+    <header class="bg-unamBlue text-white p-6 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold">Unidad 2: Análisis de Probabilidad</h1>
+                <p class="text-blue-200 mt-1">Actividad Interactiva: Emparejamiento de Conceptos</p>
+            </div>
+            <div class="mt-4 md:mt-0 bg-dorado text-unamBlue font-bold py-2 px-4 rounded-full shadow-lg">
+                Progreso: <span id="progress-counter">0</span> / 10
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full p-4 md:p-6 lg:p-8 flex flex-col">
+        
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-slate-200">
+            <h2 class="text-xl font-semibold mb-2">Instrucciones:</h2>
+            <p class="text-slate-600">Selecciona un <strong>Término</strong> de la columna izquierda y haz clic en su <strong>Definición o Expresión</strong> correspondiente en la columna derecha. ¡Usa las pistas si te equivocas!</p>
+        </div>
+
+        <!-- Two column layout -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow min-h-[60vh]">
+            
+            <!-- Left Column: Terms -->
+            <div class="flex flex-col h-full">
+                <div class="bg-slate-100 rounded-t-xl p-4 border-b-4 border-dorado">
+                    <h3 class="text-lg font-bold text-center text-slate-700">Términos</h3>
+                </div>
+                <div id="terms-container" class="scrollable-list flex-grow bg-white border border-slate-200 border-t-0 rounded-b-xl p-4 overflow-y-auto space-y-3 h-[500px]">
+                    <!-- Terms will be injected here -->
+                </div>
+            </div>
+
+            <!-- Right Column: Definitions -->
+            <div class="flex flex-col h-full">
+                <div class="bg-slate-100 rounded-t-xl p-4 border-b-4 border-dorado">
+                    <h3 class="text-lg font-bold text-center text-slate-700">Definiciones</h3>
+                </div>
+                <div id="defs-container" class="scrollable-list flex-grow bg-white border border-slate-200 border-t-0 rounded-b-xl p-4 overflow-y-auto space-y-3 h-[500px]">
+                    <!-- Definitions will be injected here -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- STREAMING_CHUNK:Structuring the custom confirmation and feedback modals... -->
+    
+    <!-- Overlay for Modals -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center backdrop-blur-sm transition-opacity">
+        
+        <!-- Confirmation Modal -->
+        <div id="confirm-modal" class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-transform scale-95 hidden flex-col items-center text-center">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">¿Confirmar Selección?</h3>
+            <p class="text-slate-600 mb-6">¿Deseas comprobar si este término coincide con la definición elegida?</p>
+            <div class="flex space-x-4 w-full">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancelar</button>
+                <button onclick="checkMatch()" class="flex-1 py-2 px-4 bg-dorado hover:bg-yellow-500 text-unamBlue font-bold rounded-lg transition-colors shadow-md">Confirmar</button>
+            </div>
+        </div>
+
+        <!-- Feedback Modal (Success/Hint) -->
+        <div id="feedback-modal" class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-transform scale-95 hidden flex-col items-center text-center">
+            <div id="feedback-icon" class="w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                <!-- Icon injected dynamically -->
+            </div>
+            <h3 id="feedback-title" class="text-2xl font-bold mb-2"></h3>
+            <p id="feedback-message" class="text-slate-600 mb-6 text-lg"></p>
+            <button onclick="closeFeedbackModal()" id="feedback-btn" class="w-full py-3 px-4 font-bold rounded-lg transition-colors shadow-md text-white">Continuar</button>
+        </div>
+
+    </div>
+
+    <!-- STREAMING_CHUNK:Initializing game data and state variables... -->
+    <script>
+        // Data derived from the user's requirements and LaTeX presentation
+        const gameData = [
+            { 
+                id: 1, 
+                term: "Fenómeno aleatorio", 
+                def: "Trata de cuantificar la incertidumbre dada la imposibilidad de predecir con exactitud el resultado.", 
+                hint: "Piensa en eventos donde no puedes predecir el resultado exacto, como en los juegos de azar." 
+            },
+            { 
+                id: 2, 
+                term: "Suceso simple o elemental", 
+                def: "A cada uno de los resultados posibles de un fenómeno aleatorio. Ej: \\(H=\\{\\text{Ser hombre}\\}\\).", 
+                hint: "Es la unidad más básica o individual de un resultado posible." 
+            },
+            { 
+                id: 3, 
+                term: "Espacio muestral (\\(\\Omega\\))", 
+                def: "Conjunto de todos los posibles resultados de un experimento aleatorio. También denominado universo.", 
+                hint: "Contiene absolutamente todas las posibilidades que pueden ocurrir." 
+            },
+            { 
+                id: 4, 
+                term: "Conjunto", 
+                def: "Colección de elementos que comparten una característica común.", 
+                hint: "Es una agrupación de objetos o números definidos por una regla específica." 
+            },
+            { 
+                id: 5, 
+                term: "Subconjunto", 
+                def: "Un conjunto \\(B\\) que contiene únicamente elementos de \\(A\\) que cumplen una restricción específica.", 
+                hint: "Es una 'porción' que vive completamente dentro de un conjunto más grande." 
+            },
+            { 
+                id: 6, 
+                term: "Complemento de un conjunto (\\(\\overline{A}\\))", 
+                def: "Todos los elementos que no pertenecen a \\(A\\) dentro de un conjunto universal \\(U\\). \\(\\overline{A} = \\{ x \\in U \\mid x \\notin A \\}\\).", 
+                hint: "Son todos los elementos que le 'hacen falta' a un conjunto para ser igual al universo." 
+            },
+            { 
+                id: 7, 
+                term: "Unión de conjuntos (\\(A \\cup B\\))", 
+                def: "Conjunto de todos los elementos que pertenecen a \\(A\\), a \\(B\\), o a ambos.", 
+                hint: "Implica juntar todos los elementos de ambos grupos, sin repetir ninguno." 
+            },
+            { 
+                id: 8, 
+                term: "Intersección de conjuntos (\\(A \\cap B\\))", 
+                def: "Conjunto de todos los elementos que pertenecen tanto a \\(A\\) como a \\(B\\).", 
+                hint: "Busca únicamente lo que tienen en común ambos grupos." 
+            },
+            { 
+                id: 9, 
+                term: "Primera Ley de De Morgan", 
+                def: "\\(\\overline{A} \\cap \\overline{B} = \\overline{A \\cup B}\\)", 
+                hint: "Relaciona la intersección de complementos con el complemento de la unión." 
+            },
+            { 
+                id: 10, 
+                term: "Segunda Ley de De Morgan", 
+                def: "\\(\\overline{A} \\cup \\overline{B} = \\overline{A \\cap B}\\)", 
+                hint: "Relaciona la unión de complementos con el complemento de la intersección." 
+            }
+        ];
+
+        // State variables for the current session
+        let selectedTermId = null;
+        let selectedDefId = null;
+        let matchesCompleted = 0;
+        const totalMatches = gameData.length;
+
+        // Elements
+        const termsContainer = document.getElementById('terms-container');
+        const defsContainer = document.getElementById('defs-container');
+        const progressCounter = document.getElementById('progress-counter');
+        
+        // Modal Elements
+        const overlay = document.getElementById('modal-overlay');
+        const confirmModal = document.getElementById('confirm-modal');
+        const feedbackModal = document.getElementById('feedback-modal');
+
+        // STREAMING_CHUNK:Implementing initialization, rendering and shuffling logic...
+        
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // Initialize the game
+        function initGame() {
+            // Render fixed terms (Left Column)
+            gameData.forEach(item => {
+                const termEl = createCardElement(item.id, item.term, 'term');
+                termsContainer.appendChild(termEl);
+            });
+
+            // Clone, shuffle and render definitions (Right Column)
+            const shuffledDefs = shuffleArray([...gameData]);
+            shuffledDefs.forEach(item => {
+                const defEl = createCardElement(item.id, item.def, 'def');
+                defsContainer.appendChild(defEl);
+            });
+
+            // Trigger MathJax to render the LaTeX inside the newly created elements
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([termsContainer, defsContainer]).catch((err) => console.log('MathJax error:', err));
+            }
+        }
+
+        // Helper to create HTML cards
+        function createCardElement(id, content, type) {
+            const div = document.createElement('div');
+            div.className = `item-card bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-slate-700 min-h-[80px] flex items-center`;
+            div.innerHTML = `<span class="w-full text-center sm:text-left">${content}</span>`;
+            div.dataset.id = id;
+            div.dataset.type = type;
+            
+            // Add click listener
+            div.addEventListener('click', () => handleSelection(div, id, type));
+            return div;
+        }
+
+        // STREAMING_CHUNK:Handling user interaction and state selection...
+
+        function handleSelection(element, id, type) {
+            // Ignore if already matched
+            if (element.classList.contains('matched')) return;
+
+            // Handle Term selection (Left)
+            if (type === 'term') {
+                if (selectedTermId === id) {
+                    // Deselect if clicking the same
+                    selectedTermId = null;
+                    element.classList.remove('selected');
+                } else {
+                    // Deselect previous term
+                    document.querySelectorAll('.item-card[data-type="term"]').forEach(el => el.classList.remove('selected'));
+                    selectedTermId = id;
+                    element.classList.add('selected');
+                }
+            } 
+            // Handle Definition selection (Right)
+            else if (type === 'def') {
+                if (selectedDefId === id) {
+                    // Deselect if clicking the same
+                    selectedDefId = null;
+                    element.classList.remove('selected');
+                } else {
+                    // Deselect previous def
+                    document.querySelectorAll('.item-card[data-type="def"]').forEach(el => el.classList.remove('selected'));
+                    selectedDefId = id;
+                    element.classList.add('selected');
+                }
+            }
+
+            // If both are selected, trigger confirmation modal
+            if (selectedTermId !== null && selectedDefId !== null) {
+                showConfirmModal();
+            }
+        }
+
+        // STREAMING_CHUNK:Implementing Modal control logic...
+
+        function showConfirmModal() {
+            overlay.classList.remove('hidden');
+            confirmModal.classList.remove('hidden');
+            confirmModal.classList.replace('scale-95', 'scale-100');
+        }
+
+        function closeConfirmModal() {
+            confirmModal.classList.replace('scale-100', 'scale-95');
+            confirmModal.classList.add('hidden');
+            overlay.classList.add('hidden');
+            
+            // Unselect both without penalty if user cancels
+            resetSelections();
+        }
+
+        function showFeedbackModal(isCorrect, hint = "") {
+            // Hide confirm modal
+            confirmModal.classList.add('hidden');
+            feedbackModal.classList.remove('hidden');
+            feedbackModal.classList.replace('scale-95', 'scale-100');
+
+            const title = document.getElementById('feedback-title');
+            const message = document.getElementById('feedback-message');
+            const iconContainer = document.getElementById('feedback-icon');
+            const btn = document.getElementById('feedback-btn');
+
+            if (isCorrect) {
+                iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-green-100 text-green-600";
+                iconContainer.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`;
+                title.textContent = "¡Correcto!";
+                title.className = "text-2xl font-bold mb-2 text-green-600";
+                message.innerHTML = "Has emparejado el término y la definición correctamente.";
+                btn.className = "w-full py-3 px-4 font-bold rounded-lg transition-colors shadow-md bg-green-500 hover:bg-green-600 text-white";
+            } else {
+                iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-red-100 text-red-600";
+                iconContainer.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+                title.textContent = "Incorrecto";
+                title.className = "text-2xl font-bold mb-2 text-red-600";
+                message.innerHTML = `<span class="block text-sm text-slate-500 uppercase tracking-wider mb-2 font-bold">Pista:</span> <span class="italic bg-yellow-50 p-3 rounded block border-l-4 border-dorado">"${hint}"</span>`;
+                btn.className = "w-full py-3 px-4 font-bold rounded-lg transition-colors shadow-md bg-red-500 hover:bg-red-600 text-white";
+            }
+        }
+
+        function closeFeedbackModal() {
+            feedbackModal.classList.replace('scale-100', 'scale-95');
+            feedbackModal.classList.add('hidden');
+            overlay.classList.add('hidden');
+            
+            if (matchesCompleted === totalMatches) {
+                showVictory();
+            }
+        }
+
+        // STREAMING_CHUNK:Implementing Match verification and game loop...
+
+        function checkMatch() {
+            const termEl = document.querySelector(`.item-card[data-type="term"][data-id="${selectedTermId}"]`);
+            const defEl = document.querySelector(`.item-card[data-type="def"][data-id="${selectedDefId}"]`);
+
+            if (selectedTermId === selectedDefId) {
+                // CORRECT MATCH
+                matchesCompleted++;
+                progressCounter.textContent = matchesCompleted;
+                
+                termEl.classList.remove('selected');
+                defEl.classList.remove('selected');
+                termEl.classList.add('matched');
+                defEl.classList.add('matched');
+                
+                showFeedbackModal(true);
+            } else {
+                // INCORRECT MATCH
+                // Find the hint for the selected TERM
+                const selectedTermData = gameData.find(item => item.id === selectedTermId);
+                
+                termEl.classList.remove('selected');
+                defEl.classList.remove('selected');
+                
+                // Add shake effect to wrong elements
+                termEl.classList.add('shake');
+                defEl.classList.add('shake');
+                
+                setTimeout(() => {
+                    termEl.classList.remove('shake');
+                    defEl.classList.remove('shake');
+                }, 600);
+
+                showFeedbackModal(false, selectedTermData.hint);
+            }
+
+            // Reset selection variables
+            selectedTermId = null;
+            selectedDefId = null;
+        }
+
+        function resetSelections() {
+            document.querySelectorAll('.item-card').forEach(el => el.classList.remove('selected'));
+            selectedTermId = null;
+            selectedDefId = null;
+        }
+
+        function showVictory() {
+            // Re-use feedback modal for victory
+            overlay.classList.remove('hidden');
+            feedbackModal.classList.remove('hidden');
+            feedbackModal.classList.replace('scale-95', 'scale-100');
+
+            const title = document.getElementById('feedback-title');
+            const message = document.getElementById('feedback-message');
+            const iconContainer = document.getElementById('feedback-icon');
+            const btn = document.getElementById('feedback-btn');
+
+            iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-dorado text-white shadow-lg";
+            iconContainer.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+            title.textContent = "¡Felicidades!";
+            title.className = "text-2xl font-bold mb-2 text-dorado";
+            message.innerHTML = "Has completado correctamente todos los conceptos de Probabilidad y Conjuntos.";
+            btn.textContent = "Cerrar";
+            btn.className = "w-full py-3 px-4 font-bold rounded-lg transition-colors shadow-md bg-unamBlue hover:bg-blue-900 text-white";
+            
+            btn.onclick = () => {
+                feedbackModal.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Start game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+
+    </script>
+</body>
+</html>
+```eof
