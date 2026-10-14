@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de la Suerte</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .roulette-container {
+            position: relative;
+            margin: 20px;
+        }
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.1s ease-out;
+        }
+        .pointer {
+            position: absolute;
+            top: 50%;
+            right: -20px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-right: 30px solid #e74c3c;
+            z-index: 10;
+            filter: drop-shadow(-2px 2px 2px rgba(0,0,0,0.3));
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #2ecc71;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #27ae60;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #result {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            min-height: 35px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ruleta de la Suerte</h1>
+    
+    <div class="roulette-container">
+        <canvas id="wheel" width="500" height="500"></canvas>
+        <div class="pointer"></div>
+    </div>
+
+    <div class="controls">
+        <button id="spinBtn" onclick="spin()">¡GIRAR!</button>
+        <div id="result">Presiona el botón para empezar</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+        const spinBtn = document.getElementById("spinBtn");
+        const resultText = document.getElementById("result");
+
+        let items = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+            "Charadas", "Charadas", "Charadas", "Charadas",
+            "Cantar", "Cantar"
+        ];
+
+        // Paleta de colores atractiva
+        const colors = [
+            "#FF5733", "#33FF57", "#3357FF", "#FF33F1", "#F1FF33", 
+            "#33FFF1", "#FFA833", "#A833FF", "#33A8FF", "#FF3357",
+            "#4CAF50", "#FFC107", "#00BCD4", "#E91E63", "#9C27B0", "#FF9800"
+        ];
+
+        let currentAngle = 0;
+        let isSpinning = false;
+        let animationId;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = centerX;
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (items.length === 0) {
+                ctx.font = "bold 30px Arial";
+                ctx.fillStyle = "#333";
+                ctx.textAlign = "center";
+                ctx.fillText("¡No hay más opciones!", centerX, centerY);
+                return;
+            }
+
+            const arc = (2 * Math.PI) / items.length;
+
+            for (let i = 0; i < items.length; i++) {
+                const angle = currentAngle + i * arc;
+                
+                ctx.beginPath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + arc);
+                ctx.lineTo(centerX, centerY);
+                ctx.fill();
+                ctx.save();
+
+                // Dibujar el texto
+                ctx.translate(
+                    centerX + Math.cos(angle + arc / 2) * (radius * 0.7),
+                    centerY + Math.sin(angle + arc / 2) * (radius * 0.7)
+                );
+                ctx.rotate(angle + arc / 2);
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 20px 'Segoe UI', sans-serif";
+                ctx.textAlign = "center";
+                
+                // Sombra para mejor legibilidad
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                
+                ctx.fillText(items[i], 0, 5);
+                ctx.restore();
+            }
+        }
+
+        function spin() {
+            if (isSpinning || items.length === 0) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            resultText.innerText = "Girando...";
+
+            // Valores de giro aleatorios (velocidad y duración)
+            let spinTime = 0;
+            const spinTimeTotal = Math.random() * 2000 + 3000; 
+            let spinVelocity = Math.random() * 0.2 + 0.3;
+
+            function rotateWheel() {
+                spinTime += 20;
+                if (spinTime >= spinTimeTotal) {
+                    stopRotateWheel();
+                    return;
+                }
+                
+                // Desaceleración (Easing out)
+                const progress = spinTime / spinTimeTotal;
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentVelocity = spinVelocity * (1 - easeOut);
+                
+                currentAngle += currentVelocity;
+                drawWheel();
+                animationId = requestAnimationFrame(rotateWheel);
+            }
+
+            rotateWheel();
+        }
+
+        function stopRotateWheel() {
+            cancelAnimationFrame(animationId);
+            
+            // El puntero está en 0 grados (a la derecha). 
+            // Para calcular qué segmento está apuntando, invertimos el ángulo.
+            const arc = (2 * Math.PI) / items.length;
+            const degrees = currentAngle % (2 * Math.PI);
+            
+            // Ajustamos para que coincida con el puntero a la derecha
+            let winningIndex = Math.floor((2 * Math.PI - degrees) / arc) % items.length;
+
+            const winner = items[winningIndex];
+            resultText.innerHTML = `¡Salió: <strong>${winner}</strong>!`;
+
+            // Eliminar el elemento ganador de la lista
+            items.splice(winningIndex, 1);
+            
+            // Reajustar el ángulo actual para mantener la posición visual (opcional)
+            // currentAngle = 0; 
+            
+            // Redibujar la ruleta sin el elemento
+            setTimeout(() => {
+                drawWheel();
+                isSpinning = false;
+                if (items.length > 0) {
+                    spinBtn.disabled = false;
+                } else {
+                    spinBtn.innerText = "FIN";
+                }
+            }, 1000); // Pequeña pausa antes de eliminar visualmente la rebanada
+        }
+
+        // Inicializar la ruleta al cargar la página
+        drawWheel();
+    </script>
+</body>
+</html>
