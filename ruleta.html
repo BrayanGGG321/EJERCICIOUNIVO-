@@ -18,7 +18,7 @@
         }
         h1 {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         .roulette-container {
             position: relative;
@@ -27,23 +27,23 @@
         canvas {
             border-radius: 50%;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transition: transform 0.1s ease-out;
         }
+        /* Flecha indicadora */
         .pointer {
             position: absolute;
             top: 50%;
-            right: -20px;
+            right: -25px;
             transform: translateY(-50%);
             width: 0;
             height: 0;
             border-top: 20px solid transparent;
             border-bottom: 20px solid transparent;
-            border-right: 30px solid #e74c3c;
+            border-right: 35px solid #e74c3c;
             z-index: 10;
             filter: drop-shadow(-2px 2px 2px rgba(0,0,0,0.3));
         }
         .controls {
-            margin-top: 20px;
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -76,6 +76,11 @@
             font-weight: bold;
             color: #2c3e50;
             min-height: 35px;
+            text-align: center;
+        }
+        .winner-text {
+            color: #e74c3c;
+            font-size: 1.8rem;
         }
     </style>
 </head>
@@ -84,12 +89,12 @@
     <h1>Ruleta de la Suerte</h1>
     
     <div class="roulette-container">
-        <canvas id="wheel" width="500" height="500"></canvas>
+        <canvas id="wheel" width="450" height="450"></canvas>
         <div class="pointer"></div>
     </div>
 
     <div class="controls">
-        <button id="spinBtn" onclick="spin()">¡GIRAR!</button>
+        <button id="spinBtn">¡GIRAR!</button>
         <div id="result">Presiona el botón para empezar</div>
     </div>
 
@@ -99,13 +104,14 @@
         const spinBtn = document.getElementById("spinBtn");
         const resultText = document.getElementById("result");
 
+        // Los elementos exactos que pediste
         let items = [
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
             "Charadas", "Charadas", "Charadas", "Charadas",
             "Cantar", "Cantar"
         ];
 
-        // Paleta de colores atractiva
+        // Colores para alternar
         const colors = [
             "#FF5733", "#33FF57", "#3357FF", "#FF33F1", "#F1FF33", 
             "#33FFF1", "#FFA833", "#A833FF", "#33A8FF", "#FF3357",
@@ -114,19 +120,24 @@
 
         let currentAngle = 0;
         let isSpinning = false;
-        let animationId;
+        let spinVelocity = 0;
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = centerX;
 
+        // Función para dibujar la ruleta
         function drawWheel() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             if (items.length === 0) {
-                ctx.font = "bold 30px Arial";
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = "#ecf0f1";
+                ctx.fill();
                 ctx.fillStyle = "#333";
+                ctx.font = "bold 25px Arial";
                 ctx.textAlign = "center";
-                ctx.fillText("¡No hay más opciones!", centerX, centerY);
+                ctx.fillText("¡Juego Terminado!", centerX, centerY);
                 return;
             }
 
@@ -135,100 +146,104 @@
             for (let i = 0; i < items.length; i++) {
                 const angle = currentAngle + i * arc;
                 
+                // Dibujar la rebanada
                 ctx.beginPath();
                 ctx.fillStyle = colors[i % colors.length];
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, angle, angle + arc);
                 ctx.lineTo(centerX, centerY);
                 ctx.fill();
-                ctx.save();
+                
+                // Borde blanco fino para separar las rebanadas
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#fff";
+                ctx.stroke();
 
                 // Dibujar el texto
+                ctx.save();
                 ctx.translate(
-                    centerX + Math.cos(angle + arc / 2) * (radius * 0.7),
-                    centerY + Math.sin(angle + arc / 2) * (radius * 0.7)
+                    centerX + Math.cos(angle + arc / 2) * (radius * 0.65),
+                    centerY + Math.sin(angle + arc / 2) * (radius * 0.65)
                 );
                 ctx.rotate(angle + arc / 2);
                 ctx.fillStyle = "#fff";
-                ctx.font = "bold 20px 'Segoe UI', sans-serif";
+                ctx.font = "bold 18px 'Segoe UI', sans-serif";
                 ctx.textAlign = "center";
                 
-                // Sombra para mejor legibilidad
-                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                // Sombra para que el texto resalte
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
                 ctx.shadowBlur = 4;
                 ctx.shadowOffsetX = 1;
                 ctx.shadowOffsetY = 1;
                 
-                ctx.fillText(items[i], 0, 5);
+                ctx.fillText(items[i], 0, 6);
                 ctx.restore();
             }
         }
 
-        function spin() {
+        // Función de animación (giro)
+        function animate() {
+            currentAngle += spinVelocity;
+            spinVelocity *= 0.985; // Fricción (desaceleración suave)
+            
+            // Cuando la velocidad es casi cero, se detiene
+            if (spinVelocity < 0.002) {
+                spinVelocity = 0;
+                isSpinning = false;
+                determineWinner();
+                return;
+            }
+            
+            drawWheel();
+            requestAnimationFrame(animate);
+        }
+
+        // Iniciar el giro
+        spinBtn.addEventListener("click", () => {
             if (isSpinning || items.length === 0) return;
             
             isSpinning = true;
             spinBtn.disabled = true;
-            resultText.innerText = "Girando...";
-
-            // Valores de giro aleatorios (velocidad y duración)
-            let spinTime = 0;
-            const spinTimeTotal = Math.random() * 2000 + 3000; 
-            let spinVelocity = Math.random() * 0.2 + 0.3;
-
-            function rotateWheel() {
-                spinTime += 20;
-                if (spinTime >= spinTimeTotal) {
-                    stopRotateWheel();
-                    return;
-                }
-                
-                // Desaceleración (Easing out)
-                const progress = spinTime / spinTimeTotal;
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentVelocity = spinVelocity * (1 - easeOut);
-                
-                currentAngle += currentVelocity;
-                drawWheel();
-                animationId = requestAnimationFrame(rotateWheel);
-            }
-
-            rotateWheel();
-        }
-
-        function stopRotateWheel() {
-            cancelAnimationFrame(animationId);
+            resultText.innerHTML = "Girando...";
             
-            // El puntero está en 0 grados (a la derecha). 
-            // Para calcular qué segmento está apuntando, invertimos el ángulo.
+            // Velocidad inicial aleatoria
+            spinVelocity = Math.random() * 0.2 + 0.3; 
+            animate();
+        });
+
+        // Determinar quién ganó y actualizar el juego
+        function determineWinner() {
             const arc = (2 * Math.PI) / items.length;
+            
+            // Normalizar el ángulo actual
             const degrees = currentAngle % (2 * Math.PI);
             
-            // Ajustamos para que coincida con el puntero a la derecha
+            // Calcular el índice ganador según la posición de la flecha (derecha)
             let winningIndex = Math.floor((2 * Math.PI - degrees) / arc) % items.length;
-
             const winner = items[winningIndex];
-            resultText.innerHTML = `¡Salió: <strong>${winner}</strong>!`;
+            
+            resultText.innerHTML = `¡Salió: <span class="winner-text">${winner}</span>!`;
 
-            // Eliminar el elemento ganador de la lista
-            items.splice(winningIndex, 1);
-            
-            // Reajustar el ángulo actual para mantener la posición visual (opcional)
-            // currentAngle = 0; 
-            
-            // Redibujar la ruleta sin el elemento
+            // Pausa de 2 segundos antes de eliminarlo de la ruleta para que vean qué salió
             setTimeout(() => {
+                // Eliminar el elemento de la lista
+                items.splice(winningIndex, 1);
+                
+                // Reiniciar el ángulo visualmente para evitar saltos raros al redibujar
+                currentAngle = 0;
                 drawWheel();
-                isSpinning = false;
+                
                 if (items.length > 0) {
                     spinBtn.disabled = false;
+                    resultText.innerHTML = `Eliminado: ${winner}. ¡Gira de nuevo!`;
                 } else {
                     spinBtn.innerText = "FIN";
+                    resultText.innerHTML = "¡No quedan más opciones!";
                 }
-            }, 1000); // Pequeña pausa antes de eliminar visualmente la rebanada
+            }, 2000);
         }
 
-        // Inicializar la ruleta al cargar la página
+        // Dibujar la ruleta al cargar la página por primera vez
         drawWheel();
     </script>
 </body>
