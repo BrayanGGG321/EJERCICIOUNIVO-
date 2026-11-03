@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Interactivo: Estimación por Intervalos | Universidad de Oriente</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        udoBlue: '#24476B',
+                        udoBlueDark: '#18324C',
+                        udoGold: '#FEB400',
+                        udoGoldLight: '#FFF8E6',
+                        udoBg: '#F4F6F9',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F4F6F9;
+            font-family: 'Inter', sans-serif;
+            color: #1E293B;
+        }
+
+        /* Estilos para fichas arrastrables (Drag & Drop) */
+        .draggable-chip {
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .draggable-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(36, 71, 107, 0.16);
+        }
+        .draggable-chip:active {
+            cursor: grabbing;
+            transform: scale(0.97);
+        }
+        .draggable-chip.selected-chip {
+            outline: 3px solid #FEB400;
+            background-color: #FFF8E6;
+            transform: translateY(-3px);
+        }
+        .draggable-chip.used-chip {
+            opacity: 0.35;
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+
+        /* Casillas de la fórmula matemática (Drop Zones) */
+        .formula-slot {
+            min-width: 112px;
+            min-height: 58px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .formula-slot.drag-over {
+            background-color: #FFF8E6 !important;
+            border-color: #FEB400 !important;
+            transform: scale(1.05);
+        }
+        .formula-slot.slot-correct {
+            background-color: #DCFCE7 !important;
+            border-color: #16A34A !important;
+            color: #15803D !important;
+        }
+        .formula-slot.slot-error {
+            background-color: #FEE2E2 !important;
+            border-color: #DC2626 !important;
+            color: #B91C1C !important;
+            animation: shake 0.35s ease-in-out;
+        }
+
+        /* Símbolo de raíz cuadrada estilizado */
+        .sqrt-wrapper {
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+        }
+        .sqrt-radical {
+            font-size: 2.4rem;
+            line-height: 1;
+            font-weight: 400;
+            color: #24476B;
+            margin-right: -2px;
+            user-select: none;
+        }
+        .sqrt-content {
+            border-top: 3px solid #24476B;
+            padding-top: 6px;
+            padding-left: 6px;
+            padding-right: 4px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Ocultar flechas de inputs numéricos */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ENCABEZADO INSTITUCIONAL -->
+    <header class="bg-udoBlue text-white shadow-lg border-b-4 border-udoGold">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-udoGold text-udoBlue flex items-center justify-center font-extrabold text-2xl shadow-md shrink-0">
+                    <i class="fa-solid fa-chart-Simple"></i>
+                    <span>&mu;</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-bold uppercase tracking-widest text-udoGold bg-udoBlueDark px-2.5 py-0.5 rounded-full">
+                            Universidad de Oriente
+                        </span>
+                        <span class="text-xs text-slate-200 font-medium">Facultad de Ciencias</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight mt-0.5">
+                        Laboratorio Interactivo: Estimación por Intervalos
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-200">
+                        Aplicación de las distribuciones Normal Estándar ($Z$) y $t$ de Student para la media poblacional
+                    </p>
+                </div>
+            </div>
+
+            <!-- Indicador de progreso del estudiante -->
+            <div class="bg-udoBlueDark/90 border border-slate-600/60 rounded-xl px-4 py-2.5 flex items-center gap-3 self-start md:self-auto">
+                <div>
+                    <div class="text-xs text-slate-300 font-medium">Progreso de Práctica</div>
+                    <div class="text-sm font-bold text-white flex items-center gap-2">
+                        <span id="progress-text">0 de 4 ejercicios completados</span>
+                    </div>
+                </div>
+                <div class="flex gap-1.5" id="progress-dots">
+                    <span id="dot-zA" title="Módulo 1 - Parte A (Guiado Z)" class="w-3.5 h-3.5 rounded-full bg-slate-600 border border-slate-400 transition-colors"></span>
+                    <span id="dot-zB" title="Módulo 1 - Parte B (Independiente Z)" class="w-3.5 h-3.5 rounded-full bg-slate-600 border border-slate-400 transition-colors"></span>
+                    <span id="dot-tA" title="Módulo 2 - Parte A (Guiado t)" class="w-3.5 h-3.5 rounded-full bg-slate-600 border border-slate-400 transition-colors"></span>
+                    <span id="dot-tB" title="Módulo 2 - Parte B (Independiente t)" class="w-3.5 h-3.5 rounded-full bg-slate-600 border border-slate-400 transition-colors"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- BARRA DE NAVEGACIÓN POR PESTAÑAS -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-wrap gap-2 py-2.5" role="tablist">
+                <button onclick="switchTab('tab-z')" id="btn-tab-z"
+                    class="tab-btn flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all bg-udoBlue text-white shadow-sm">
+                    <span class="w-6 h-6 rounded-lg bg-udoGold text-udoBlue font-extrabold flex items-center justify-center text-xs">Z</span>
+                    <span>Módulo 1: Distribución Normal ($Z$)</span>
+                </button>
+
+                <button onclick="switchTab('tab-t')" id="btn-tab-t"
+                    class="tab-btn flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    <span class="w-6 h-6 rounded-lg bg-udoBlue/10 text-udoBlue font-extrabold flex items-center justify-center text-xs">t</span>
+                    <span>Módulo 2: Distribución $t$ de Student</span>
+                </button>
+
+                <button onclick="switchTab('tab-excel')" id="btn-tab-excel"
+                    class="tab-btn flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all bg-slate-100 text-slate-700 hover:bg-slate-200 ml-auto">
+                    <i class="fa-solid fa-table text-emerald-600"></i>
+                    <span>Guía Rápida de Fórmulas en Excel</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 flex-grow space-y-8">
+
+        <!-- =================================================================== -->
+        <!-- PESTAÑA 1: MÓDULO 1 - DISTRIBUCIÓN NORMAL ESTÁNDAR (Z)              -->
+        <!-- =================================================================== -->
+        <section id="tab-z" class="space-y-8">
+
+            <!-- Banner conceptual del Módulo 1 -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border-l-8 border-udoBlue flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-udoBlue bg-blue-50 px-3 py-1 rounded-full mb-1.5">
+                        <i class="fa-solid fa-circle-check"></i> Condición clave: Desviación estándar poblacional ($\sigma$) CONOCIDA
+                    </span>
+                    <h2 class="text-lg sm:text-xl font-extrabold text-udoBlue">
+                        Módulo 1: Estimación de la Media mediante la Distribución Normal Estándar ($Z$)
+                    </h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Completa primero el <strong>Ejercicio 1 (Guiado)</strong> arrastrando cada dato a su posición en la fórmula, y luego resuelve el <strong>Ejercicio 2 (Práctica Independiente)</strong> ingresando el resultado final.
+                    </p>
+                </div>
+                <div class="bg-udoGoldLight border border-udoGold/60 rounded-xl px-4 py-3 shrink-0 text-center">
+                    <div class="text-xs font-bold text-slate-600 uppercase">Fórmula General Bilateral</div>
+                    <div class="font-mono text-base sm:text-lg font-bold text-udoBlue mt-0.5">
+                        IC = x̄ &plusmn; Z<sub>&alpha;/2</sub> &middot; (&sigma; / &radic;n)
+                    </div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- MÓDULO 1 - PARTE A: EJERCICIO GUIADO (DRAG & DROP)              -->
+            <!-- --------------------------------------------------------------- -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-udoBlue to-udoBlueDark text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-udoGold text-udoBlue font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">
+                            Parte A &bull; Ejercicio Guiado
+                        </span>
+                        <h3 class="font-bold text-base sm:text-lg">
+                            Construye la fórmula arrastrando los datos del enunciado
+                        </h3>
+                    </div>
+                    <span id="badge-status-zA" class="text-xs font-semibold bg-white/15 px-3 py-1 rounded-full">
+                        Pendiente de resolver
+                    </span>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Enunciado del problema -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 leading-relaxed text-slate-800">
+                        <div class="text-xs font-bold uppercase tracking-wider text-udoBlue mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-lines"></i> Enunciado del Problema 1.1 (Control de Envasado de Café)
+                        </div>
+                        <p class="text-sm sm:text-base">
+                            Una planta envasadora de café controla el peso de sus paquetes. Por registros históricos se sabe que la <strong>desviación estándar poblacional es <span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">&sigma; = 12 g</span></strong>. Se toma una muestra aleatoria de <strong><span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">n = 36 paquetes</span></strong> y se obtiene una <strong>media muestral de <span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">x̄ = 502 g</span></strong>. Para un <strong>nivel de confianza del <span class="bg-slate-200 text-slate-800 font-mono font-bold px-1.5 py-0.5 rounded">95% (0.95)</span></strong>, el <strong>valor crítico es <span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">Z = 1.96</span></strong>.
+                        </p>
+                        <p class="text-xs sm:text-sm text-udoBlue font-semibold mt-2.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            Instrucción: Arrastra cada ficha hacia su casilla en la fórmula (o haz clic en una ficha y luego clic en la casilla). ¡Cuidado con los datos distractores!
+                        </p>
+                    </div>
+
+                    <!-- Bandeja de Fichas de Datos (Draggables) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Fichas de datos disponibles (Arrastra o haz clic):
+                            </span>
+                            <span class="text-xs text-slate-500 italic">
+                                Haz clic sobre una casilla llena si deseas devolver una ficha
+                            </span>
+                        </div>
+
+                        <div id="tray-z" class="flex flex-wrap gap-3 p-4 bg-udoBg rounded-xl border border-dashed border-slate-300 min-h-[76px] items-center">
+                            <!-- Generado dinámicamente por JS -->
+                        </div>
+                    </div>
+
+                    <!-- Área de la Fórmula Matemática con Drop Zones -->
+                    <div class="bg-white border-2 border-udoBlue/20 rounded-2xl p-6 shadow-inner">
+                        <div class="text-xs font-bold uppercase tracking-wider text-center text-slate-400 mb-4">
+                            Estructura de la Fórmula del Intervalo de Confianza Bilateral ($Z$)
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 py-2">
+                            <!-- Etiqueta IC = -->
+                            <div class="font-mono text-2xl sm:text-3xl font-extrabold text-udoBlue mr-1">
+                                IC =
+                            </div>
+
+                            <!-- Casilla 1: Media Muestral (xbar) -->
+                            <div class="flex flex-col items-center">
+                                <div id="slot-z-xbar"
+                                     data-module="z" data-slot="xbar"
+                                     ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 'z', 'xbar')"
+                                     onclick="handleSlotClick('z', 'xbar')"
+                                     class="formula-slot border-2 border-dashed border-udoBlue/50 bg-slate-50 rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                </div>
+                                <span class="text-xs font-semibold text-slate-500 mt-1">Media muestral ($\bar{x}$)</span>
+                            </div>
+
+                            <!-- Símbolo ± -->
+                            <div class="font-mono text-2xl sm:text-3xl font-extrabold text-udoGold px-1">
+                                &plusmn;
+                            </div>
+
+                            <!-- Casilla 2: Valor Crítico Z -->
+                            <div class="flex flex-col items-center">
+                                <div id="slot-z-crit"
+                                     data-module="z" data-slot="crit"
+                                     ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 'z', 'crit')"
+                                     onclick="handleSlotClick('z', 'crit')"
+                                     class="formula-slot border-2 border-dashed border-udoBlue/50 bg-slate-50 rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                </div>
+                                <span class="text-xs font-semibold text-slate-500 mt-1">Valor crítico ($Z_{\alpha/2}$)</span>
+                            </div>
+
+                            <!-- Símbolo multiplicación -->
+                            <div class="font-mono text-2xl font-extrabold text-udoBlue px-1">
+                                &times;
+                            </div>
+
+                            <!-- Fracción: Desviación / Raíz de n -->
+                            <div class="flex flex-col items-center bg-slate-50/70 px-4 py-2 rounded-xl border border-slate-200">
+                                <!-- Numerador: Desviación poblacional sigma -->
+                                <div class="flex flex-col items-center pb-2">
+                                    <span class="text-[11px] font-semibold text-slate-500 mb-1">Desv. poblacional ($\sigma$)</span>
+                                    <div id="slot-z-sd"
+                                         data-module="z" data-slot="sd"
+                                         ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 'z', 'sd')"
+                                         onclick="handleSlotClick('z', 'sd')"
+                                         class="formula-slot border-2 border-dashed border-udoBlue/50 bg-white rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                    </div>
+                                </div>
+
+                                <!-- Línea de fracción -->
+                                <div class="w-full h-0.5 bg-udoBlue my-1"></div>
+
+                                <!-- Denominador: Raíz de n -->
+                                <div class="flex flex-col items-center pt-1">
+                                    <div class="sqrt-wrapper">
+                                        <span class="sqrt-radical">&radic;</span>
+                                        <div class="sqrt-content">
+                                            <div id="slot-z-n"
+                                                 data-module="z" data-slot="n"
+                                                 ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 'z', 'n')"
+                                                 onclick="handleSlotClick('z', 'n')"
+                                                 class="formula-slot border-2 border-dashed border-udoBlue/50 bg-white rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-500 mt-1">Tamaño muestra ($n$)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción Parte A -->
+                        <div class="flex flex-wrap items-center justify-center gap-3 mt-6 pt-4 border-t border-slate-100">
+                            <button onclick="verifyGuided('z')"
+                                class="bg-udoBlue hover:bg-udoBlueDark text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-calculator text-udoGold"></i>
+                                <span>Verificar Fórmula y Calcular</span>
+                            </button>
+                            <button onclick="resetGuided('z')"
+                                class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Reiniciar Casillas</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Retroalimentación y Cálculo Automático Paso a Paso (Módulo 1 - Parte A) -->
+                    <div id="feedback-zA" class="hidden rounded-xl p-5 border"></div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- MÓDULO 1 - PARTE B: EJERCICIO INDEPENDIENTE (SOLO ENUNCIADO)    -->
+            <!-- --------------------------------------------------------------- -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-800 to-udoBlue text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-udoGold text-udoBlue font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">
+                            Parte B &bull; Práctica Independiente
+                        </span>
+                        <h3 class="font-bold text-base sm:text-lg">
+                            Resuelve el enunciado e ingresa el resultado final
+                        </h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="generateRandomVariant('z')"
+                            class="text-xs bg-white/15 hover:bg-white/25 text-white font-semibold px-3 py-1 rounded-lg transition-colors flex items-center gap-1.5"
+                            title="Generar otros valores para practicar más">
+                            <i class="fa-solid fa-dice"></i>
+                            <span>Cambiar datos</span>
+                        </button>
+                        <span id="badge-status-zB" class="text-xs font-semibold bg-white/15 px-3 py-1 rounded-full">
+                            Pendiente de resolver
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Enunciado del problema independiente -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 leading-relaxed text-slate-800">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-udoBlue flex items-center gap-1.5">
+                                <i class="fa-solid fa-lightbulb"></i> Enunciado del Problema 1.2 (Vida Útil de Bombillas LED)
+                            </span>
+                            <button onclick="toggleHint('hint-zB')" class="text-xs font-bold text-udoBlue hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-circle-question"></i> Mostrar/Ocultar recordatorio de fórmula
+                            </button>
+                        </div>
+
+                        <p id="statement-zB" class="text-sm sm:text-base">
+                            <!-- Rellenado por JS -->
+                        </p>
+
+                        <!-- Pista opcional desplegable -->
+                        <div id="hint-zB" class="hidden mt-3 pt-3 border-t border-slate-200 text-xs sm:text-sm text-slate-700 bg-udoGoldLight/70 p-3.5 rounded-lg">
+                            <strong>Recordatorio:</strong> Primero calcula el error estándar $\sigma / \sqrt{n}$, luego multiplícalo por $Z$ para obtener el Margen de Error ($E = Z \cdot \frac{\sigma}{\sqrt{n}}$). Finalmente calcula $LI = \bar{x} - E$ y $LS = \bar{x} + E$. En Excel puedes hallar $Z$ con <code class="font-mono bg-white px-1.5 py-0.5 rounded border">=INV.NORM.ESTAND(1-0.05/2)</code>.
+                        </div>
+                    </div>
+
+                    <!-- Campos de entrada del estudiante -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label for="input-z-e" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                1. Margen de Error ($E$)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-z-e" placeholder="Ej. 58.80"
+                                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-mono text-base focus:outline-none focus:ring-2 focus:ring-udoBlue">
+                                <span id="icon-z-e" class="absolute right-3 top-3 text-sm"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 block">$E = Z_{\alpha/2} \cdot (\sigma / \sqrt{n})$</span>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label for="input-z-li" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                2. Límite Inferior ($LI$)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-z-li" placeholder="Ej. 1141.20"
+                                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-mono text-base focus:outline-none focus:ring-2 focus:ring-udoBlue">
+                                <span id="icon-z-li" class="absolute right-3 top-3 text-sm"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 block">$LI = \bar{x} - E$</span>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label for="input-z-ls" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                3. Límite Superior ($LS$)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-z-ls" placeholder="Ej. 1258.80"
+                                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-mono text-base focus:outline-none focus:ring-2 focus:ring-udoBlue">
+                                <span id="icon-z-ls" class="absolute right-3 top-3 text-sm"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 block">$LS = \bar{x} + E$</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de validación Parte B -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="verifyIndependent('z')"
+                            class="bg-udoBlue hover:bg-udoBlueDark text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-check-double text-udoGold"></i>
+                            <span>Comprobar Respuesta</span>
+                        </button>
+                        <button onclick="showIndependentSolution('z')"
+                            class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-eye"></i>
+                            <span>Ver solución paso a paso</span>
+                        </button>
+                    </div>
+
+                    <!-- Retroalimentación Parte B -->
+                    <div id="feedback-zB" class="hidden rounded-xl p-5 border"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- PESTAÑA 2: MÓDULO 2 - DISTRIBUCIÓN t DE STUDENT                     -->
+        <!-- =================================================================== -->
+        <section id="tab-t" class="hidden space-y-8">
+
+            <!-- Banner conceptual del Módulo 2 -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border-l-8 border-udoGold flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-900 bg-amber-100 px-3 py-1 rounded-full mb-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Condición clave: Desviación poblacional ($\sigma$) DESCONOCIDA &bull; Se usa $s$
+                    </span>
+                    <h2 class="text-lg sm:text-xl font-extrabold text-udoBlue">
+                        Módulo 2: Estimación de la Media mediante la Distribución $t$ de Student
+                    </h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Cuando desconocemos $\sigma$, utilizamos la desviación estándar muestral ($s$) y el valor crítico $t_{\alpha/2,\,n-1}$ con $gl = n - 1$ grados de libertad.
+                    </p>
+                </div>
+                <div class="bg-udoGoldLight border border-udoGold/60 rounded-xl px-4 py-3 shrink-0 text-center">
+                    <div class="text-xs font-bold text-slate-600 uppercase">Fórmula General Bilateral ($t$)</div>
+                    <div class="font-mono text-base sm:text-lg font-bold text-udoBlue mt-0.5">
+                        IC = x̄ &plusmn; t<sub>&alpha;/2, n-1</sub> &middot; (s / &radic;n)
+                    </div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- MÓDULO 2 - PARTE A: EJERCICIO GUIADO (DRAG & DROP t DE STUDENT) -->
+            <!-- --------------------------------------------------------------- -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-udoBlue to-udoBlueDark text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-udoGold text-udoBlue font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">
+                            Parte A &bull; Ejercicio Guiado ($t$)
+                        </span>
+                        <h3 class="font-bold text-base sm:text-lg">
+                            Construye la fórmula arrastrando los datos muestrales
+                        </h3>
+                    </div>
+                    <span id="badge-status-tA" class="text-xs font-semibold bg-white/15 px-3 py-1 rounded-full">
+                        Pendiente de resolver
+                    </span>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Enunciado del problema -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 leading-relaxed text-slate-800">
+                        <div class="text-xs font-bold uppercase tracking-wider text-udoBlue mb-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-lines"></i> Enunciado del Problema 2.1 (Tiempo de Atención Bancaria)
+                        </div>
+                        <p class="text-sm sm:text-base">
+                            En una sucursal bancaria se evalúa el tiempo de atención a los clientes. Como <strong>se desconoce la desviación estándar poblacional ($\sigma$)</strong>, se toma una muestra aleatoria de <strong><span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">n = 16 clientes</span></strong>, obteniendo un <strong>tiempo promedio de <span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">x̄ = 14.5 min</span></strong> y una <strong>desviación estándar muestral de <span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">s = 3.2 min</span></strong>. Con un 95% de confianza ($\alpha = 0.05$) y <strong><span class="bg-slate-200 text-slate-800 font-mono font-bold px-1.5 py-0.5 rounded">gl = 15</span></strong> grados de libertad ($n - 1$), el <strong>valor crítico es <span class="bg-amber-100 text-amber-900 font-mono font-bold px-1.5 py-0.5 rounded">t = 2.131</span></strong>.
+                        </p>
+                        <p class="text-xs sm:text-sm text-udoBlue font-semibold mt-2.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            Instrucción: Arrastra cada valor a la fórmula. Presta especial atención a no confundir el tamaño de la muestra ($n$) con los grados de libertad ($gl$).
+                        </p>
+                    </div>
+
+                    <!-- Bandeja de Fichas de Datos (Draggables) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Fichas de datos disponibles (Arrastra o haz clic):
+                            </span>
+                            <span class="text-xs text-slate-500 italic">
+                                Haz clic sobre una casilla llena si deseas devolver una ficha
+                            </span>
+                        </div>
+
+                        <div id="tray-t" class="flex flex-wrap gap-3 p-4 bg-udoBg rounded-xl border border-dashed border-slate-300 min-h-[76px] items-center">
+                            <!-- Generado dinámicamente por JS -->
+                        </div>
+                    </div>
+
+                    <!-- Área de la Fórmula Matemática con Drop Zones -->
+                    <div class="bg-white border-2 border-udoBlue/20 rounded-2xl p-6 shadow-inner">
+                        <div class="text-xs font-bold uppercase tracking-wider text-center text-slate-400 mb-4">
+                            Estructura de la Fórmula del Intervalo de Confianza Bilateral ($t$ de Student)
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 py-2">
+                            <!-- Etiqueta IC = -->
+                            <div class="font-mono text-2xl sm:text-3xl font-extrabold text-udoBlue mr-1">
+                                IC =
+                            </div>
+
+                            <!-- Casilla 1: Media Muestral (xbar) -->
+                            <div class="flex flex-col items-center">
+                                <div id="slot-t-xbar"
+                                     data-module="t" data-slot="xbar"
+                                     ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 't', 'xbar')"
+                                     onclick="handleSlotClick('t', 'xbar')"
+                                     class="formula-slot border-2 border-dashed border-udoBlue/50 bg-slate-50 rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                </div>
+                                <span class="text-xs font-semibold text-slate-500 mt-1">Media muestral ($\bar{x}$)</span>
+                            </div>
+
+                            <!-- Símbolo ± -->
+                            <div class="font-mono text-2xl sm:text-3xl font-extrabold text-udoGold px-1">
+                                &plusmn;
+                            </div>
+
+                            <!-- Casilla 2: Valor Crítico t -->
+                            <div class="flex flex-col items-center">
+                                <div id="slot-t-crit"
+                                     data-module="t" data-slot="crit"
+                                     ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 't', 'crit')"
+                                     onclick="handleSlotClick('t', 'crit')"
+                                     class="formula-slot border-2 border-dashed border-udoBlue/50 bg-slate-50 rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                </div>
+                                <span class="text-xs font-semibold text-slate-500 mt-1">Valor crítico ($t_{\alpha/2,\,n-1}$)</span>
+                            </div>
+
+                            <!-- Símbolo multiplicación -->
+                            <div class="font-mono text-2xl font-extrabold text-udoBlue px-1">
+                                &times;
+                            </div>
+
+                            <!-- Fracción: Desviación muestral s / Raíz de n -->
+                            <div class="flex flex-col items-center bg-slate-50/70 px-4 py-2 rounded-xl border border-slate-200">
+                                <!-- Numerador: Desviación muestral s -->
+                                <div class="flex flex-col items-center pb-2">
+                                    <span class="text-[11px] font-semibold text-slate-500 mb-1">Desv. muestral ($s$)</span>
+                                    <div id="slot-t-sd"
+                                         data-module="t" data-slot="sd"
+                                         ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 't', 'sd')"
+                                         onclick="handleSlotClick('t', 'sd')"
+                                         class="formula-slot border-2 border-dashed border-udoBlue/50 bg-white rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                    </div>
+                                </div>
+
+                                <!-- Línea de fracción -->
+                                <div class="w-full h-0.5 bg-udoBlue my-1"></div>
+
+                                <!-- Denominador: Raíz de n -->
+                                <div class="flex flex-col items-center pt-1">
+                                    <div class="sqrt-wrapper">
+                                        <span class="sqrt-radical">&radic;</span>
+                                        <div class="sqrt-content">
+                                            <div id="slot-t-n"
+                                                 data-module="t" data-slot="n"
+                                                 ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="handleDrop(event, 't', 'n')"
+                                                 onclick="handleSlotClick('t', 'n')"
+                                                 class="formula-slot border-2 border-dashed border-udoBlue/50 bg-white rounded-xl px-3 py-2 flex flex-col items-center justify-center text-center">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-slate-500 mt-1">Tamaño muestra ($n$)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción Parte A -->
+                        <div class="flex flex-wrap items-center justify-center gap-3 mt-6 pt-4 border-t border-slate-100">
+                            <button onclick="verifyGuided('t')"
+                                class="bg-udoBlue hover:bg-udoBlueDark text-white font-bold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-calculator text-udoGold"></i>
+                                <span>Verificar Fórmula y Calcular</span>
+                            </button>
+                            <button onclick="resetGuided('t')"
+                                class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Reiniciar Casillas</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Retroalimentación y Cálculo Automático Paso a Paso (Módulo 2 - Parte A) -->
+                    <div id="feedback-tA" class="hidden rounded-xl p-5 border"></div>
+                </div>
+            </div>
+
+            <!-- --------------------------------------------------------------- -->
+            <!-- MÓDULO 2 - PARTE B: EJERCICIO INDEPENDIENTE (t DE STUDENT)      -->
+            <!-- --------------------------------------------------------------- -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-800 to-udoBlue text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-udoGold text-udoBlue font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">
+                            Parte B &bull; Práctica Independiente ($t$)
+                        </span>
+                        <h3 class="font-bold text-base sm:text-lg">
+                            Resuelve el enunciado e ingresa el resultado final
+                        </h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="generateRandomVariant('t')"
+                            class="text-xs bg-white/15 hover:bg-white/25 text-white font-semibold px-3 py-1 rounded-lg transition-colors flex items-center gap-1.5"
+                            title="Generar otros valores para practicar más">
+                            <i class="fa-solid fa-dice"></i>
+                            <span>Cambiar datos</span>
+                        </button>
+                        <span id="badge-status-tB" class="text-xs font-semibold bg-white/15 px-3 py-1 rounded-full">
+                            Pendiente de resolver
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Enunciado del problema independiente -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 leading-relaxed text-slate-800">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-udoBlue flex items-center gap-1.5">
+                                <i class="fa-solid fa-flask"></i> Enunciado del Problema 2.2 (Resistencia de Envases Plásticos)
+                            </span>
+                            <button onclick="toggleHint('hint-tB')" class="text-xs font-bold text-udoBlue hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-circle-question"></i> Mostrar/Ocultar recordatorio de fórmula
+                            </button>
+                        </div>
+
+                        <p id="statement-tB" class="text-sm sm:text-base">
+                            <!-- Rellenado por JS -->
+                        </p>
+
+                        <!-- Pista opcional desplegable -->
+                        <div id="hint-tB" class="hidden mt-3 pt-3 border-t border-slate-200 text-xs sm:text-sm text-slate-700 bg-udoGoldLight/70 p-3.5 rounded-lg">
+                            <strong>Recordatorio:</strong> Calcula el error estándar $s / \sqrt{n}$, multiplícalo por el valor crítico $t$ para obtener el Margen de Error ($E = t_{\alpha/2,\,n-1} \cdot \frac{s}{\sqrt{n}}$) y luego obtén $LI = \bar{x} - E$ y $LS = \bar{x} + E$. En Excel el valor crítico bilateral se obtiene con <code class="font-mono bg-white px-1.5 py-0.5 rounded border">=INV.T.2C(0.05; n-1)</code>.
+                        </div>
+                    </div>
+
+                    <!-- Campos de entrada del estudiante -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label for="input-t-e" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                1. Margen de Error ($E$)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-t-e" placeholder="Ej. 2.06"
+                                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-mono text-base focus:outline-none focus:ring-2 focus:ring-udoBlue">
+                                <span id="icon-t-e" class="absolute right-3 top-3 text-sm"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 block">$E = t_{\alpha/2,\,n-1} \cdot (s / \sqrt{n})$</span>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label for="input-t-li" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                2. Límite Inferior ($LI$)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-t-li" placeholder="Ej. 82.94"
+                                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-mono text-base focus:outline-none focus:ring-2 focus:ring-udoBlue">
+                                <span id="icon-t-li" class="absolute right-3 top-3 text-sm"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 block">$LI = \bar{x} - E$</span>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label for="input-t-ls" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                3. Límite Superior ($LS$)
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-t-ls" placeholder="Ej. 87.06"
+                                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-mono text-base focus:outline-none focus:ring-2 focus:ring-udoBlue">
+                                <span id="icon-t-ls" class="absolute right-3 top-3 text-sm"></span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 block">$LS = \bar{x} + E$</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de validación Parte B -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="verifyIndependent('t')"
+                            class="bg-udoBlue hover:bg-udoBlueDark text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-check-double text-udoGold"></i>
+                            <span>Comprobar Respuesta</span>
+                        </button>
+                        <button onclick="showIndependentSolution('t')"
+                            class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-eye"></i>
+                            <span>Ver solución paso a paso</span>
+                        </button>
+                    </div>
+
+                    <!-- Retroalimentación Parte B -->
+                    <div id="feedback-tB" class="hidden rounded-xl p-5 border"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- PESTAÑA 3: GUÍA RÁPIDA DE FÓRMULAS EN EXCEL                         -->
+        <!-- =================================================================== -->
+        <section id="tab-excel" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-md border border-slate-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
+                            Referencia de Laboratorio &bull; Microsoft Excel
+                        </span>
+                        <h2 class="text-xl font-extrabold text-udoBlue mt-1">
+                            Funciones de Excel para Estimación por Intervalos
+                        </h2>
+                        <p class="text-sm text-slate-600">
+                            Haz clic en cualquier fórmula para copiarla al portapapeles y usarla en tu hoja de cálculo.
+                        </p>
+                    </div>
+                    <div id="copy-toast" class="hidden bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i>
+                        <span>¡Fórmula copiada!</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <!-- Estadísticos descriptivos -->
+                    <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3">
+                        <h3 class="font-bold text-udoBlue flex items-center gap-2">
+                            <i class="fa-solid fa-list-ol text-udoGold"></i>
+                            <span>1. Estadísticos de la Muestra (Datos en A2:A21)</span>
+                        </h3>
+                        <div class="space-y-2.5 text-sm">
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <span>Tamaño de la muestra ($n$):</span>
+                                <button onclick="copyFormula('=CONTAR(A2:A21)')" class="font-mono text-xs bg-slate-100 hover:bg-udoGoldLight text-udoBlue font-bold px-2.5 py-1.5 rounded border border-slate-300 flex items-center gap-1.5">
+                                    <span>=CONTAR(A2:A21)</span>
+                                    <i class="fa-regular fa-copy text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <span>Media muestral ($\bar{x}$):</span>
+                                <button onclick="copyFormula('=PROMEDIO(A2:A21)')" class="font-mono text-xs bg-slate-100 hover:bg-udoGoldLight text-udoBlue font-bold px-2.5 py-1.5 rounded border border-slate-300 flex items-center gap-1.5">
+                                    <span>=PROMEDIO(A2:A21)</span>
+                                    <i class="fa-regular fa-copy text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <span>Desviación estándar muestral ($s$):</span>
+                                <button onclick="copyFormula('=DESVEST.M(A2:A21)')" class="font-mono text-xs bg-slate-100 hover:bg-udoGoldLight text-udoBlue font-bold px-2.5 py-1.5 rounded border border-slate-300 flex items-center gap-1.5">
+                                    <span>=DESVEST.M(A2:A21)</span>
+                                    <i class="fa-regular fa-copy text-slate-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Valores críticos Z y t -->
+                    <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3">
+                        <h3 class="font-bold text-udoBlue flex items-center gap-2">
+                            <i class="fa-solid fa-bell text-udoGold"></i>
+                            <span>2. Cálculo del Valor Crítico ($Z$ y $t$ de Student)</span>
+                        </h3>
+                        <div class="space-y-2.5 text-sm">
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <span>$Z$ Bilateral ($1-\alpha/2$):</span>
+                                <button onclick="copyFormula('=INV.NORM.ESTAND(1-0.05/2)')" class="font-mono text-xs bg-slate-100 hover:bg-udoGoldLight text-udoBlue font-bold px-2.5 py-1.5 rounded border border-slate-300 flex items-center gap-1.5">
+                                    <span>=INV.NORM.ESTAND(1-alfa/2)</span>
+                                    <i class="fa-regular fa-copy text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <span>$t$ Bilateral ($2$ colas):</span>
+                                <button onclick="copyFormula('=INV.T.2C(0.05; 15)')" class="font-mono text-xs bg-slate-100 hover:bg-udoGoldLight text-udoBlue font-bold px-2.5 py-1.5 rounded border border-slate-300 flex items-center gap-1.5">
+                                    <span>=INV.T.2C(alfa; gl)</span>
+                                    <i class="fa-regular fa-copy text-slate-400"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <span>$t$ Unilateral Superior:</span>
+                                <button onclick="copyFormula('=INV.T(1-0.05; 15)')" class="font-mono text-xs bg-slate-100 hover:bg-udoGoldLight text-udoBlue font-bold px-2.5 py-1.5 rounded border border-slate-300 flex items-center gap-1.5">
+                                    <span>=INV.T(1-alfa; gl)</span>
+                                    <i class="fa-regular fa-copy text-slate-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <div>
+                <strong>Universidad de Oriente (UDO)</strong> &bull; Facultad de Ciencias &bull; Cátedra de Estadística
+            </div>
+            <div>
+                Material didáctico interactivo: Estimación por intervalos de la media poblacional
+            </div>
+        </div>
+    </footer>
+
+    <!-- LÓGICA INTERACTIVA EN JAVASCRIPT -->
+    <script>
+        // =====================================================================
+        // CONFIGURACIÓN DE DATOS DE LOS MÓDULOS (Z y t de Student)
+        // =====================================================================
+        const MODULES = {
+            z: {
+                name: 'Distribución Normal Estándar (Z)',
+                critSymbol: 'Z_{\\alpha/2}',
+                sdSymbol: '\\sigma',
+                unit: 'g',
+                variableText: 'el peso promedio poblacional de los paquetes de café',
+                excelCritFormula: '=INV.NORM.ESTAND(1 - 0.05/2)',
+                // Fichas para Parte A (Guiado)
+                chips: [
+                    { id: 'z_xbar', label: 'x̄ = 502', value: 502, role: 'xbar', desc: 'Media muestral' },
+                    { id: 'z_crit', label: 'Z = 1.96', value: 1.96, role: 'crit', desc: 'Valor crítico Z' },
+                    { id: 'z_sd',   label: 'σ = 12',   value: 12,   role: 'sd',   desc: 'Desv. poblacional' },
+                    { id: 'z_n',    label: 'n = 36',   value: 36,   role: 'n',    desc: 'Tamaño muestra' },
+                    { id: 'z_dist1', label: '1 - α = 0.95', value: 0.95, role: 'distractor_conf', desc: 'Nivel confianza' },
+                    { id: 'z_dist2', label: 'α = 0.05', value: 0.05, role: 'distractor_alpha', desc: 'Significancia' }
+                ],
+                // Estado de las casillas en Parte A
+                slots: { xbar: null, crit: null, sd: null, n: null },
+                // Variantes de problemas para Parte B (Independiente)
+                independentVariants: [
+                    {
+                        xbar: 1200, sd: 150, n: 25, crit: 1.96, conf: '95%', unit: 'horas',
+                        context: 'Un fabricante de bombillas LED sabe que la vida útil tiene una <strong>desviación estándar poblacional conocida de <span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">&sigma; = 150 horas</span></strong>. Al evaluar una muestra aleatoria de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">n = 25 bombillas</span></strong>, se obtiene una vida útil media de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">x̄ = 1200 horas</span></strong>. Construye un intervalo de confianza bilateral del <strong>95%</strong> (usa <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">Z = 1.96</span></strong>) e ingresa los resultados finales redondeados a 2 decimales.'
+                    },
+                    {
+                        xbar: 250, sd: 16, n: 64, crit: 1.96, conf: '95%', unit: 'ml',
+                        context: 'Una máquina embotelladora de refrescos opera con una <strong>desviación estándar poblacional conocida de <span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">&sigma; = 16 ml</span></strong>. Se selecciona una muestra de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">n = 64 botellas</span></strong>, registrando un volumen promedio de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">x̄ = 250 ml</span></strong>. Construye un intervalo de confianza bilateral del <strong>95%</strong> (usa <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">Z = 1.96</span></strong>) e ingresa los resultados finales.'
+                    },
+                    {
+                        xbar: 840, sd: 45, n: 81, crit: 2.576, conf: '99%', unit: 'kg',
+                        context: 'En una prueba de resistencia de cables de acero se sabe que la <strong>desviación estándar poblacional es <span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">&sigma; = 45 kg</span></strong>. En una muestra de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">n = 81 cables</span></strong> se obtuvo una tensión media de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">x̄ = 840 kg</span></strong>. Calcula el intervalo de confianza del <strong>99%</strong> (usa <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">Z = 2.576</span></strong>).'
+                    }
+                ],
+                currentVariantIndex: 0
+            },
+            t: {
+                name: 'Distribución t de Student (t)',
+                critSymbol: 't_{\\alpha/2,\\,n-1}',
+                sdSymbol: 's',
+                unit: 'min',
+                variableText: 'el tiempo medio poblacional de atención a los clientes',
+                excelCritFormula: '=INV.T.2C(0.05; 15)',
+                // Fichas para Parte A (Guiado)
+                chips: [
+                    { id: 't_xbar', label: 'x̄ = 14.5',  value: 14.5,  role: 'xbar', desc: 'Media muestral' },
+                    { id: 't_crit', label: 't = 2.131', value: 2.131, role: 'crit', desc: 'Valor crítico t' },
+                    { id: 't_sd',   label: 's = 3.2',   value: 3.2,   role: 'sd',   desc: 'Desv. muestral' },
+                    { id: 't_n',    label: 'n = 16',    value: 16,    role: 'n',    desc: 'Tamaño muestra' },
+                    { id: 't_dist1', label: 'gl = 15',  value: 15,    role: 'distractor_gl', desc: 'Grados libertad' },
+                    { id: 't_dist2', label: 'α = 0.05', value: 0.05,  role: 'distractor_alpha', desc: 'Significancia' }
+                ],
+                slots: { xbar: null, crit: null, sd: null, n: null },
+                // Variantes de problemas para Parte B (Independiente)
+                independentVariants: [
+                    {
+                        xbar: 85.0, sd: 5.0, n: 25, gl: 24, crit: 2.064, conf: '95%', unit: 'psi',
+                        context: 'Un laboratorio de control de calidad mide la resistencia a la compresión de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">n = 25 envases plásticos</span></strong>. Los resultados arrojan una media muestral de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">x̄ = 85.0 psi</span></strong> y una <strong>desviación estándar muestral de <span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">s = 5.0 psi</span></strong> (se desconoce $\\sigma$). Utilizando un nivel de confianza del <strong>95%</strong> (con $gl = 24$, el valor crítico es <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">t = 2.064</span></strong>), calcula y escribe el margen de error y los límites del intervalo de confianza.'
+                    },
+                    {
+                        xbar: 42.0, sd: 6.0, n: 9, gl: 8, crit: 2.306, conf: '95%', unit: 'mg',
+                        context: 'Un análisis farmacéutico evalúa el contenido de principio activo en una muestra de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">n = 9 tabletas</span></strong>. Se obtiene un promedio muestral de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">x̄ = 42.0 mg</span></strong> y una <strong>desviación estándar muestral de <span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">s = 6.0 mg</span></strong> (se desconoce $\\sigma$). Con un <strong>95%</strong> de confianza ($gl = 8$, usa <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">t = 2.306</span></strong>), ingresa el margen de error y los límites del intervalo.'
+                    },
+                    {
+                        xbar: 18.4, sd: 2.4, n: 36, gl: 35, crit: 2.030, conf: '95%', unit: 'min',
+                        context: 'Se registra el tiempo de entrega de pedidos en una muestra de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">n = 36 envíos</span></strong>, hallando una media muestral de <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">x̄ = 18.4 min</span></strong> y una <strong>desviación estándar muestral de <span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">s = 2.4 min</span></strong>. Para un <strong>95%</strong> de confianza ($gl = 35$, usa <strong><span class="font-mono bg-amber-100 px-1.5 py-0.5 rounded">t = 2.030</span></strong>), calcula los componentes del intervalo.'
+                    }
+                ],
+                currentVariantIndex: 0
+            }
+        };
+
+        // Estado de selección para soporte táctil / clic
+        let selectedChip = { mod: null, chipId: null };
+
+        // Registro de ejercicios completados
+        const completedStatus = {
+            zA: false,
+            zB: false,
+            tA: false,
+            tB: false
+        };
+
+        // =====================================================================
+        // CAMBIO DE PESTAÑAS
+        // =====================================================================
+        function switchTab(tabId) {
+            ['tab-z', 'tab-t', 'tab-excel'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+
+            const buttons = {
+                'tab-z': document.getElementById('btn-tab-z'),
+                'tab-t': document.getElementById('btn-tab-t'),
+                'tab-excel': document.getElementById('btn-tab-excel')
+            };
+
+            Object.keys(buttons).forEach(key => {
+                if (key === tabId) {
+                    buttons[key].className = 'tab-btn flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all bg-udoBlue text-white shadow-sm ' + (key === 'tab-excel' ? 'ml-auto' : '');
+                } else {
+                    buttons[key].className = 'tab-btn flex items-center gap-2.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all bg-slate-100 text-slate-700 hover:bg-slate-200 ' + (key === 'tab-excel' ? 'ml-auto' : '');
+                }
+            });
+        }
+
+        // =====================================================================
+        // RENDERIZADO DE FICHAS Y CASILLAS (PARTE A: GUIADO)
+        // =====================================================================
+        function renderGuidedModule(mod) {
+            const tray = document.getElementById(`tray-${mod}`);
+            const modData = MODULES[mod];
+            tray.innerHTML = '';
+
+            // Verificar qué fichas ya están colocadas en alguna casilla
+            const usedChipIds = Object.values(modData.slots).filter(Boolean);
+
+            modData.chips.forEach(chip => {
+                const isUsed = usedChipIds.includes(chip.id);
+                const isSelected = selectedChip.mod === mod && selectedChip.chipId === chip.id;
+
+                const chipEl = document.createElement('div');
+                chipEl.id = `chip-${chip.id}`;
+                chipEl.draggable = !isUsed;
+                chipEl.className = `draggable-chip bg-white border-2 border-udoBlue/30 rounded-xl px-3.5 py-2 shadow-sm flex flex-col items-center min-w-[95px] ${isUsed ? 'used-chip' : ''} ${isSelected ? 'selected-chip' : ''}`;
+
+                chipEl.innerHTML = `
+                    <span class="font-mono font-extrabold text-sm sm:text-base text-udoBlue">${chip.label}</span>
+                    <span class="text-[11px] text-slate-500 font-medium">${chip.desc}</span>
+                `;
+
+                if (!isUsed) {
+                    chipEl.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', JSON.stringify({ mod, chipId: chip.id }));
+                        selectedChip = { mod, chipId: chip.id };
+                    });
+
+                    chipEl.addEventListener('click', () => {
+                        if (selectedChip.mod === mod && selectedChip.chipId === chip.id) {
+                            selectedChip = { mod: null, chipId: null };
+                        } else {
+                            selectedChip = { mod, chipId: chip.id };
+                        }
+                        renderGuidedModule(mod);
+                    });
+                }
+
+                tray.appendChild(chipEl);
+            });
+
+            // Renderizar cada casilla (slot) de la fórmula
+            const slotPlaceholders = {
+                xbar: mod === 'z' ? 'x̄' : 'x̄',
+                crit: mod === 'z' ? 'Z' : 't',
+                sd:   mod === 'z' ? 'σ' : 's',
+                n:    'n'
+            };
+
+            Object.keys(modData.slots).forEach(slotKey => {
+                const slotEl = document.getElementById(`slot-${mod}-${slotKey}`);
+                const placedChipId = modData.slots[slotKey];
+
+                // Limpiar clases de validación previas al editar
+                slotEl.classList.remove('slot-correct', 'slot-error');
+
+                if (placedChipId) {
+                    const chipObj = modData.chips.find(c => c.id === placedChipId);
+                    slotEl.innerHTML = `
+                        <span class="font-mono font-extrabold text-base text-udoBlue">${chipObj.value}</span>
+                        <span class="text-[10px] font-semibold text-slate-500">${chipObj.label} &times;</span>
+                    `;
+                    slotEl.classList.remove('border-dashed');
+                    slotEl.classList.add('border-solid', 'border-udoBlue', 'bg-blue-50/50');
+                } else {
+                    slotEl.innerHTML = `
+                        <span class="font-mono font-bold text-sm text-slate-400">[ ${slotPlaceholders[slotKey]} ]</span>
+                        <span class="text-[10px] text-slate-400">Soltar aquí</span>
+                    `;
+                    slotEl.classList.add('border-dashed');
+                    slotEl.classList.remove('border-solid', 'border-udoBlue', 'bg-blue-50/50');
+                }
+            });
+        }
+
+        // Eventos Drag & Drop
+        function allowDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function leaveDrop(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, targetMod, slotKey) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            try {
+                const raw = e.dataTransfer.getData('text/plain');
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (data.mod !== targetMod) return;
+
+                placeChipInSlot(targetMod, slotKey, data.chipId);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function handleSlotClick(mod, slotKey) {
+            // Si hay una ficha seleccionada, colocarla en este slot
+            if (selectedChip.mod === mod && selectedChip.chipId) {
+                placeChipInSlot(mod, slotKey, selectedChip.chipId);
+                return;
+            }
+            // Si no hay ficha seleccionada pero el slot ya tiene una ficha, quitarla
+            if (MODULES[mod].slots[slotKey]) {
+                MODULES[mod].slots[slotKey] = null;
+                document.getElementById(`feedback-${mod}A`).classList.add('hidden');
+                renderGuidedModule(mod);
+            }
+        }
+
+        function placeChipInSlot(mod, slotKey, chipId) {
+            const slots = MODULES[mod].slots;
+            // Si esa ficha ya estaba en otra casilla, liberarla primero
+            Object.keys(slots).forEach(k => {
+                if (slots[k] === chipId) slots[k] = null;
+            });
+            slots[slotKey] = chipId;
+            selectedChip = { mod: null, chipId: null };
+            document.getElementById(`feedback-${mod}A`).classList.add('hidden');
+            renderGuidedModule(mod);
+        }
+
+        function resetGuided(mod) {
+            MODULES[mod].slots = { xbar: null, crit: null, sd: null, n: null };
+            selectedChip = { mod: null, chipId: null };
+            document.getElementById(`feedback-${mod}A`).classList.add('hidden');
+            renderGuidedModule(mod);
+        }
+
+        // =====================================================================
+        // VERIFICACIÓN PEDAGÓGICA Y CÁLCULO PASO A PASO (PARTE A)
+        // =====================================================================
+        function verifyGuided(mod) {
+            const modData = MODULES[mod];
+            const slots = modData.slots;
+            const feedbackBox = document.getElementById(`feedback-${mod}A`);
+
+            const slotNames = {
+                xbar: 'Media muestral (x̄)',
+                crit: mod === 'z' ? 'Valor crítico (Z)' : 'Valor crítico (t)',
+                sd:   mod === 'z' ? 'Desviación estándar poblacional (σ)' : 'Desviación estándar muestral (s)',
+                n:    'Tamaño de la muestra (n)'
+            };
+
+            let allFilled = true;
+            let errors = [];
+
+            Object.keys(slots).forEach(slotKey => {
+                const slotEl = document.getElementById(`slot-${mod}-${slotKey}`);
+                slotEl.classList.remove('slot-correct', 'slot-error');
+
+                const chipId = slots[slotKey];
+                if (!chipId) {
+                    allFilled = false;
+                    slotEl.classList.add('slot-error');
+                    return;
+                }
+
+                const chipObj = modData.chips.find(c => c.id === chipId);
+                if (chipObj.role === slotKey) {
+                    slotEl.classList.add('slot-correct');
+                } else {
+                    slotEl.classList.add('slot-error');
+                    // Mensajes pedagógicos específicos según el error cometido
+                    if (slotKey === 'n' && chipObj.role === 'distractor_gl') {
+                        errors.push(`En la raíz cuadrada colocaste <strong>${chipObj.label}</strong> (grados de libertad). Recuerda que los grados de libertad ($n-1=15$) solo se usan para buscar el valor crítico $t$, pero dentro de la raíz cuadrada siempre va el tamaño total de la muestra (<strong>$n = 16$</strong>).`);
+                    } else if (chipObj.role.startsWith('distractor')) {
+                        errors.push(`En la casilla de <strong>${slotNames[slotKey]}</strong> colocaste <strong>${chipObj.label}</strong>. El nivel de confianza o significancia sirve para determinar el valor crítico, pero no se sustituye directamente en esta parte de la fórmula.`);
+                    } else {
+                        errors.push(`En la casilla de <strong>${slotNames[slotKey]}</strong> colocaste <strong>${chipObj.label}</strong> (${chipObj.desc}). Revisa la posición que le corresponde en la estructura.`);
+                    }
+                }
+            });
+
+            if (!allFilled) {
+                feedbackBox.className = 'rounded-xl p-5 border bg-red-50 border-red-300 text-red-900 space-y-2';
+                feedbackBox.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-red-700">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>Faltan casillas por completar en la fórmula</span>
+                    </div>
+                    <p class="text-sm">Arrastra o selecciona una ficha para cada una de las 4 casillas de la fórmula antes de calcular.</p>
+                `;
+                feedbackBox.classList.remove('hidden');
+                return;
+            }
+
+            if (errors.length > 0) {
+                feedbackBox.className = 'rounded-xl p-5 border bg-red-50 border-red-300 text-red-900 space-y-2';
+                feedbackBox.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-red-700">
+                        <i class="fa-solid fa-xmark-circle"></i>
+                        <span>Revisa la ubicación de algunos valores en la fórmula:</span>
+                    </div>
+                    <ul class="list-disc list-inside text-sm space-y-1">
+                        ${errors.map(e => `<li>${e}</li>`).join('')}
+                    </ul>
+                `;
+                feedbackBox.classList.remove('hidden');
+                return;
+            }
+
+            // ¡Todo está correcto! Calculamos automáticamente y mostramos el desglose
+            const xbar = modData.chips.find(c => c.role === 'xbar').value;
+            const crit = modData.chips.find(c => c.role === 'crit').value;
+            const sd   = modData.chips.find(c => c.role === 'sd').value;
+            const n    = modData.chips.find(c => c.role === 'n').value;
+
+            const se = sd / Math.sqrt(n);
+            const marginE = crit * se;
+            const li = xbar - marginE;
+            const ls = xbar + marginE;
+
+            markCompleted(`${mod}A`);
+
+            feedbackBox.className = 'rounded-xl p-6 border-2 bg-emerald-50/90 border-emerald-500 text-slate-800 space-y-4';
+            feedbackBox.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-3">
+                    <div class="font-extrabold text-emerald-800 text-base sm:text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                        <span>¡Excelente! Has estructurado correctamente la fórmula.</span>
+                    </div>
+                    <span class="text-xs font-bold uppercase bg-emerald-600 text-white px-3 py-1 rounded-full">
+                        Cálculo Automático Desbloqueado
+                    </span>
+                </div>
+
+                <!-- Pasos de resolución -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm">
+                        <div class="text-xs font-bold uppercase text-slate-500">Paso 1: Error Estándar</div>
+                        <div class="font-mono font-bold text-base text-udoBlue mt-1">
+                            EE = ${sd} / &radic;${n} = ${sd} / ${Math.sqrt(n)} = <span class="text-emerald-700">${se.toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm">
+                        <div class="text-xs font-bold uppercase text-slate-500">Paso 2: Margen de Error (E)</div>
+                        <div class="font-mono font-bold text-base text-udoBlue mt-1">
+                            E = ${crit} &times; ${se.toFixed(2)} = <span class="text-emerald-700">${marginE.toFixed(2)} ${modData.unit}</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm">
+                        <div class="text-xs font-bold uppercase text-slate-500">Paso 3: Límites (IC = x̄ &plusmn; E)</div>
+                        <div class="font-mono font-bold text-sm text-udoBlue mt-1 space-y-0.5">
+                            <div>LI = ${xbar} - ${marginE.toFixed(2)} = <span class="text-emerald-700">${li.toFixed(2)} ${modData.unit}</span></div>
+                            <div>LS = ${xbar} + ${marginE.toFixed(2)} = <span class="text-emerald-700">${ls.toFixed(2)} ${modData.unit}</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interpretación estadística y equivalente en Excel -->
+                <div class="bg-white rounded-xl p-4 border border-emerald-200 space-y-2 text-sm">
+                    <div>
+                        <strong class="text-udoBlue"><i class="fa-solid fa-comment-dots text-udoGold mr-1"></i> Interpretación Estadística:</strong>
+                        Con un nivel de confianza del <strong>95%</strong>, se estima que ${modData.variableText} se encuentra entre <strong>${li.toFixed(2)} ${modData.unit}</strong> y <strong>${ls.toFixed(2)} ${modData.unit}</strong>.
+                    </div>
+                    <div class="text-xs text-slate-600 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                        <strong>Fórmula del Valor Crítico en Excel:</strong>
+                        <code class="font-mono bg-slate-100 px-2 py-0.5 rounded border text-udoBlue font-bold">${modData.excelCritFormula}</code>
+                        <span>&rarr; devuelve <strong>${crit}</strong></span>
+                    </div>
+                </div>
+            `;
+            feedbackBox.classList.remove('hidden');
+        }
+
+        // =====================================================================
+        // PARTE B: EJERCICIOS INDEPENDIENTES (VALIDACIÓN DE RESULTADOS FINALES)
+        // =====================================================================
+        function renderIndependentModule(mod) {
+            const modData = MODULES[mod];
+            const variant = modData.independentVariants[modData.currentVariantIndex];
+            document.getElementById(`statement-${mod}B`).innerHTML = variant.context;
+
+            // Limpiar inputs e íconos
+            ['e', 'li', 'ls'].forEach(field => {
+                const inputEl = document.getElementById(`input-${mod}-${field}`);
+                const iconEl = document.getElementById(`icon-${mod}-${field}`);
+                inputEl.value = '';
+                inputEl.classList.remove('border-emerald-500', 'bg-emerald-50', 'border-red-500', 'bg-red-50');
+                iconEl.innerHTML = '';
+            });
+
+            document.getElementById(`feedback-${mod}B`).classList.add('hidden');
+        }
+
+        function generateRandomVariant(mod) {
+            const modData = MODULES[mod];
+            modData.currentVariantIndex = (modData.currentVariantIndex + 1) % modData.independentVariants.length;
+            renderIndependentModule(mod);
+        }
+
+        function parseStudentNumber(str) {
+            if (!str) return NaN;
+            // Aceptar tanto coma como punto decimal
+            const cleaned = str.toString().trim().replace(',', '.');
+            return parseFloat(cleaned);
+        }
+
+        function verifyIndependent(mod) {
+            const modData = MODULES[mod];
+            const variant = modData.independentVariants[modData.currentVariantIndex];
+
+            const expectedSE = variant.sd / Math.sqrt(variant.n);
+            const expectedE  = variant.crit * expectedSE;
+            const expectedLI = variant.xbar - expectedE;
+            const expectedLS = variant.xbar + expectedE;
+
+            const valE  = parseStudentNumber(document.getElementById(`input-${mod}-e`).value);
+            const valLI = parseStudentNumber(document.getElementById(`input-${mod}-li`).value);
+            const valLS = parseStudentNumber(document.getElementById(`input-${mod}-ls`).value);
+
+            const feedbackBox = document.getElementById(`feedback-${mod}B`);
+
+            if (isNaN(valE) || isNaN(valLI) || isNaN(valLS)) {
+                feedbackBox.className = 'rounded-xl p-4 border bg-amber-50 border-amber-300 text-amber-900 text-sm';
+                feedbackBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Por favor ingresa valores numéricos en los tres campos (Margen de Error, Límite Inferior y Límite Superior) antes de comprobar.`;
+                feedbackBox.classList.remove('hidden');
+                return;
+            }
+
+            // Tolerancia de ±0.08 para aceptar redondeos intermedios o cálculo exacto de Excel
+            const tol = 0.08;
+            const okE  = Math.abs(valE - expectedE) <= tol;
+            const okLI = Math.abs(valLI - expectedLI) <= tol;
+            const okLS = Math.abs(valLS - expectedLS) <= tol;
+
+            setInputFeedback(mod, 'e', okE);
+            setInputFeedback(mod, 'li', okLI);
+            setInputFeedback(mod, 'ls', okLS);
+
+            if (okE && okLI && okLS) {
+                markCompleted(`${mod}B`);
+                feedbackBox.className = 'rounded-xl p-5 border-2 bg-emerald-50 border-emerald-500 text-slate-800 space-y-2';
+                feedbackBox.innerHTML = `
+                    <div class="font-extrabold text-emerald-800 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-udoGold text-lg"></i>
+                        <span>¡Respuestas Correctas! Dominas el procedimiento de cálculo.</span>
+                    </div>
+                    <p class="text-sm">
+                        <strong>Resumen exacto:</strong> Error estándar = <span class="font-mono font-bold">${expectedSE.toFixed(2)}</span> &bull;
+                        Margen de error ($E$) = <span class="font-mono font-bold">${expectedE.toFixed(2)} ${variant.unit}</span> &bull;
+                        Intervalo al ${variant.conf}: <span class="font-mono font-bold">[ ${expectedLI.toFixed(2)} , ${expectedLS.toFixed(2)} ] ${variant.unit}</span>.
+                    </p>
+                `;
+            } else {
+                let hints = [];
+                if (!okE) {
+                    hints.push(`<strong>Margen de Error ($E$):</strong> Revisa el producto de $${variant.crit} \\times (${variant.sd} / \\sqrt{${variant.n}})$. Nota que $\\sqrt{${variant.n}} = ${Math.sqrt(variant.n)}$.`);
+                }
+                if (okE && (!okLI || !okLS)) {
+                    hints.push(`<strong>Límites del intervalo:</strong> Tu margen de error $E$ está bien, pero revisa la resta $LI = ${variant.xbar} - E$ y la suma $LS = ${variant.xbar} + E$.`);
+                } else if (!okLI || !okLS) {
+                    hints.push(`<strong>Límites Inferior y Superior:</strong> Una vez corregido el margen de error $E$, réstalo y súmalo a la media muestral ($\\bar{x} = ${variant.xbar}$).`);
+                }
+
+                feedbackBox.className = 'rounded-xl p-5 border bg-red-50 border-red-300 text-red-900 space-y-2 text-sm';
+                feedbackBox.innerHTML = `
+                    <div class="font-bold flex items-center gap-2 text-red-700">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                        <span>Algunos valores presentan diferencias. Revisa las siguientes pistas:</span>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1">
+                        ${hints.map(h => `<li>${h}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            feedbackBox.classList.remove('hidden');
+        }
+
+        function setInputFeedback(mod, field, isOk) {
+            const inputEl = document.getElementById(`input-${mod}-${field}`);
+            const iconEl  = document.getElementById(`icon-${mod}-${field}`);
+            inputEl.classList.remove('border-emerald-500', 'bg-emerald-50', 'border-red-500', 'bg-red-50');
+
+            if (isOk) {
+                inputEl.classList.add('border-emerald-500', 'bg-emerald-50');
+                iconEl.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i>';
+            } else {
+                inputEl.classList.add('border-red-500', 'bg-red-50');
+                iconEl.innerHTML = '<i class="fa-solid fa-xmark text-red-600"></i>';
+            }
+        }
+
+        function showIndependentSolution(mod) {
+            const modData = MODULES[mod];
+            const variant = modData.independentVariants[modData.currentVariantIndex];
+
+            const expectedSE = variant.sd / Math.sqrt(variant.n);
+            const expectedE  = variant.crit * expectedSE;
+            const expectedLI = variant.xbar - expectedE;
+            const expectedLS = variant.xbar + expectedE;
+
+            const feedbackBox = document.getElementById(`feedback-${mod}B`);
+            feedbackBox.className = 'rounded-xl p-5 border bg-blue-50 border-udoBlue/30 text-slate-800 space-y-2 text-sm';
+            feedbackBox.innerHTML = `
+                <div class="font-bold text-udoBlue flex items-center gap-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Solución Paso a Paso del Ejercicio:</span>
+                </div>
+                <ol class="list-decimal list-inside space-y-1 font-mono text-xs sm:text-sm">
+                    <li>Error Estándar: ${variant.sd} / &radic;${variant.n} = ${variant.sd} / ${Math.sqrt(variant.n)} = <strong>${expectedSE.toFixed(2)}</strong></li>
+                    <li>Margen de Error (E): ${variant.crit} &times; ${expectedSE.toFixed(2)} = <strong>${expectedE.toFixed(2)} ${variant.unit}</strong></li>
+                    <li>Límite Inferior (LI): ${variant.xbar} - ${expectedE.toFixed(2)} = <strong>${expectedLI.toFixed(2)} ${variant.unit}</strong></li>
+                    <li>Límite Superior (LS): ${variant.xbar} + ${expectedE.toFixed(2)} = <strong>${expectedLS.toFixed(2)} ${variant.unit}</strong></li>
+                </ol>
+            `;
+            feedbackBox.classList.remove('hidden');
+        }
+
+        // =====================================================================
+        // UTILIDADES GENERALES (PROGRESO, PISTAS Y PORTAPAPELES)
+        // =====================================================================
+        function markCompleted(key) {
+            completedStatus[key] = true;
+            const dot = document.getElementById(`dot-${key}`);
+            if (dot) {
+                dot.classList.remove('bg-slate-600', 'border-slate-400');
+                dot.classList.add('bg-udoGold', 'border-white');
+            }
+            const badge = document.getElementById(`badge-status-${key}`);
+            if (badge) {
+                badge.className = 'text-xs font-bold bg-emerald-500 text-white px-3 py-1 rounded-full flex items-center gap-1';
+                badge.innerHTML = '<i class="fa-solid fa-check"></i> Completado';
+            }
+
+            const totalCompleted = Object.values(completedStatus).filter(Boolean).length;
+            document.getElementById('progress-text').textContent = `${totalCompleted} de 4 ejercicios completados`;
+        }
+
+        function toggleHint(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        function copyFormula(text) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const toast = document.getElementById('copy-toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2200);
+        }
+
+        // Inicialización al cargar la página
+        window.onload = function () {
+            renderGuidedModule('z');
+            renderGuidedModule('t');
+            renderIndependentModule('z');
+            renderIndependentModule('t');
+        };
+    </script>
+</body>
+</html>
