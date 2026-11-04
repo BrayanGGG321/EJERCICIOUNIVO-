@@ -144,7 +144,7 @@
     /* Contenedor Principal */
     .main-container {
       flex: 1;
-      max-width: 1200px;
+      max-width: 1240px;
       width: 100%;
       margin: 0 auto;
       padding: 2rem 1.5rem;
@@ -369,7 +369,7 @@
     /* Vista 2: Panel Docente */
     .admin-grid {
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 1.5rem;
       align-items: start;
     }
@@ -589,6 +589,17 @@
       letter-spacing: 0.5px;
     }
 
+    .word-pill {
+      background-color: var(--gold-soft);
+      color: var(--ebony);
+      border: 1px solid rgba(249, 180, 16, 0.45);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.86rem;
+      display: inline-block;
+    }
+
     .empty-state {
       text-align: center;
       padding: 3rem 1rem;
@@ -626,11 +637,11 @@
       to { opacity: 1; transform: translateX(0); }
     }
 
-    /* Modal de Confirmación Personalizado (Sin alert/confirm nativo) */
+    /* Modales Personalizados */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background-color: rgba(5, 8, 13, 0.65);
+      background-color: rgba(5, 8, 13, 0.7);
       display: none;
       align-items: center;
       justify-content: center;
@@ -657,7 +668,14 @@
       color: var(--white);
       padding: 1rem 1.25rem;
       font-weight: 700;
-      border-bottom: 3px solid var(--danger);
+      border-bottom: 3px solid var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-header.danger {
+      border-bottom-color: var(--danger);
     }
 
     .modal-body {
@@ -674,6 +692,14 @@
       justify-content: flex-end;
       gap: 0.65rem;
       border-top: 1px solid var(--border);
+    }
+
+    .auth-error {
+      color: var(--danger);
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-top: 0.5rem;
+      display: none;
     }
 
     @media (max-width: 900px) {
@@ -719,10 +745,10 @@
         </svg>
         Vista Estudiante (Kiosco)
       </button>
-      <button type="button" class="tab-btn" id="tabAdmin" onclick="switchView('admin')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      <button type="button" class="tab-btn" id="tabAdmin" onclick="requestAdminAccess()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
         Panel Docente
         <span class="badge-counter" id="navCounter">0</span>
@@ -782,17 +808,17 @@
 
             <div class="form-group">
               <label for="sessionPin">
-                3. Contraseña de Registro <span class="helper">(Proporcionada por el docente)</span>
+                3. Contraseña / Palabra de Registro <span class="helper">(Dictada por el docente)</span>
               </label>
               <div class="input-wrapper">
                 <input
                   type="password"
                   id="sessionPin"
                   class="form-control"
-                  placeholder="Ingresa el PIN de la clase"
+                  placeholder="Escribe la palabra clave de hoy"
                   required
                 >
-                <button type="button" class="toggle-password" onclick="togglePinVisibility('sessionPin', this)" title="Mostrar / Ocultar contraseña">
+                <button type="button" class="toggle-password" onclick="togglePinVisibility('sessionPin', this)" title="Mostrar / Ocultar palabra">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
@@ -852,21 +878,8 @@
                   placeholder="Ej. Estadística Aplicada - G1"
                   required
                 >
-              </div>
-
-              <div class="form-group">
-                <label for="configPin">Contraseña de Registro Activa (PIN)</label>
-                <div class="input-wrapper">
-                  <input
-                    type="text"
-                    id="configPin"
-                    class="form-control"
-                    placeholder="Ej. 2026"
-                    required
-                  >
-                </div>
-                <small style="display:block; margin-top:0.35rem; color:var(--text-muted); font-size:0.78rem;">
-                  Los estudiantes deberán escribir esta clave exacta en la Vista Kiosco para poder anotarse.
+                <small style="display:block; margin-top:0.45rem; color:var(--text-muted); font-size:0.78rem; line-height:1.4;">
+                  La palabra clave se dicta oralmente en clase. Cualquier palabra que el estudiante digite quedará guardada en su registro.
                 </small>
               </div>
 
@@ -876,7 +889,7 @@
                   <polyline points="17 21 17 13 7 13 7 21"></polyline>
                   <polyline points="7 3 7 8 15 8"></polyline>
                 </svg>
-                Guardar Configuración
+                Actualizar Asignatura
               </button>
             </form>
           </div>
@@ -899,7 +912,7 @@
                 <input
                   type="text"
                   id="searchInput"
-                  placeholder="Buscar por código o nombre del estudiante..."
+                  placeholder="Buscar por código, nombre o palabra registrada..."
                   oninput="renderTable()"
                 >
               </div>
@@ -927,12 +940,13 @@
               <table>
                 <thead>
                   <tr>
-                    <th style="width: 55px;">#</th>
+                    <th style="width: 50px;">#</th>
                     <th>Código de Estudiante</th>
                     <th>Nombre Completo</th>
+                    <th>Contraseña / Palabra</th>
                     <th>Fecha</th>
                     <th>Hora Exacta</th>
-                    <th style="text-align: center; width: 90px;">Acción</th>
+                    <th style="text-align: center; width: 85px;">Acción</th>
                   </tr>
                 </thead>
                 <tbody id="attendanceTableBody">
@@ -952,10 +966,55 @@
   <!-- Contenedor de Toasts -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Modal de Autenticación Docente (Contraseña CON123) -->
+  <div class="modal-backdrop" id="adminAuthModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F9B410" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Acceso al Panel Docente
+      </div>
+      <form id="adminAuthForm" onsubmit="verifyAdminPassword(event)">
+        <div class="modal-body">
+          <p style="margin-bottom: 0.85rem;">Ingresa la contraseña maestra para acceder a los registros y configuración:</p>
+          <div class="input-wrapper">
+            <input
+              type="password"
+              id="adminPasswordInput"
+              class="form-control"
+              placeholder="Contraseña docente"
+              autocomplete="off"
+              required
+            >
+            <button type="button" class="toggle-password" onclick="togglePinVisibility('adminPasswordInput', this)" title="Mostrar / Ocultar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <div id="adminAuthError" class="auth-error">
+            Contraseña incorrecta. Acceso denegado.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background:var(--mercury); color:var(--text-main);" onclick="closeAdminAuthModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn" style="background:var(--gold); color:var(--ebony);">
+            Desbloquear Panel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal de Confirmación para Limpiar Sesión -->
   <div class="modal-backdrop" id="clearModal">
     <div class="modal-card">
-      <div class="modal-header">
+      <div class="modal-header danger">
         Confirmar Reinicio de Sesión
       </div>
       <div class="modal-body">
@@ -973,20 +1032,23 @@
   </div>
 
   <script>
+    // Contraseña maestra fija para el Panel Docente
+    const TEACHER_MASTER_PASS = 'CON123';
+
     // Claves de almacenamiento en localStorage
     const STORAGE_KEYS = {
-      CONFIG: 'asistencia_docente_config_v1',
-      RECORDS: 'asistencia_docente_records_v1'
+      CONFIG: 'asistencia_docente_config_v2',
+      RECORDS: 'asistencia_docente_records_v2'
     };
 
     // Estado inicial de la aplicación
     let appConfig = {
-      courseName: 'Matemática I - Grupo A',
-      sessionPin: '1234'
+      courseName: 'Matemática I - Grupo A'
     };
 
     let attendanceRecords = [];
     let feedbackTimer = null;
+    let isAdminUnlocked = false;
 
     // Inicialización al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
@@ -1056,7 +1118,6 @@
 
       // Panel Docente
       document.getElementById('configCourseName').value = appConfig.courseName;
-      document.getElementById('configPin').value = appConfig.sessionPin;
       document.getElementById('tableSessionSubtitle').textContent = appConfig.courseName;
 
       // Contadores
@@ -1067,6 +1128,47 @@
       renderTable();
     }
 
+    // Solicitar acceso al Panel Docente con contraseña CON123
+    function requestAdminAccess() {
+      if (isAdminUnlocked) {
+        switchView('admin');
+        return;
+      }
+      const modal = document.getElementById('adminAuthModal');
+      const input = document.getElementById('adminPasswordInput');
+      const errorMsg = document.getElementById('adminAuthError');
+
+      input.value = '';
+      input.type = 'password';
+      errorMsg.style.display = 'none';
+      modal.classList.add('active');
+      setTimeout(() => input.focus(), 80);
+    }
+
+    function closeAdminAuthModal() {
+      document.getElementById('adminAuthModal').classList.remove('active');
+      if (document.getElementById('viewKiosk').classList.contains('active')) {
+        setTimeout(() => document.getElementById('studentName').focus(), 80);
+      }
+    }
+
+    function verifyAdminPassword(e) {
+      e.preventDefault();
+      const input = document.getElementById('adminPasswordInput');
+      const errorMsg = document.getElementById('adminAuthError');
+
+      if (input.value === TEACHER_MASTER_PASS) {
+        isAdminUnlocked = true;
+        document.getElementById('adminAuthModal').classList.remove('active');
+        switchView('admin');
+        showToast('Panel Docente desbloqueado.');
+      } else {
+        errorMsg.style.display = 'block';
+        input.value = '';
+        input.focus();
+      }
+    }
+
     // Cambiar entre Vista Kiosco y Vista Docente
     function switchView(viewName) {
       const kioskSection = document.getElementById('viewKiosk');
@@ -1075,6 +1177,8 @@
       const tabAdmin = document.getElementById('tabAdmin');
 
       if (viewName === 'kiosk') {
+        // Al regresar a la vista estudiante, se vuelve a bloquear el panel docente por seguridad
+        isAdminUnlocked = false;
         kioskSection.classList.add('active');
         adminSection.classList.remove('active');
         tabKiosk.classList.add('active');
@@ -1129,18 +1233,16 @@
       document.getElementById('configForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const newCourse = document.getElementById('configCourseName').value.trim();
-        const newPin = document.getElementById('configPin').value.trim();
 
-        if (!newCourse || !newPin) {
-          showToast('Completa el nombre de la asignatura y la contraseña.', true);
+        if (!newCourse) {
+          showToast('Escribe el nombre de la asignatura.', true);
           return;
         }
 
         appConfig.courseName = newCourse;
-        appConfig.sessionPin = newPin;
         saveConfigToStorage();
         syncUI();
-        showToast('Configuración de la sesión actualizada correctamente.');
+        showToast('Nombre de asignatura actualizado.');
       });
     }
 
@@ -1152,19 +1254,11 @@
 
       const formattedName = toTitleCase(nameInput.value);
       const formattedCode = codeInput.value.trim().toUpperCase();
-      const enteredPin = pinInput.value.trim();
+      const enteredWord = pinInput.value.trim();
 
       // 1. Validar campos vacíos
-      if (!formattedName || !formattedCode || !enteredPin) {
+      if (!formattedName || !formattedCode || !enteredWord) {
         showKioskFeedback('Por favor completa todos los campos requeridos.', 'error');
-        return;
-      }
-
-      // 2. Validar Contraseña de Registro
-      if (enteredPin !== appConfig.sessionPin) {
-        showKioskFeedback('Contraseña de registro incorrecta. Verifica con tu docente.', 'error');
-        pinInput.value = '';
-        pinInput.focus();
         return;
       }
 
@@ -1175,7 +1269,7 @@
         day: '2-digit'
       });
 
-      // 3. Validar duplicados por Código de Estudiante en la sesión/fecha
+      // 2. Validar duplicados por Código de Estudiante en la sesión/fecha
       const isDuplicate = attendanceRecords.some(
         record => record.code.toUpperCase() === formattedCode && record.date === currentDate
       );
@@ -1186,7 +1280,7 @@
         return;
       }
 
-      // 4. Guardar Registro Exitoso
+      // 3. Guardar Registro Exitoso incluyendo la palabra escrita por el estudiante
       const currentTime = now.toLocaleTimeString('es-SV', {
         hour12: false,
         hour: '2-digit',
@@ -1198,6 +1292,7 @@
         id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
         code: formattedCode,
         name: formattedName,
+        word: enteredWord,
         course: appConfig.courseName,
         date: currentDate,
         time: currentTime
@@ -1207,7 +1302,7 @@
       saveRecordsToStorage();
       syncUI();
 
-      // 5. Notificación visual, limpieza instantánea y retorno de foco (< 1s)
+      // 4. Notificación visual, limpieza instantánea y retorno de foco (< 1s)
       showKioskFeedback(`¡Asistencia registrada! Bienvenido(a), ${formattedName} (${formattedCode}).`, 'success');
 
       document.getElementById('attendanceForm').reset();
@@ -1257,13 +1352,14 @@
 
       const filtered = attendanceRecords.filter(item =>
         item.code.toLowerCase().includes(query) ||
-        item.name.toLowerCase().includes(query)
+        item.name.toLowerCase().includes(query) ||
+        (item.word && item.word.toLowerCase().includes(query))
       );
 
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="empty-state">
+            <td colspan="7" class="empty-state">
               ${attendanceRecords.length === 0
                 ? 'Aún no hay estudiantes registrados en esta sesión.'
                 : 'No se encontraron coincidencias para tu búsqueda.'}
@@ -1278,6 +1374,7 @@
           <td style="font-weight:700; color:var(--text-muted);">${index + 1}</td>
           <td><span class="code-pill">${escapeHTML(record.code)}</span></td>
           <td style="font-weight:600;">${escapeHTML(record.name)}</td>
+          <td><span class="word-pill">${escapeHTML(record.word || '-')}</span></td>
           <td>${escapeHTML(record.date)}</td>
           <td style="font-variant-numeric: tabular-nums; font-weight:600;">${escapeHTML(record.time)}</td>
           <td style="text-align: center;">
@@ -1325,11 +1422,21 @@
         return;
       }
 
-      const headers = ['N°', 'Código de Estudiante', 'Nombre Completo', 'Asignatura / Sesión', 'Fecha', 'Hora de Registro'];
+      const headers = [
+        'N°',
+        'Código de Estudiante',
+        'Nombre Completo',
+        'Contraseña / Palabra Registrada',
+        'Asignatura / Sesión',
+        'Fecha',
+        'Hora de Registro'
+      ];
+
       const rows = attendanceRecords.map((r, i) => [
         i + 1,
         `"${r.code.replace(/"/g, '""')}"`,
         `"${r.name.replace(/"/g, '""')}"`,
+        `"${(r.word || '').replace(/"/g, '""')}"`,
         `"${(r.course || appConfig.courseName).replace(/"/g, '""')}"`,
         `"${r.date}"`,
         `"${r.time}"`
@@ -1356,7 +1463,7 @@
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      showToast('Archivo CSV exportado correctamente para Excel.');
+      showToast('Archivo CSV exportado con la columna de palabra registrada.');
     }
 
     // Toast de notificación general
