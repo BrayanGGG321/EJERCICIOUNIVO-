@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Registro de Asistencia Estudiantil</title>
+  <style>
+    :root {
+      --ebony: #05080D;
+      --ebony-light: #121824;
+      --ebony-surface: #1E2638;
+      --gold: #F9B410;
+      --gold-hover: #DFA00B;
+      --gold-soft: rgba(249, 180, 16, 0.15);
+      --mercury: #E7E7E7;
+      --bg-light: #F4F6F9;
+      --white: #FFFFFF;
+      --text-main: #1A202C;
+      --text-muted: #64748B;
+      --border: #CBD5E1;
+      --success: #10B981;
+      --success-bg: #D1FAE5;
+      --success-text: #065F46;
+      --danger: #EF4444;
+      --danger-bg: #FEE2E2;
+      --danger-text: #991B1B;
+      --shadow-sm: 0 2px 4px rgba(5, 8, 13, 0.06);
+      --shadow-md: 0 8px 20px rgba(5, 8, 13, 0.12);
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Barra de Navegación Superior */
+    .navbar {
+      background-color: var(--ebony);
+      color: var(--white);
+      padding: 0.9rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid var(--gold);
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background-color: var(--gold);
+      color: var(--ebony);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: var(--white);
+    }
+
+    .brand-text span {
+      font-size: 0.8rem;
+      color: var(--mercury);
+      opacity: 0.8;
+      display: block;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background-color: var(--ebony-light);
+      padding: 0.35rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--ebony-surface);
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--mercury);
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--white);
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background-color: var(--gold);
+      color: var(--ebony);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .badge-counter {
+      background-color: var(--ebony);
+      color: var(--gold);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .tab-btn:not(.active) .badge-counter {
+      background-color: var(--ebony-surface);
+      color: var(--white);
+    }
+
+    /* Contenedor Principal */
+    .main-container {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .view-section {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Vista 1: Kiosco de Registro */
+    .kiosk-wrapper {
+      max-width: 540px;
+      margin: 1rem auto;
+    }
+
+    .session-banner {
+      background: linear-gradient(135deg, var(--ebony) 0%, var(--ebony-surface) 100%);
+      color: var(--white);
+      padding: 1.5rem;
+      border-radius: var(--radius) var(--radius) 0 0;
+      border-bottom: 3px solid var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .session-info .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .session-info h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .session-info .date-display {
+      font-size: 0.85rem;
+      color: var(--mercury);
+      margin-top: 0.35rem;
+      opacity: 0.9;
+    }
+
+    .live-clock {
+      background-color: rgba(255, 255, 255, 0.08);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(249, 180, 16, 0.3);
+      min-width: 130px;
+      flex-shrink: 0;
+    }
+
+    .live-clock .time {
+      font-size: 1.45rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+
+    .live-clock .tz {
+      font-size: 0.7rem;
+      color: var(--mercury);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kiosk-card {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: 0 0 var(--radius) var(--radius);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      border-top: none;
+    }
+
+    .form-group {
+      margin-bottom: 1.35rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.45rem;
+    }
+
+    .form-group .helper {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-left: 0.25rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      color: var(--text-main);
+      background-color: var(--bg-light);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .form-control:focus {
+      background-color: var(--white);
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px var(--gold-soft);
+    }
+
+    .form-control.uppercase-input {
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+    }
+
+    .toggle-password:hover {
+      color: var(--ebony);
+      background-color: var(--mercury);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background-color: var(--gold);
+      color: var(--ebony);
+      border: none;
+      padding: 1rem 1.5rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      margin-top: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--gold-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(249, 180, 16, 0.35);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* Alertas / Notificaciones Integrada en Kiosco */
+    .feedback-banner {
+      margin-top: 1.25rem;
+      padding: 1rem 1.15rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .feedback-banner.show {
+      display: flex;
+    }
+
+    .feedback-banner.success {
+      background-color: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid #6EE7B7;
+    }
+
+    .feedback-banner.error {
+      background-color: var(--danger-bg);
+      color: var(--danger-text);
+      border: 1px solid #FCA5A5;
+    }
+
+    /* Vista 2: Panel Docente */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .panel-card {
+      background-color: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background-color: var(--ebony);
+      color: var(--white);
+      padding: 1rem 1.25rem;
+      font-weight: 700;
+      font-size: 1rem;
+      border-bottom: 3px solid var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-body {
+      padding: 1.35rem;
+    }
+
+    /* Tarjeta de Métricas */
+    .metric-box {
+      background: linear-gradient(135deg, var(--ebony) 0%, var(--ebony-surface) 100%);
+      color: var(--white);
+      padding: 1.25rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.35rem;
+      border-left: 5px solid var(--gold);
+    }
+
+    .metric-box .metric-info span {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      color: var(--mercury);
+      letter-spacing: 0.5px;
+      display: block;
+    }
+
+    .metric-box .metric-info strong {
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1.1;
+    }
+
+    /* Botones secundarios y de acción */
+    .btn {
+      padding: 0.65rem 1rem;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--ebony);
+      color: var(--gold);
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--ebony-surface);
+    }
+
+    .btn-export {
+      background-color: var(--success);
+      color: var(--white);
+    }
+
+    .btn-export:hover {
+      background-color: #059669;
+    }
+
+    .btn-danger-outline {
+      background-color: transparent;
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+
+    .btn-danger-outline:hover {
+      background-color: var(--danger);
+      color: var(--white);
+    }
+
+    .btn-icon-delete {
+      background-color: var(--danger-bg);
+      color: var(--danger);
+      border: none;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+
+    .btn-icon-delete:hover {
+      background-color: var(--danger);
+      color: var(--white);
+    }
+
+    /* Barra de herramientas de la tabla */
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.15rem;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.65rem 0.9rem 0.65rem 2.3rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--gold);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    /* Tabla de Registros */
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 520px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    thead {
+      background-color: var(--ebony-light);
+      color: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    th {
+      padding: 0.85rem 1rem;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--mercury);
+      vertical-align: middle;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+
+    tbody tr:hover {
+      background-color: var(--gold-soft);
+    }
+
+    .code-pill {
+      background-color: var(--ebony);
+      color: var(--gold);
+      padding: 0.25rem 0.6rem;
+      border-radius: 5px;
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.5px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+
+    /* Toast Flotante Global */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      background-color: var(--ebony);
+      color: var(--white);
+      padding: 0.9rem 1.25rem;
+      border-radius: 8px;
+      border-left: 5px solid var(--gold);
+      box-shadow: var(--shadow-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      animation: slideIn 0.25s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Modal de Confirmación Personalizado (Sin alert/confirm nativo) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(5, 8, 13, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background-color: var(--white);
+      max-width: 420px;
+      width: 100%;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-header {
+      background-color: var(--ebony);
+      color: var(--white);
+      padding: 1rem 1.25rem;
+      font-weight: 700;
+      border-bottom: 3px solid var(--danger);
+    }
+
+    .modal-body {
+      padding: 1.35rem;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .modal-footer {
+      padding: 0.85rem 1.25rem;
+      background-color: var(--bg-light);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.65rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 900px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+      .navbar {
+        flex-direction: column;
+        gap: 0.85rem;
+        text-align: center;
+      }
+      .session-banner {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Navegación -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <polyline points="16 11 18 13 22 9"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Control de Asistencia Académica</h1>
+        <span>Herramienta de Escritorio Local (100% Offline)</span>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <button type="button" class="tab-btn active" id="tabKiosk" onclick="switchView('kiosk')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        Vista Estudiante (Kiosco)
+      </button>
+      <button type="button" class="tab-btn" id="tabAdmin" onclick="switchView('admin')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        Panel Docente
+        <span class="badge-counter" id="navCounter">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="main-container">
+
+    <!-- ================= VISTA 1: KIOSCO DE REGISTRO ================= -->
+    <section id="viewKiosk" class="view-section active">
+      <div class="kiosk-wrapper">
+        <div class="session-banner">
+          <div class="session-info">
+            <span class="label">Sesión / Asignatura Activa</span>
+            <h2 id="kioskCourseTitle">Matemática I - Grupo A</h2>
+            <div class="date-display" id="kioskDateDisplay">Cargando fecha...</div>
+          </div>
+          <div class="live-clock">
+            <div class="time" id="kioskClock">00:00:00</div>
+            <div class="tz">Hora Oficial</div>
+          </div>
+        </div>
+
+        <div class="kiosk-card">
+          <form id="attendanceForm" autocomplete="off">
+            <div class="form-group">
+              <label for="studentName">
+                1. Nombre Completo <span class="helper">(Nombres y Apellidos)</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="studentName"
+                  class="form-control"
+                  placeholder="Ej. Carlos Ernesto Méndez López"
+                  required
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="studentCode">
+                2. Código de Estudiante <span class="helper">(Carné o ID alfanumérico)</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="studentCode"
+                  class="form-control uppercase-input"
+                  placeholder="Ej. U20260145"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sessionPin">
+                3. Contraseña de Registro <span class="helper">(Proporcionada por el docente)</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="password"
+                  id="sessionPin"
+                  class="form-control"
+                  placeholder="Ingresa el PIN de la clase"
+                  required
+                >
+                <button type="button" class="toggle-password" onclick="togglePinVisibility('sessionPin', this)" title="Mostrar / Ocultar contraseña">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Registrar Asistencia (Enter)
+            </button>
+          </form>
+
+          <!-- Notificación Visual Integrada -->
+          <div id="kioskFeedback" class="feedback-banner" role="alert">
+            <span id="kioskFeedbackIcon"></span>
+            <span id="kioskFeedbackText"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VISTA 2: PANEL DE CONTROL DOCENTE ================= -->
+    <section id="viewAdmin" class="view-section">
+      <div class="admin-grid">
+
+        <!-- Columna Izquierda: Configuración y Métricas -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span>Configuración de la Sesión</span>
+          </div>
+          <div class="panel-body">
+            <div class="metric-box">
+              <div class="metric-info">
+                <span>Total Registrados</span>
+                <strong id="adminTotalCount">0</strong>
+              </div>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F9B410" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+
+            <form id="configForm">
+              <div class="form-group">
+                <label for="configCourseName">Nombre de la Asignatura / Grupo</label>
+                <input
+                  type="text"
+                  id="configCourseName"
+                  class="form-control"
+                  placeholder="Ej. Estadística Aplicada - G1"
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="configPin">Contraseña de Registro Activa (PIN)</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    id="configPin"
+                    class="form-control"
+                    placeholder="Ej. 2026"
+                    required
+                  >
+                </div>
+                <small style="display:block; margin-top:0.35rem; color:var(--text-muted); font-size:0.78rem;">
+                  Los estudiantes deberán escribir esta clave exacta en la Vista Kiosco para poder anotarse.
+                </small>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Guardar Configuración
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Tabla de Registros y Exportación -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <span>Listado Oficial de Asistencia</span>
+            <span id="tableSessionSubtitle" style="font-size:0.82rem; color:var(--gold); font-weight:600;"></span>
+          </div>
+          <div class="panel-body">
+
+            <div class="table-toolbar">
+              <div class="search-box">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Buscar por código o nombre del estudiante..."
+                  oninput="renderTable()"
+                >
+              </div>
+
+              <div class="toolbar-actions">
+                <button type="button" class="btn btn-export" onclick="exportToCSV()">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Exportar a Excel (CSV)
+                </button>
+                <button type="button" class="btn btn-danger-outline" onclick="openClearModal()">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Reiniciar Sesión
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 55px;">#</th>
+                    <th>Código de Estudiante</th>
+                    <th>Nombre Completo</th>
+                    <th>Fecha</th>
+                    <th>Hora Exacta</th>
+                    <th style="text-align: center; width: 90px;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                  <!-- Filas generadas dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Contenedor de Toasts -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modal de Confirmación para Limpiar Sesión -->
+  <div class="modal-backdrop" id="clearModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        Confirmar Reinicio de Sesión
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas eliminar <strong>todos los registros de asistencia</strong> de la sesión actual? Esta acción no se puede deshacer. Te recomendamos exportar a Excel antes de continuar.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" style="background:var(--mercury); color:var(--text-main);" onclick="closeClearModal()">
+          Cancelar
+        </button>
+        <button type="button" class="btn" style="background:var(--danger); color:var(--white);" onclick="confirmClearSession()">
+          Sí, Borrar Registros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Claves de almacenamiento en localStorage
+    const STORAGE_KEYS = {
+      CONFIG: 'asistencia_docente_config_v1',
+      RECORDS: 'asistencia_docente_records_v1'
+    };
+
+    // Estado inicial de la aplicación
+    let appConfig = {
+      courseName: 'Matemática I - Grupo A',
+      sessionPin: '1234'
+    };
+
+    let attendanceRecords = [];
+    let feedbackTimer = null;
+
+    // Inicialización al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFromStorage();
+      initClock();
+      syncUI();
+      setupEventListeners();
+    });
+
+    // Cargar datos desde localStorage
+    function loadFromStorage() {
+      try {
+        const savedConfig = localStorage.getItem(STORAGE_KEYS.CONFIG);
+        if (savedConfig) {
+          appConfig = JSON.parse(savedConfig);
+        } else {
+          saveConfigToStorage();
+        }
+
+        const savedRecords = localStorage.getItem(STORAGE_KEYS.RECORDS);
+        if (savedRecords) {
+          attendanceRecords = JSON.parse(savedRecords);
+        }
+      } catch (e) {
+        console.error('Error al acceder a localStorage:', e);
+      }
+    }
+
+    function saveConfigToStorage() {
+      localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(appConfig));
+    }
+
+    function saveRecordsToStorage() {
+      localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(attendanceRecords));
+    }
+
+    // Reloj en tiempo real y fecha
+    function initClock() {
+      const updateDateTime = () => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('es-SV', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        const dateStr = now.toLocaleDateString('es-SV', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        document.getElementById('kioskClock').textContent = timeStr;
+        document.getElementById('kioskDateDisplay').textContent =
+          dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      };
+
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+    }
+
+    // Sincronizar interfaz con el estado actual
+    function syncUI() {
+      // Kiosco
+      document.getElementById('kioskCourseTitle').textContent = appConfig.courseName;
+
+      // Panel Docente
+      document.getElementById('configCourseName').value = appConfig.courseName;
+      document.getElementById('configPin').value = appConfig.sessionPin;
+      document.getElementById('tableSessionSubtitle').textContent = appConfig.courseName;
+
+      // Contadores
+      const count = attendanceRecords.length;
+      document.getElementById('navCounter').textContent = count;
+      document.getElementById('adminTotalCount').textContent = count;
+
+      renderTable();
+    }
+
+    // Cambiar entre Vista Kiosco y Vista Docente
+    function switchView(viewName) {
+      const kioskSection = document.getElementById('viewKiosk');
+      const adminSection = document.getElementById('viewAdmin');
+      const tabKiosk = document.getElementById('tabKiosk');
+      const tabAdmin = document.getElementById('tabAdmin');
+
+      if (viewName === 'kiosk') {
+        kioskSection.classList.add('active');
+        adminSection.classList.remove('active');
+        tabKiosk.classList.add('active');
+        tabAdmin.classList.remove('active');
+        setTimeout(() => document.getElementById('studentName').focus(), 80);
+      } else {
+        kioskSection.classList.remove('active');
+        adminSection.classList.add('active');
+        tabKiosk.classList.remove('active');
+        tabAdmin.classList.add('active');
+        renderTable();
+      }
+    }
+
+    // Capitalizar Nombre Completo automáticamente (Title Case respetando tildes)
+    function toTitleCase(str) {
+      return str
+        .trim()
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+
+    // Configurar eventos de formularios
+    function setupEventListeners() {
+      const studentNameInput = document.getElementById('studentName');
+      const studentCodeInput = document.getElementById('studentCode');
+
+      // Formateo automático al salir del campo nombre
+      studentNameInput.addEventListener('blur', () => {
+        if (studentNameInput.value.trim()) {
+          studentNameInput.value = toTitleCase(studentNameInput.value);
+        }
+      });
+
+      // Conversión automática a mayúsculas sin espacios para el código
+      studentCodeInput.addEventListener('input', () => {
+        const start = studentCodeInput.selectionStart;
+        studentCodeInput.value = studentCodeInput.value.toUpperCase().replace(/\s+/g, '');
+        studentCodeInput.setSelectionRange(start, start);
+      });
+
+      // Envío de Formulario de Asistencia (Kiosco)
+      document.getElementById('attendanceForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleStudentRegistration();
+      });
+
+      // Envío de Formulario de Configuración (Panel Docente)
+      document.getElementById('configForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newCourse = document.getElementById('configCourseName').value.trim();
+        const newPin = document.getElementById('configPin').value.trim();
+
+        if (!newCourse || !newPin) {
+          showToast('Completa el nombre de la asignatura y la contraseña.', true);
+          return;
+        }
+
+        appConfig.courseName = newCourse;
+        appConfig.sessionPin = newPin;
+        saveConfigToStorage();
+        syncUI();
+        showToast('Configuración de la sesión actualizada correctamente.');
+      });
+    }
+
+    // Procesar el registro de un estudiante
+    function handleStudentRegistration() {
+      const nameInput = document.getElementById('studentName');
+      const codeInput = document.getElementById('studentCode');
+      const pinInput = document.getElementById('sessionPin');
+
+      const formattedName = toTitleCase(nameInput.value);
+      const formattedCode = codeInput.value.trim().toUpperCase();
+      const enteredPin = pinInput.value.trim();
+
+      // 1. Validar campos vacíos
+      if (!formattedName || !formattedCode || !enteredPin) {
+        showKioskFeedback('Por favor completa todos los campos requeridos.', 'error');
+        return;
+      }
+
+      // 2. Validar Contraseña de Registro
+      if (enteredPin !== appConfig.sessionPin) {
+        showKioskFeedback('Contraseña de registro incorrecta. Verifica con tu docente.', 'error');
+        pinInput.value = '';
+        pinInput.focus();
+        return;
+      }
+
+      const now = new Date();
+      const currentDate = now.toLocaleDateString('es-SV', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+      // 3. Validar duplicados por Código de Estudiante en la sesión/fecha
+      const isDuplicate = attendanceRecords.some(
+        record => record.code.toUpperCase() === formattedCode && record.date === currentDate
+      );
+
+      if (isDuplicate) {
+        showKioskFeedback(`El código ${formattedCode} ya se encuentra registrado en esta sesión.`, 'error');
+        codeInput.select();
+        return;
+      }
+
+      // 4. Guardar Registro Exitoso
+      const currentTime = now.toLocaleTimeString('es-SV', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      const newRecord = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+        code: formattedCode,
+        name: formattedName,
+        course: appConfig.courseName,
+        date: currentDate,
+        time: currentTime
+      };
+
+      attendanceRecords.push(newRecord);
+      saveRecordsToStorage();
+      syncUI();
+
+      // 5. Notificación visual, limpieza instantánea y retorno de foco (< 1s)
+      showKioskFeedback(`¡Asistencia registrada! Bienvenido(a), ${formattedName} (${formattedCode}).`, 'success');
+
+      document.getElementById('attendanceForm').reset();
+      setTimeout(() => {
+        nameInput.focus();
+      }, 150);
+    }
+
+    // Mostrar notificación integrada en el Kiosco
+    function showKioskFeedback(message, type) {
+      const banner = document.getElementById('kioskFeedback');
+      const iconSpan = document.getElementById('kioskFeedbackIcon');
+      const textSpan = document.getElementById('kioskFeedbackText');
+
+      if (feedbackTimer) clearTimeout(feedbackTimer);
+
+      banner.className = `feedback-banner show ${type}`;
+      textSpan.textContent = message;
+
+      if (type === 'success') {
+        iconSpan.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+      } else {
+        iconSpan.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+      }
+
+      feedbackTimer = setTimeout(() => {
+        banner.classList.remove('show');
+      }, 4500);
+    }
+
+    // Mostrar/Ocultar contraseña
+    function togglePinVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.style.color = '#F9B410';
+      } else {
+        input.type = 'password';
+        btn.style.color = '';
+      }
+    }
+
+    // Renderizar Tabla en el Panel Docente
+    function renderTable() {
+      const tbody = document.getElementById('attendanceTableBody');
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      const filtered = attendanceRecords.filter(item =>
+        item.code.toLowerCase().includes(query) ||
+        item.name.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              ${attendanceRecords.length === 0
+                ? 'Aún no hay estudiantes registrados en esta sesión.'
+                : 'No se encontraron coincidencias para tu búsqueda.'}
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((record, index) => `
+        <tr>
+          <td style="font-weight:700; color:var(--text-muted);">${index + 1}</td>
+          <td><span class="code-pill">${escapeHTML(record.code)}</span></td>
+          <td style="font-weight:600;">${escapeHTML(record.name)}</td>
+          <td>${escapeHTML(record.date)}</td>
+          <td style="font-variant-numeric: tabular-nums; font-weight:600;">${escapeHTML(record.time)}</td>
+          <td style="text-align: center;">
+            <button type="button" class="btn-icon-delete" onclick="deleteSingleRecord('${record.id}')" title="Eliminar este registro">
+              Eliminar
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Eliminar un registro individual
+    function deleteSingleRecord(id) {
+      attendanceRecords = attendanceRecords.filter(r => r.id !== id);
+      saveRecordsToStorage();
+      syncUI();
+      showToast('Registro eliminado de la lista.');
+    }
+
+    // Modal de confirmación para limpiar toda la sesión
+    function openClearModal() {
+      if (attendanceRecords.length === 0) {
+        showToast('La lista de asistencia ya está vacía.');
+        return;
+      }
+      document.getElementById('clearModal').classList.add('active');
+    }
+
+    function closeClearModal() {
+      document.getElementById('clearModal').classList.remove('active');
+    }
+
+    function confirmClearSession() {
+      attendanceRecords = [];
+      saveRecordsToStorage();
+      syncUI();
+      closeClearModal();
+      showToast('Sesión reiniciada. Todos los registros fueron eliminados.');
+    }
+
+    // Exportar a CSV compatible con Microsoft Excel (UTF-8 con BOM)
+    function exportToCSV() {
+      if (attendanceRecords.length === 0) {
+        showToast('No hay registros para exportar.', true);
+        return;
+      }
+
+      const headers = ['N°', 'Código de Estudiante', 'Nombre Completo', 'Asignatura / Sesión', 'Fecha', 'Hora de Registro'];
+      const rows = attendanceRecords.map((r, i) => [
+        i + 1,
+        `"${r.code.replace(/"/g, '""')}"`,
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${(r.course || appConfig.courseName).replace(/"/g, '""')}"`,
+        `"${r.date}"`,
+        `"${r.time}"`
+      ]);
+
+      const csvContent = '\uFEFF' + [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\r\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const safeCourseName = appConfig.courseName
+        .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]/g, '_')
+        .replace(/_+/g, '_');
+      const todayISO = new Date().toISOString().slice(0, 10);
+
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Asistencia_${safeCourseName}_${todayISO}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast('Archivo CSV exportado correctamente para Excel.');
+    }
+
+    // Toast de notificación general
+    function showToast(message, isError = false) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      if (isError) {
+        toast.style.borderLeftColor = 'var(--danger)';
+      }
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3200);
+    }
+
+    // Prevención de inyección HTML al renderizar la tabla
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
