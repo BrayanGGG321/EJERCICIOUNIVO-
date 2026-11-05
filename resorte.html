@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Simulación masa‑resorte interactiva</title>
+<style>
+  /* --- Layout básico --------------------------------------------------- */
+  body, html {
+    margin:0; padding:0;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f0f4f8;
+    user-select:none;          /* evita selección accidental al arrastrar */
+  }
+  #container {
+    position:relative;
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* --- Pared fija ------------------------------------------------------ */
+  #wall {
+    position:absolute;
+    left:5%;
+    width:30px; height:200px;
+    background:#555;
+  }
+  /* --- Bloque ---------------------------------------------------------- */
+  #block {
+    position:absolute;
+    width:80px; height:80px;
+    background:#4a90e2;
+    border-radius:6px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:bold;
+    box-shadow:0 4px 8px rgba(0,0,0,0.2);
+  }
+  /* --- Línea de equilibrio -------------------------------------------- */
+  #equilibrium {
+    position:absolute;
+    left:calc(5% + 30px);   /* pared + grosor */
+    width:2px; height:220px;
+    background:#d9534f;
+    transform:translateX(-50%);
+  }
+  /* --- Texto de información ------------------------------------------- */
+  #info {
+    position:absolute;
+    top:10px; right:10px;
+    background:rgba(255,255,255,0.9);
+    padding:8px 12px;
+    border-radius:6px;
+    font-size:14px;
+    line-height:1.4;
+  }
+  /* --- Flecha de fuerza ------------------------------------------------ */
+  .arrow {
+    position:absolute;
+    width:0; height:0;
+    border-left:12px solid transparent;
+    border-right:12px solid transparent;
+    border-bottom:20px solid #e67e22;
+    transform-origin:50% 0%;
+    transition:transform 0.1s linear;
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="wall"></div>
+  <div id="equilibrium"></div>
+  <div id="block">Masa</div>
+  <canvas id="springCanvas"></canvas>
+  <div id="info">
+    <div><strong>k</strong> = <span id="kVal">50</span> N/m</div>
+    <div><strong>m</strong> = <span id="mVal">1</span> kg</div>
+    <div><strong>F</strong> = -k·x = <span id="forceVal">0</span> N</div>
+    <div><strong>x</strong> = <span id="xVal">0</span> m</div>
+    <div>Estado: <span id="stateVal">Equilibrio</span></div>
+  </div>
+  <div class="arrow" id="forceArrow"></div>
+</div>
+
+<script>
+/* -------------------------------------------------------------
+   Parámetros físicos
+------------------------------------------------------------- */
+const k = 50;    // constante elástica (N/m)
+const m = 1;     // masa (kg)
+const damping = 0.02; // coeficiente de amortiguamiento crítico (0‑1)
+
+// Conversión de unidades físicas → píxeles
+const PIXELS_PER_METER = 200; // 1 m ≈ 200 px (ajústalo si quieres)
+
+// Posiciones (en píxeles)
+const wallX = window.innerWidth * 0.05 + 30;   // derecha de la pared
+let equilibriumX = wallX + 150;               // posición de equilibrio (natural del resorte)
+let blockX = equilibriumX;                    // posición actual del bloque (izquierda del bloque)
+
+// Elementos del DOM
+const container = document.getElementById('container');
+const block = document.getElementById('block');
+const canvas = document.getElementById('springCanvas');
+const ctx = canvas.getContext('2d');
+const forceArrow = document.getElementById('forceArrow');
+const xVal = document.getElementById('xVal');
+const forceVal = document.getElementById('forceVal');
+const stateVal = document.getElementById('stateVal');
+
+/* -------------------------------------------------------------
+   Configuración del canvas
+------------------------------------------------------------- */
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  draw();            // redibuja al cambiar el tamaño
+});
+resizeCanvas();
+
+/* -------------------------------------------------------------
+   Dibujar el resorte (zig‑zag)
+------------------------------------------------------------- */
+function drawSpring() {
+  const startX = wallX;
+  const endX   = blockX;
+  const y = container.clientHeight/2;
+  const coilCount = 8;                 // número de espiras
+  const coilWidth = (endX - startX) / (coilCount*2);
+  ctx.strokeStyle = '#2c3e50';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(startX, y);
+  for (let i = 0; i < coilCount; i++) {
+    const nx = startX + (2*i+1)*coilWidth;
+    const ny = (i % 2 === 0) ? y-20 : y+20;
+    ctx.lineTo(nx, ny);
+    ctx.lineTo(nx + coilWidth, y);
+  }
+  ctx.stroke();
+}
+
+/* -------------------------------------------------------------
+   Dibujar todo
+------------------------------------------------------------- */
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawSpring();
+
+  // colocar bloque (centrado verticalmente)
+  block.style.top = `${container.clientHeight/2 - block.offsetHeight/2}px`;
+  block.style.left = `${blockX - block.offsetWidth/2}px`;
+
+  // actualizar flecha de fuerza
+  const arrowSize = 30;
+  const dir = blockX > equilibriumX ? -1 : (blockX < equilibriumX ? 1 : 0);
+  forceArrow.style.top = `${container.clientHeight/2 - arrowSize}px`;
+  forceArrow.style.left = `${blockX - arrowSize/2}px`;
+  forceArrow.style.transform = `rotate(${dir*180}deg)`;
+  forceArrow.style.display = dir===0 ? 'none' : 'block';
+
+  // cálculo de x, fuerza y estado
+  const xMeters = (blockX - equilibriumX) / PIXELS_PER_METER;
+  const force = -k * xMeters;
+  xVal.textContent = xMeters.toFixed(3);
+  forceVal.textContent = force.toFixed(2);
+  if (Math.abs(xMeters) < 0.001) {
+    stateVal.textContent = 'Equilibrio';
+  } else if (xMeters > 0) {
+    stateVal.textContent = 'Estirado';
+  } else {
+    stateVal.textContent = 'Comprimido';
+  }
+}
+
+/* -------------------------------------------------------------
+   Interacción: arrastrar el bloque
+------------------------------------------------------------- */
+let dragging = false;
+let dragOffset = 0;
+
+block.addEventListener('mousedown', (e) => {
+  dragging = true;
+  const rect = block.getBoundingClientRect();
+  dragOffset = e.clientX - (rect.left + rect.width/2);
+  // detener cualquier animación en curso
+  cancelAnimationFrame(animationId);
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  const newX = e.clientX - dragOffset;
+  // limitar a zona razonable (no pasar por la pared)
+  const minX = wallX + 40;               // dejar espacio para la pared
+  const maxX = container.clientWidth - 40;
+  blockX = Math.min(Math.max(newX, minX), maxX);
+  draw();
+});
+
+window.addEventListener('mouseup', () => {
+  if (!dragging) return;
+  dragging = false;
+  // iniciar movimiento armónico amortiguado desde la posición actual
+  startOscillation();
+});
+
+/* -------------------------------------------------------------
+   Simulación física (oscillador amortiguado)
+------------------------------------------------------------- */
+let animationId = null;
+let v = 0;                       // velocidad en m/s (convertida a px/s internamente)
+let lastTime = null;
+
+function startOscillation() {
+  v = 0;                         // velocidad inicial nula al soltar
+  lastTime = null;
+  animationId = requestAnimationFrame(step);
+}
+
+function step(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const dt = (timestamp - lastTime) / 1000;   // en segundos
+  lastTime = timestamp;
+
+  // posición y velocidad en unidades físicas (metros)
+  let x = (blockX - equilibriumX) / PIXELS_PER_METER; // desplazamiento actual
+  // ecuación: m·a + c·v + k·x = 0   →   a = -(c/m)·v - (k/m)·x
+  const a = -(damping / m) * v - (k / m) * x;
+  v += a * dt;                // integración velocidad
+  x += v * dt;                // integración posición
+
+  // actualizar posición en píxeles
+  blockX = equilibriumX + x * PIXELS_PER_METER;
+
+  // detener cuando la energía sea muy pequeña
+  if (Math.abs(v) < 0.001 && Math.abs(x) < 0.001) {
+    blockX = equilibriumX;
+    draw();
+    return; // animación terminada
+  }
+
+  draw();
+  animationId = requestAnimationFrame(step);
+}
+
+/* -------------------------------------------------------------
+   Inicialización
+------------------------------------------------------------- */
+draw();   // dibuja estado inicial
+</script>
+</body>
+</html>
