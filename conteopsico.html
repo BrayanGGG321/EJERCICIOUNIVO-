@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicios de Conteo – Contexto Psicológico</title>
+    <style>
+        :root {
+            --primary: #003366;           /* azul oscuro */
+            --secondary: #FEB400;         /* dorado */
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .container {
+            max-width: 820px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--secondary);
+        }
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        .progress {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .context-badge {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .exercise-box {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+        }
+        .question-group, .input-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .question-group label,
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: .3s;
+            font-weight: bold;
+        }
+        button:hover { background-color: #002244; }
+        .btn-next {
+            background-color: var(--secondary);
+            color: #000;
+            margin-top: 20px;
+            display: none;
+        }
+        .btn-next:hover { background-color: #e0a000; }
+        #feedback { margin-top: 25px; display: none; }
+        .feedback-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; line-height: 1.5; }
+        .correct-bg   { background-color: #d4edda; border-left: 5px solid var(--success); }
+        .incorrect-bg { background-color: #f8d7da; border-left: 5px solid var(--danger); }
+        .alert { padding: 15px; margin-bottom: 10px; border-radius: 8px; line-height: 1.5; font-size: 1.1em; }
+        .alert-success { background-color: #d4edda; border-left: 5px solid var(--success); color:#155724; }
+        .alert-error   { background-color: #f8d7da; border-left: 5px solid var(--danger);   color:#721c24; }
+        .alert-warning { background-color: #fff3cd; border-left: 5px solid var(--warning); color:#856404; }
+        .formula-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 1.2em;
+            text-align: center;
+            border: 1px dashed #ccc;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-group.full-width { grid-column: span 2; background:#eef2f5; border-color: var(--primary); }
+        @media (max-width: 600px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .input-group.full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ---------- SECCIÓN 1: Selección de método (similar a la PAGINA 1) ---------- -->
+<div class="container" id="section-mc">
+    <h1>Ejercicios de Conteo – Psicológico</h1>
+    <div class="subtitle">Laboratorio interactivo: identificación del método de conteo</div>
+    <div class="progress" id="progressMc">Ejercicio 1 de 8</div>
+
+    <span class="context-badge" id="badgeMc">Contexto</span>
+    <div class="exercise-box" id="textMc">Cargando ejercicio…</div>
+
+    <div class="question-group">
+        <label>1. ¿Qué método de conteo se debe aplicar?</label>
+        <select id="selMethodMc">
+            <option value="">-- Selecciona un método --</option>
+            <option value="Variación">Variación</option>
+            <option value="Permutación">Permutación</option>
+            <option value="Combinación">Combinación</option>
+        </select>
+    </div>
+
+    <div class="question-group">
+        <label>2. ¿Importa el orden en que se agrupan los elementos?</label>
+        <select id="selOrderMc">
+            <option value="">-- Selecciona --</option>
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+        </select>
+    </div>
+
+    <div class="question-group">
+        <label>3. ¿Se utilizan TODOS los elementos disponibles (m = n)?</label>
+        <select id="selAllMc">
+            <option value="">-- Selecciona --</option>
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+        </select>
+    </div>
+
+    <button id="btnEvalMc" onclick="evaluateMc()">Evaluar Respuesta</button>
+
+    <div id="feedbackMc"></div>
+
+    <button id="btnNextMc" class="btn-next" onclick="nextMc()">Siguiente Ejercicio ➔</button>
+</div>
+
+<!-- ---------- SECCIÓN 2: Cálculo numérico (similar a la PAGINA 2) ---------- -->
+<div class="container" id="section-calc">
+    <h1>Ejercicios de Conteo – Psicológico</h1>
+    <div class="subtitle">Laboratorio de cálculos: aplicación de fórmulas</div>
+    <div class="progress" id="progressCalc">Ejercicio 1 de 8</div>
+
+    <span class="context-badge" id="badgeCalc">Contexto</span>
+    <div class="exercise-box" id="textCalc">Cargando ejercicio…</div>
+
+    <div class="input-grid">
+        <div class="input-group">
+            <label>Parámetro <i>m</i></label>
+            <input type="number" id="inputMCalc" placeholder="Ej: 10" min="0">
+        </div>
+        <div class="input-group">
+            <label>Parámetro <i>n</i></label>
+            <input type="number" id="inputNCalc" placeholder="Ej: 3" min="0">
+        </div>
+        <div class="input-group full-width">
+            <label>Resultado Final</label>
+            <input type="number" id="inputResultCalc" placeholder="Ej: 120" min="0">
+        </div>
+    </div>
+
+    <button id="btnEvalCalc" onclick="evaluateCalc()">Verificar Respuesta</button>
+
+    <div id="feedbackCalc"></div>
+
+    <button id="btnNextCalc" class="btn-next" onclick="nextCalc()">¡Correcto! Siguiente Ejercicio ➔</button>
+</div>
+
+<script>
+/* ---------- DATOS: EJERCICIOS EN CONTEXTO PSICOLÓGICO ---------- */
+const exercisesMc = [
+    {
+        context: "Evaluación clínica",
+        text: "Un psicólogo debe aplicar 5 pruebas estandarizadas diferentes a un paciente en una sesión. ¿Cuántas órdenes distintas de aplicación son posibles?",
+        cMethod: "Permutación",
+        cOrder: "Sí",
+        cAll: "Sí",
+        expOrder: "El orden de administración de las pruebas altera la información que se obtiene, por lo tanto importa.",
+        expAll: "Hay 5 pruebas (m=5) y se usarán todas (n=5).",
+        expMethod: "Al importar el orden y usar todos los elementos, la técnica adecuada es la Permutación."
+    },
+    {
+        context: "Terapia de grupo",
+        text: "Se deben seleccionar 4 pacientes de un grupo de 12 para participar en una intervención grupal. ¿De cuántas formas pueden elegirse?",
+        cMethod: "Combinación",
+        cOrder: "No",
+        cAll: "No",
+        expOrder: "En una terapia grupal el conjunto de participantes es lo relevante; el orden en que se elijan no cambia el grupo.",
+        expAll: "Disponemos de 12 pacientes (m=12) y elegimos 4 (n=4).",
+        expMethod: "Al no importar el orden y no usar todos los pacientes, corresponde una Combinación."
+    },
+    {
+        context: "Estudio experimental",
+        text: "Un investigador quiere crear una lista de 3 estímulos diferentes a partir de un banco de 10 posibles para una prueba de reconocimiento. ¿Cuántas listas distintas pueden generarse?",
+        cMethod: "Variación",
+        cOrder: "Sí",
+        cAll: "No",
+        expOrder: "El orden de presentación de los estímulos afecta la respuesta del participante, por lo que importa.",
+        expAll: "Hay 10 estímulos (m=10) y se usarán solo 3 (n=3).",
+        expMethod: "Orden importa y no todos los elementos se usan → Variación."
+    },
+    {
+        context: "Selección de casos",
+        text: "De una muestra de 8 casos clínicos, se necesita formar un comité de 3 profesionales para revisar los diagnósticos. ¿Cuántas combinaciones distintas existen?",
+        cMethod: "Combinación",
+        cOrder: "No",
+        cAll: "No",
+        expOrder: "Los miembros del comité tienen roles equivalentes; el orden de selección no importa.",
+        expAll: "Hay 8 casos (m=8) y se eligen 3 (n=3).",
+        expMethod: "Sin orden y sin uso total → Combinación."
+    },
+    {
+        context: "Clasificación diagnóstica",
+        text: "En una prueba se presentan 8 síntomas diferentes y el clínico debe clasificar el orden de aparición. ¿Cuántas disposiciones posibles existen?",
+        cMethod: "Permutación",
+        cOrder: "Sí",
+        cAll: "Sí",
+        expOrder: "El orden de los síntomas determina el diagnóstico, por lo que es fundamental.",
+        expAll: "Los 8 síntomas (m=8) se consideran todos (n=8).",
+        expMethod: "Orden e uso total → Permutación."
+    },
+    {
+        context: "Asignación de roles terapéuticos",
+        text: "Una clínica cuenta con 7 terapeutas y necesita asignar 4 de ellos a roles distintos (Facilitador, Observador, Evaluador, Coordinador). ¿De cuántas maneras se pueden asignar los puestos?",
+        cMethod: "Variación",
+        cOrder: "Sí",
+        cAll: "No",
+        expOrder: "Los roles son diferentes; cambiar a los mismos terapeutas entre puestos crea una asignación distinta.",
+        expAll: "Disponemos de 7 terapeutas (m=7) y asignamos 4 (n=4).",
+        expMethod: "Orden importa y no se usan todos → Variación."
+    },
+    {
+        context: "Distribución de tareas",
+        text: "Un jefe de proyecto tiene 6 actividades clínicas diferentes y 6 asistentes; cada actividad debe asignarse a un asistente. ¿Cuántas distribuciones posibles existen?",
+        cMethod: "Permutación",
+        cOrder: "Sí",
+        cAll: "Sí",
+        expOrder: "Cada actividad es única; asignar una a un asistente distinto modifica la distribución.",
+        expAll: "6 actividades (m=6) y 6 asistentes (n=6).",
+        expMethod: "Orden e uso total → Permutación."
+    },
+    {
+        context: "Selección de entrevistas",
+        text: "Un entrevistador tiene 5 entrevistas programadas, pero solo podrá realizar 2. El orden no importa. ¿Cuántas combinaciones de entrevistas puede elegir?",
+        cMethod: "Combinación",
+        cOrder: "No",
+        cAll: "No",
+        expOrder: "Al no importar cuál se realiza primero, solo importa el conjunto seleccionado.",
+        expAll: "5 entrevistas (m=5), se eligen 2 (n=2).",
+        expMethod: "Sin orden y sin uso total → Combinación."
+    }
+];
+
+const exercisesCalc = [
+    {
+        context: "Evaluación clínica",
+        text: "Un psicólogo debe aplicar 5 pruebas estandarizadas diferentes a un paciente en una sesión. ¿Cuántas órdenes distintas de aplicación son posibles?",
+        method: "Permutación",
+        m: 5,
+        n: 5,
+        result: 120,
+        formula: "P₅ = 5! = 5 × 4 × 3 × 2 × 1 = 120"
+    },
+    {
+        context: "Terapia de grupo",
+        text: "Se deben seleccionar 4 pacientes de un grupo de 12 para participar en una intervención grupal. ¿De cuántas formas pueden elegirse?",
+        method: "Combinación",
+        m: 12,
+        n: 4,
+        result: 495,
+        formula: "C₁₂,₄ = 12! / [4!·(12‑4)!] = 495"
+    },
+    {
+        context: "Estudio experimental",
+        text: "Un investigador quiere crear una lista de 3 estímulos diferentes a partir de un banco de 10 posibles para una prueba de reconocimiento. ¿Cuántas listas distintas pueden generarse?",
+        method: "Variación",
+        m: 10,
+        n: 3,
+        result: 720,
+        formula: "V₁₀,₃ = 10! / (10‑3)! = 10·9·8 = 720"
+    },
+    {
+        context: "Selección de casos",
+        text: "De una muestra de 8 casos clínicos, se necesita formar un comité de 3 profesionales para revisar los diagnósticos. ¿Cuántas combinaciones distintas existen?",
+        method: "Combinación",
+        m: 8,
+        n: 3,
+        result: 56,
+        formula: "C₈,₃ = 8! / [3!·(8‑3)!] = 56"
+    },
+    {
+        context: "Clasificación diagnóstica",
+        text: "En una prueba se presentan 8 síntomas diferentes y el clínico debe clasificar el orden de aparición. ¿Cuántas disposiciones posibles existen?",
+        method: "Permutación",
+        m: 8,
+        n: 8,
+        result: 40320,
+        formula: "P₈ = 8! = 40 320"
+    },
+    {
+        context: "Asignación de roles terapéuticos",
+        text: "Una clínica cuenta con 7 terapeutas y necesita asignar 4 de ellos a roles distintos (Facilitador, Observador, Evaluador, Coordinador). ¿De cuántas maneras se pueden asignar los puestos?",
+        method: "Variación",
+        m: 7,
+        n: 4,
+        result: 840,
+        formula: "V₇,₄ = 7! / (7‑4)! = 840"
+    },
+    {
+        context: "Distribución de tareas",
+        text: "Un jefe de proyecto tiene 6 actividades clínicas diferentes y 6 asistentes; cada actividad debe asignarse a un asistente. ¿Cuántas distribuciones posibles existen?",
+        method: "Permutación",
+        m: 6,
+        n: 6,
+        result: 720,
+        formula: "P₆ = 6! = 720"
+    },
+    {
+        context: "Selección de entrevistas",
+        text: "Un entrevistador tiene 5 entrevistas programadas, pero solo podrá realizar 2. El orden no importa. ¿Cuántas combinaciones de entrevistas puede elegir?",
+        method: "Combinación",
+        m: 5,
+        n: 2,
+        result: 10,
+        formula: "C₅,₂ = 5! / [2!·(5‑2)!] = 10"
+    }
+];
+
+/* ---------- LÓGICA SECCIÓN 1 (Método) ---------- */
+let idxMc = 0;
+function loadMc() {
+    document.getElementById('selMethodMc').value = "";
+    document.getElementById('selOrderMc').value = "";
+    document.getElementById('selAllMc').value = "";
+    document.getElementById('feedbackMc').style.display = 'none';
+    document.getElementById('btnNextMc').style.display = 'none';
+    document.getElementById('btnEvalMc').style.display = 'block';
+
+    document.getElementById('progressMc').innerText = `Ejercicio ${idxMc+1} de ${exercisesMc.length}`;
+    const ex = exercisesMc[idxMc];
+    document.getElementById('badgeMc').innerText = ex.context;
+    document.getElementById('textMc').innerText = ex.text;
+}
+function evaluateMc() {
+    const uMethod = document.getElementById('selMethodMc').value;
+    const uOrder  = document.getElementById('selOrderMc').value;
+    const uAll    = document.getElementById('selAllMc').value;
+    if (!uMethod || !uOrder || !uAll) {
+        alert("Completa las tres preguntas antes de evaluar.");
+        return;
+    }
+    const ex = exercisesMc[idxMc];
+    let html = "";
+    // Orden
+    if (uOrder===ex.cOrder) {
+        html+=`<div class="feedback-item correct-bg">✅ <strong>Orden:</strong> Correcto. ${ex.expOrder}</div>`;
+    } else {
+        html+=`<div class="feedback-item incorrect-bg">❌ <strong>Orden:</strong> Incorrecto. La respuesta correcta es "${ex.cOrder}". ${ex.expOrder}</div>`;
+    }
+    // Todos los elementos
+    if (uAll===ex.cAll) {
+        html+=`<div class="feedback-item correct-bg">✅ <strong>Uso total:</strong> Correcto. ${ex.expAll}</div>`;
+    } else {
+        html+=`<div class="feedback-item incorrect-bg">❌ <strong>Uso total:</strong> Incorrecto. La respuesta correcta es "${ex.cAll}". ${ex.expAll}</div>`;
+    }
+    // Método
+    if (uMethod===ex.cMethod) {
+        html+=`<div class="feedback-item correct-bg">🎯 <strong>Método:</strong> ¡Exacto! (${ex.cMethod}). ${ex.expMethod}</div>`;
+    } else {
+        let why = "";
+        if (uMethod==="Combinación") why="en las combinaciones NO importa el orden.";
+        if (uMethod==="Permutación") why="en las permutaciones se requieren TODOS los elementos.";
+        if (uMethod==="Variación") {
+            if (ex.cMethod==="Combinación") why="las variaciones sí consideran el orden.";
+            if (ex.cMethod==="Permutación") why="las variaciones no usan todos los elementos.";
+        }
+        html+=`<div class="feedback-item incorrect-bg">❌ <strong>Método:</strong> Incorrecto. ${why} <br>El método correcto es <strong>${ex.cMethod}</strong>. ${ex.expMethod}</div>`;
+    }
+    document.getElementById('feedbackMc').innerHTML = html;
+    document.getElementById('feedbackMc').style.display = 'block';
+    document.getElementById('btnEvalMc').style.display = 'none';
+    document.getElementById('btnNextMc').style.display = 'block';
+}
+function nextMc() {
+    idxMc = (idxMc+1) % exercisesMc.length;
+    loadMc();
+}
+window.onload = loadMc;
+
+/* ---------- LÓGICA SECCIÓN 2 (Cálculo) ---------- */
+let idxCalc = 0;
+function loadCalc() {
+    document.getElementById('inputMCalc').value = "";
+    document.getElementById('inputNCalc').value = "";
+    document.getElementById('inputResultCalc').value = "";
+    document.getElementById('feedbackCalc').style.display = 'none';
+    document.getElementById('btnNextCalc').style.display = 'none';
+    document.getElementById('btnEvalCalc').style.display = 'block';
+
+    document.getElementById('progressCalc').innerText = `Ejercicio ${idxCalc+1} de ${exercisesCalc.length}`;
+    const ex = exercisesCalc[idxCalc];
+    document.getElementById('badgeCalc').innerText = ex.context;
+    document.getElementById('textCalc').innerText = ex.text;
+}
+function evaluateCalc() {
+    const uM = parseInt(document.getElementById('inputMCalc').value);
+    const uN = parseInt(document.getElementById('inputNCalc').value);
+    const uRes = parseInt(document.getElementById('inputResultCalc').value);
+    if (isNaN(uM)||isNaN(uN)||isNaN(uRes)) {
+        showCalcAlert("⚠️ Debes completar los tres campos con números.", "warning");
+        return;
+    }
+    const ex = exercisesCalc[idxCalc];
+    let correct = true;
+    let html = "";
+    if (uM!==ex.m) {
+        correct = false;
+        html+=`<div class="alert alert-error">❌ <strong>m:</strong> has puesto ${uM}. Debe ser ${ex.m}.</div>`;
+    } else {
+        html+=`<div class="alert alert-success">✅ <strong>m = ${ex.m}</strong></div>`;
+    }
+    if (uN!==ex.n) {
+        correct = false;
+        html+=`<div class="alert alert-error">❌ <strong>n:</strong> has puesto ${uN}. Debe ser ${ex.n}.</div>`;
+    } else {
+        html+=`<div class="alert alert-success">✅ <strong>n = ${ex.n}</strong></div>`;
+    }
+    if (uM===ex.m && uN===ex.n && uRes!==ex.result) {
+        correct = false;
+        html+=`<div class="alert alert-warning">⚠️ Parámetros correctos pero el cálculo (${uRes}) no coincide con el resultado esperado (${ex.result}).</div>`;
+    }
+    if (correct && uRes===ex.result) {
+        html = `
+            <div class="alert alert-success" style="text-align:center;font-size:1.3em;">
+                🎉 <strong>¡Respuesta correcta!</strong> 🎉
+            </div>
+            <div class="formula-box"><strong>Desarrollo:</strong><br>${ex.formula}</div>
+        `;
+        document.getElementById('btnEvalCalc').style.display = 'none';
+        if (idxCalc < exercisesCalc.length-1) {
+            document.getElementById('btnNextCalc').innerText = "¡Correcto! Siguiente Ejercicio ➔";
+            document.getElementById('btnNextCalc').onclick = nextCalc;
+        } else {
+            document.getElementById('btnNextCalc').innerText = "🏆 ¡Completado! Reiniciar ➔";
+            document.getElementById('btnNextCalc').onclick = () => location.reload();
+        }
+    }
+    document.getElementById('feedbackCalc').innerHTML = html;
+    document.getElementById('feedbackCalc').style.display = 'block';
+    if (!correct) {
+        document.getElementById('btnNextCalc').style.display = 'none';
+    } else {
+        document.getElementById('btnNextCalc').style.display = 'block';
+    }
+}
+function showCalcAlert(msg, type) {
+    const colors = {warning:"#fff3cd",error:"#f8d7da",success:"#d4edda"};
+    document.getElementById('feedbackCalc').innerHTML = `<div class="alert" style="background:${colors[type]};border-left:5px solid var(--${type});">${msg}</div>`;
+    document.getElementById('feedbackCalc').style.display='block';
+}
+function nextCalc() {
+    idxCalc = (idxCalc+1) % exercisesCalc.length;
+    loadCalc();
+}
+window.onload = () => { loadMc(); loadCalc(); };
+</script>
+</body>
+</html>
