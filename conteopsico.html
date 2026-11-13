@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ejercicios de Conteo – Contexto Psicológico</title>
+    <title>Ejercicios de Conteo – Contexto Psicológico (Colaborativo)</title>
+    <!-- SDK de Firebase para sincronización en tiempo real en GitHub Pages -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #003366;           /* azul oscuro */
@@ -22,8 +25,9 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center;
             flex-direction: column;
-            gap: 30px;
+            gap: 20px;
         }
         .container {
             max-width: 820px;
@@ -33,11 +37,13 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-top: 5px solid var(--secondary);
+            box-sizing: border-box;
         }
         h1 {
             color: var(--primary);
             text-align: center;
             margin-bottom: 5px;
+            margin-top: 0;
         }
         .subtitle {
             text-align: center;
@@ -84,12 +90,18 @@
             margin-bottom: 8px;
             color: var(--primary);
         }
-        select, input[type="number"] {
+        select, input[type="number"], input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 1em;
+            box-sizing: border-box;
+        }
+        select:disabled, input:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+            opacity: 0.75;
         }
         button {
             background-color: var(--primary);
@@ -103,15 +115,20 @@
             transition: .3s;
             font-weight: bold;
         }
-        button:hover { background-color: #002244; }
+        button:hover:not(:disabled) { background-color: #002244; }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
         .btn-next {
             background-color: var(--secondary);
             color: #000;
             margin-top: 20px;
             display: none;
         }
-        .btn-next:hover { background-color: #e0a000; }
-        #feedback { margin-top: 25px; display: none; }
+        .btn-next:hover:not(:disabled) { background-color: #e0a000; }
+        #feedbackMc, #feedbackCalc { margin-top: 25px; display: none; }
         .feedback-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; line-height: 1.5; }
         .correct-bg   { background-color: #d4edda; border-left: 5px solid var(--success); }
         .incorrect-bg { background-color: #f8d7da; border-left: 5px solid var(--danger); }
@@ -135,6 +152,158 @@
             gap: 20px;
         }
         .input-group.full-width { grid-column: span 2; background:#eef2f5; border-color: var(--primary); }
+
+        /* ---------- ESTILOS DEL SISTEMA COLABORATIVO EN TIEMPO REAL ---------- */
+        .collab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .user-pill {
+            background: rgba(255,255,255,0.15);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .turn-banner {
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.15em;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .turn-active-me {
+            background-color: #d4edda;
+            border: 2px solid var(--success);
+            color: #155724;
+            box-shadow: 0 0 12px rgba(40, 167, 69, 0.25);
+        }
+        .turn-active-other {
+            background-color: #fff3cd;
+            border: 2px solid var(--secondary);
+            color: #856404;
+        }
+        .turn-paused {
+            background-color: #f8d7da;
+            border: 2px solid var(--danger);
+            color: #721c24;
+        }
+        .turn-done {
+            background-color: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+        }
+        .participants-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .participant-chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e9ecef;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+        .chip-turn {
+            background: var(--secondary);
+            color: #000;
+            border-color: #b38000;
+            transform: scale(1.04);
+        }
+        .chip-done {
+            background: #d4edda;
+            color: #155724;
+            border-color: var(--success);
+        }
+        .teacher-panel {
+            background: #1e293b;
+            color: white;
+            border-top: 5px solid var(--secondary);
+        }
+        .teacher-panel h2 {
+            color: var(--secondary);
+            margin-top: 0;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .teacher-controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-teacher {
+            padding: 10px 14px;
+            font-size: 0.95em;
+            border-radius: 6px;
+        }
+        .btn-gold { background-color: var(--secondary); color: #000; }
+        .btn-gold:hover:not(:disabled) { background-color: #e0a000; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-danger:hover:not(:disabled) { background-color: #b02a37; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover:not(:disabled) { background-color: #218838; }
+        .intervention-header {
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.95em;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .intervention-body {
+            border: 2px solid var(--primary);
+            border-top: none;
+            padding: 15px;
+            border-radius: 0 0 8px 8px;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+        .history-list {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f8f9fa;
+            font-size: 0.92em;
+        }
+        .history-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .hidden { display: none !important; }
+
         @media (max-width: 600px) {
             .input-grid { grid-template-columns: 1fr; }
             .input-group.full-width { grid-column: span 1; }
@@ -143,10 +312,88 @@
 </head>
 <body>
 
-<!-- ---------- SECCIÓN 1: Selección de método (similar a la PAGINA 1) ---------- -->
-<div class="container" id="section-mc">
+<!-- ---------- PANEL DE CONTROL DEL DOCENTE (SOLO VISIBLE PARA BrayanGGG) ---------- -->
+<div class="container teacher-panel hidden" id="teacher-panel">
+    <h2>
+        <span>👨‍🏫 Panel de Control Docente (BrayanGGG)</span>
+        <span id="teacherStatusBadge" class="context-badge" style="margin:0;">En Registro</span>
+    </h2>
+    <div id="teacherInfoText" style="font-size:0.95em; color:#cbd5e1; margin-bottom:10px;">
+        Esperando participantes...
+    </div>
+    <div class="teacher-controls-grid">
+        <button id="btnTeacherStart" class="btn-teacher btn-gold" onclick="teacherCloseRegAndStart()">🔒 Cerrar Registro e Iniciar</button>
+        <button id="btnTeacherPause" class="btn-teacher btn-danger" onclick="teacherTogglePause()">⏸️ Pausar Actividad</button>
+        <button id="btnTeacherSkip" class="btn-teacher" style="background:#475569;" onclick="teacherSkipTurn()">🔀 Saltar / Reasignar Turno</button>
+        <button id="btnTeacherToCalc" class="btn-teacher btn-gold" onclick="teacherGoToSection('calc')">➡️ Ir a Apartado b) Cálculo</button>
+        <button id="btnTeacherToMc" class="btn-teacher" style="background:#334155;" onclick="teacherGoToSection('mc')">⬅️ Volver a Apartado a) Método</button>
+        <button id="btnTeacherNextEx" class="btn-teacher btn-success" onclick="teacherChangeExercise(1)">⏭️ Siguiente Ejercicio</button>
+        <button id="btnTeacherPrevEx" class="btn-teacher" style="background:#334155;" onclick="teacherChangeExercise(-1)">⏮️ Ejercicio Anterior</button>
+        <button id="btnTeacherReopenReg" class="btn-teacher" style="background:#0284c7;" onclick="teacherToggleRegistration()">🔓 Abrir/Cerrar Registro</button>
+        <button id="btnTeacherReset" class="btn-teacher btn-danger" onclick="teacherResetSession()">🗑️ Reiniciar Toda la Sesión</button>
+    </div>
+</div>
+
+<!-- ---------- SALA DE REGISTRO DE PARTICIPANTES ---------- -->
+<div class="container" id="registration-section">
     <h1>Ejercicios de Conteo – Psicológico</h1>
-    <div class="subtitle">Laboratorio interactivo: identificación del método de conteo</div>
+    <div class="subtitle">Registro de Participación Colaborativa en Tiempo Real</div>
+
+    <div id="reg-form-box" class="question-group">
+        <label for="inputParticipantName">Introduce tu Nombre o Identificador para unirte:</label>
+        <input type="text" id="inputParticipantName" placeholder="Ej: Ana Martínez" autocomplete="off" onkeypress="if(event.key==='Enter') registerParticipant()">
+        <div style="margin-top:12px;">
+            <button id="btnRegister" onclick="registerParticipant()">Registrarme en la Actividad</button>
+        </div>
+    </div>
+
+    <div id="reg-closed-notice" class="alert alert-warning hidden">
+        🔒 El registro de nuevos participantes ha sido cerrado por el docente porque la actividad ya comenzó. Si ya estabas registrado en este navegador, escribe exactamente tu mismo nombre para recuperar tu sesión.
+    </div>
+
+    <div id="reg-waiting-notice" class="alert alert-success hidden">
+        ✅ Estás registrado como <strong id="myRegisteredNameDisplay"></strong>. Esperando a que el docente inicie la actividad...
+    </div>
+
+    <div style="margin-top:20px;">
+        <div class="progress" style="margin-bottom:8px;">
+            👥 Participantes Registrados (<span id="regCount">0</span>):
+        </div>
+        <div id="regParticipantsList" class="participants-grid">
+            <span style="color:#666; font-style:italic;">Conectando con el servidor en tiempo real...</span>
+        </div>
+    </div>
+</div>
+
+<!-- ---------- BARRA DE ESTADO Y SINCRONIZACIÓN DE TURNOS ---------- -->
+<div class="container hidden" id="status-bar-container" style="padding: 20px 30px;">
+    <div class="collab-header">
+        <div>
+            <strong id="syncCurrentStageLabel">Ejercicio 1 de 8 — Apartado a) Análisis del Método</strong>
+        </div>
+        <div class="user-pill">
+            👤 Conectado como: <strong id="currentUserBadge">—</strong>
+            <a href="#" onclick="changeLocalIdentity(event)" style="color:#FEB400; margin-left:8px; font-size:0.85em;">(Cambiar)</a>
+        </div>
+    </div>
+
+    <div id="turnBanner" class="turn-banner turn-active-other">
+        Cargando turno actual...
+    </div>
+
+    <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; font-size:0.95em; font-weight:bold; color:var(--primary);">
+            <span>Estado de la Rotación en este Apartado:</span>
+            <span id="rotationStatsText">0 completados de 0</span>
+        </div>
+        <div id="liveParticipantsChips" class="participants-grid"></div>
+    </div>
+</div>
+
+<!-- ---------- SECCIÓN 1: Selección de método (Apartado a) ---------- -->
+<div class="container hidden" id="section-mc">
+    <h1>Ejercicios de Conteo – Psicológico</h1>
+    <div class="subtitle">Apartado a) Análisis e identificación del método de conteo</div>
     <div class="progress" id="progressMc">Ejercicio 1 de 8</div>
 
     <span class="context-badge" id="badgeMc">Contexto</span>
@@ -184,13 +431,13 @@
 
     <div id="feedbackMc"></div>
 
-    <button id="btnNextMc" class="btn-next" onclick="nextMc()">Siguiente Ejercicio ➔</button>
+    <button id="btnNextMc" class="btn-next" onclick="nextMc()">Pasar al Apartado b) Aplicación Numérica ➔</button>
 </div>
 
-<!-- ---------- SECCIÓN 2: Cálculo numérico (similar a la PAGINA 2) ---------- -->
-<div class="container" id="section-calc">
+<!-- ---------- SECCIÓN 2: Cálculo numérico (Apartado b) ---------- -->
+<div class="container hidden" id="section-calc">
     <h1>Ejercicios de Conteo – Psicológico</h1>
-    <div class="subtitle">Laboratorio de cálculos: aplicación de fórmulas</div>
+    <div class="subtitle">Apartado b) Aplicación numérica del método seleccionado</div>
     <div class="progress" id="progressCalc">Ejercicio 1 de 8</div>
 
     <span class="context-badge" id="badgeCalc">Contexto</span>
@@ -218,8 +465,24 @@
     <button id="btnNextCalc" class="btn-next" onclick="nextCalc()">¡Correcto! Siguiente Ejercicio ➔</button>
 </div>
 
+<!-- ---------- HISTORIAL DE PARTICIPACIÓN EN TIEMPO REAL ---------- -->
+<div class="container hidden" id="history-container">
+    <div class="progress" style="margin-bottom:10px;">📋 Historial de Intervenciones en Tiempo Real</div>
+    <div id="historyList" class="history-list">
+        <div style="color:#666; font-style:italic;">Aún no se han registrado respuestas en esta sesión.</div>
+    </div>
+</div>
+
 <script>
-/* ---------- DATOS: EJERCICIOS EN CONTEXTO PSICOLÓGICO ---------- */
+/* =========================================================================
+   CONFIGURACIÓN DE FIREBASE REALTIME DATABASE (PROYECTO UNIVO)
+   ========================================================================= */
+const FIREBASE_DATABASE_URL = "https://univo-241be-default-rtdb.firebaseio.com/";
+
+const TEACHER_SECRET_CODE = "BrayanGGG";
+const DB_ROOT_PATH = "sesion_conteo_psicologico_v1";
+
+/* ---------- DATOS ORIGINALES INTACTOS: EJERCICIOS EN CONTEXTO PSICOLÓGICO ---------- */
 const exercisesMc = [
     {
         context: "Evaluación clínica",
@@ -347,7 +610,7 @@ const exercisesCalc = [
         m: 8,
         n: 8,
         result: 40320,
-        formula: "P₈ = 8! = 40 320"
+        formula: "P₈ = 8! = 40 320"
     },
     {
         context: "Asignación de roles terapéuticos",
@@ -378,8 +641,416 @@ const exercisesCalc = [
     }
 ];
 
-/* ---------- LÓGICA SECCIÓN 1 (Método) ---------- */
+/* ---------- VARIABLES DE ESTADO Y SINCRONIZACIÓN ---------- */
+let db = null;
+let sessionRef = null;
+let globalState = null;
+
 let idxMc = 0;
+let idxCalc = 0;
+let lastRenderedExercise = -1;
+let lastRenderedSection = "";
+let lastRenderedTurnId = "";
+
+// Identidad persistente del dispositivo (para recuperar tras recargar página)
+let myUserId = localStorage.getItem("conteo_uid") || null;
+let myUserName = localStorage.getItem("conteo_uname") || null;
+let myRole = localStorage.getItem("conteo_urole") || null; // "student" | "teacher"
+
+/* ---------- INICIALIZACIÓN DE CONEXIÓN ---------- */
+function initApp() {
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp({ databaseURL: FIREBASE_DATABASE_URL });
+        }
+        db = firebase.database();
+        sessionRef = db.ref(DB_ROOT_PATH);
+        listenToRealtimeState();
+    } catch (err) {
+        console.error("Error al conectar con Firebase:", err);
+        alert("Error al conectar con Firebase. Verifica tu conexión a internet.");
+    }
+}
+
+function listenToRealtimeState() {
+    sessionRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            const initialState = {
+                status: "registro", // "registro" | "activa" | "pausada"
+                registrationOpen: true,
+                exerciseIdx: 0,
+                section: "mc", // "mc" (Apartado a) | "calc" (Apartado b)
+                participants: {},
+                rotation: {
+                    currentTurnId: "",
+                    lastTurnId: "",
+                    completedIds: [],
+                    sectionDone: false
+                },
+                lastIntervention: null,
+                history: {}
+            };
+            sessionRef.set(initialState);
+            return;
+        }
+        globalState = data;
+        syncInterfaceWithState();
+    }, (error) => {
+        console.error("Error de lectura en Firebase:", error);
+        document.getElementById("regParticipantsList").innerHTML =
+            `<span style="color:#dc3545; font-weight:bold;">⚠️ Permiso denegado en Firebase: Ve a Realtime Database ➔ pestaña Reglas y cambia .read y .write a true.</span>`;
+    });
+}
+
+/* ---------- 1. REGISTRO DE PARTICIPANTES Y ROL DOCENTE (BrayanGGG) ---------- */
+function registerParticipant() {
+    if (!globalState) return;
+    const rawName = document.getElementById("inputParticipantName").value.trim();
+    if (!rawName) {
+        alert("Por favor, introduce tu nombre o identificador.");
+        return;
+    }
+
+    // Verificar si es el código especial del docente BrayanGGG
+    if (rawName === TEACHER_SECRET_CODE) {
+        myRole = "teacher";
+        myUserId = "TEACHER_BRAYANGGG";
+        myUserName = "Docente (BrayanGGG)";
+        localStorage.setItem("conteo_urole", myRole);
+        localStorage.setItem("conteo_uid", myUserId);
+        localStorage.setItem("conteo_uname", myUserName);
+
+        const participantsObj = globalState.participants || {};
+        const participantIds = Object.keys(participantsObj);
+
+        if (globalState.status === "registro" && participantIds.length > 0) {
+            teacherCloseRegAndStart();
+        } else {
+            syncInterfaceWithState();
+        }
+        return;
+    }
+
+    // Verificar si el participante ya estaba registrado con ese mismo nombre (recuperación de identidad)
+    const participantsObj = globalState.participants || {};
+    let existingEntry = Object.values(participantsObj).find(
+        p => p.name.toLowerCase() === rawName.toLowerCase()
+    );
+
+    if (existingEntry) {
+        myRole = "student";
+        myUserId = existingEntry.id;
+        myUserName = existingEntry.name;
+        localStorage.setItem("conteo_urole", myRole);
+        localStorage.setItem("conteo_uid", myUserId);
+        localStorage.setItem("conteo_uname", myUserName);
+        syncInterfaceWithState();
+        return;
+    }
+
+    // Si es un participante nuevo pero el registro ya está cerrado
+    if (globalState.registrationOpen === false && globalState.status !== "registro") {
+        alert("El registro ya fue cerrado por el docente. Si ya estabas inscrito, escribe tu nombre exacto o solicita al docente abrir el registro.");
+        return;
+    }
+
+    // Registrar nuevo estudiante
+    const newId = "user_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    myRole = "student";
+    myUserId = newId;
+    myUserName = rawName;
+    localStorage.setItem("conteo_urole", myRole);
+    localStorage.setItem("conteo_uid", myUserId);
+    localStorage.setItem("conteo_uname", myUserName);
+
+    const updates = {};
+    updates[`participants/${newId}`] = {
+        id: newId,
+        name: rawName,
+        joinedAt: Date.now()
+    };
+
+    if (globalState.status === "activa" && (!globalState.rotation || !globalState.rotation.currentTurnId)) {
+        updates["rotation/currentTurnId"] = newId;
+        updates["rotation/sectionDone"] = false;
+    }
+
+    sessionRef.update(updates);
+}
+
+function changeLocalIdentity(e) {
+    if (e) e.preventDefault();
+    if (!confirm("¿Deseas cambiar de usuario en este navegador?")) return;
+    localStorage.removeItem("conteo_urole");
+    localStorage.removeItem("conteo_uid");
+    localStorage.removeItem("conteo_uname");
+    myRole = null;
+    myUserId = null;
+    myUserName = null;
+    document.getElementById("inputParticipantName").value = "";
+    syncInterfaceWithState();
+}
+
+/* ---------- 2 Y 3. MOTOR CENTRALIZADO DE TURNOS ROTATIVOS ---------- */
+function pickRandomPendingTurn(participantsMap, completedIdsArray, excludeLastId) {
+    const allIds = Object.keys(participantsMap || {});
+    const completedSet = new Set(completedIdsArray || []);
+    const pendingIds = allIds.filter(id => !completedSet.has(id));
+
+    if (pendingIds.length === 0) {
+        return { nextTurnId: "", sectionDone: true };
+    }
+    if (pendingIds.length === 1) {
+        return { nextTurnId: pendingIds[0], sectionDone: false };
+    }
+    let candidates = pendingIds.filter(id => id !== excludeLastId);
+    if (candidates.length === 0) candidates = pendingIds;
+    const randomIndex = Math.floor(Math.random() * candidates.length);
+    return { nextTurnId: candidates[randomIndex], sectionDone: false };
+}
+
+/* ---------- RENDERIZADO Y SINCRONIZACIÓN DE PANTALLAS ---------- */
+function syncInterfaceWithState() {
+    if (!globalState) return;
+
+    const participantsMap = globalState.participants || {};
+    const participantsList = Object.values(participantsMap).sort((a, b) => a.joinedAt - b.joinedAt);
+
+    if (myRole === "student" && myUserId && !participantsMap[myUserId]) {
+        localStorage.removeItem("conteo_urole");
+        localStorage.removeItem("conteo_uid");
+        localStorage.removeItem("conteo_uname");
+        myRole = null;
+        myUserId = null;
+        myUserName = null;
+    }
+
+    const isTeacher = (myRole === "teacher");
+    const isRegisteredStudent = (myRole === "student" && myUserId && participantsMap[myUserId]);
+
+    // 1. Panel del Docente
+    const teacherPanel = document.getElementById("teacher-panel");
+    if (isTeacher) {
+        teacherPanel.classList.remove("hidden");
+        renderTeacherPanel(participantsList);
+    } else {
+        teacherPanel.classList.add("hidden");
+    }
+
+    // 2. Actualizar lista de participantes en la sala de registro
+    document.getElementById("regCount").innerText = participantsList.length;
+    const regListContainer = document.getElementById("regParticipantsList");
+    if (participantsList.length === 0) {
+        regListContainer.innerHTML = `<span style="color:#666; font-style:italic;">Aún no hay participantes registrados...</span>`;
+    } else {
+        regListContainer.innerHTML = participantsList.map(p =>
+            `<span class="participant-chip">👤 ${escapeHtml(p.name)}</span>`
+        ).join("");
+    }
+
+    // 3. Mostrar u ocultar sala de registro vs actividad sincronizada
+    const regSection = document.getElementById("registration-section");
+    const regFormBox = document.getElementById("reg-form-box");
+    const regClosedNotice = document.getElementById("reg-closed-notice");
+    const regWaitingNotice = document.getElementById("reg-waiting-notice");
+
+    if (globalState.status === "registro" || (!isTeacher && !isRegisteredStudent)) {
+        regSection.classList.remove("hidden");
+        if (isRegisteredStudent) {
+            regFormBox.classList.add("hidden");
+            regClosedNotice.classList.add("hidden");
+            regWaitingNotice.classList.remove("hidden");
+            document.getElementById("myRegisteredNameDisplay").innerText = myUserName;
+        } else if (isTeacher) {
+            regFormBox.classList.add("hidden");
+            regClosedNotice.classList.add("hidden");
+            regWaitingNotice.classList.remove("hidden");
+            document.getElementById("myRegisteredNameDisplay").innerText = "Docente (BrayanGGG) — Usa el panel superior para iniciar cuando todos estén en la lista";
+        } else {
+            regFormBox.classList.remove("hidden");
+            regWaitingNotice.classList.add("hidden");
+            if (globalState.registrationOpen === false && globalState.status !== "registro") {
+                regClosedNotice.classList.remove("hidden");
+            } else {
+                regClosedNotice.classList.add("hidden");
+            }
+        }
+    } else {
+        regSection.classList.add("hidden");
+    }
+
+    if (globalState.status === "registro" || (!isTeacher && !isRegisteredStudent)) {
+        document.getElementById("status-bar-container").classList.add("hidden");
+        document.getElementById("section-mc").classList.add("hidden");
+        document.getElementById("section-calc").classList.add("hidden");
+        document.getElementById("history-container").classList.add("hidden");
+        return;
+    }
+
+    // 4. Sincronizar vista activa de la actividad
+    document.getElementById("status-bar-container").classList.remove("hidden");
+    document.getElementById("history-container").classList.remove("hidden");
+    document.getElementById("currentUserBadge").innerText = isTeacher ? "Docente (BrayanGGG)" : myUserName;
+
+    const currentEx = globalState.exerciseIdx || 0;
+    const currentSec = globalState.section || "mc";
+    idxMc = currentEx;
+    idxCalc = currentEx;
+
+    const stageTitle = currentSec === "mc"
+        ? `Ejercicio ${currentEx + 1} de ${exercisesMc.length} — Apartado a) Análisis e identificación del método`
+        : `Ejercicio ${currentEx + 1} de ${exercisesCalc.length} — Apartado b) Aplicación numérica`;
+    document.getElementById("syncCurrentStageLabel").innerText = stageTitle;
+
+    if (currentSec === "mc") {
+        document.getElementById("section-mc").classList.remove("hidden");
+        document.getElementById("section-calc").classList.add("hidden");
+    } else {
+        document.getElementById("section-mc").classList.add("hidden");
+        document.getElementById("section-calc").classList.remove("hidden");
+    }
+
+    const rotation = globalState.rotation || {};
+    const currentTurnId = rotation.currentTurnId || "";
+    const completedIds = rotation.completedIds || [];
+    const sectionDone = !!rotation.sectionDone;
+
+    if (lastRenderedExercise !== currentEx || lastRenderedSection !== currentSec || lastRenderedTurnId !== currentTurnId) {
+        loadMc();
+        loadCalc();
+        lastRenderedExercise = currentEx;
+        lastRenderedSection = currentSec;
+        lastRenderedTurnId = currentTurnId;
+    }
+
+    // 5. Configurar banner de turno y bloqueo de campos
+    const turnBanner = document.getElementById("turnBanner");
+    const isMyTurn = (myRole === "student" && myUserId === currentTurnId && globalState.status === "activa" && !sectionDone);
+
+    if (globalState.status === "pausada") {
+        turnBanner.className = "turn-banner turn-paused";
+        turnBanner.innerHTML = `⏸️ ACTIVIDAD EN PAUSA — El docente está realizando una explicación.`;
+    } else if (sectionDone) {
+        turnBanner.className = "turn-banner turn-done";
+        turnBanner.innerHTML = `🎉 ¡Todos los participantes completaron correctamente este apartado! Esperando a que el docente avance.`;
+    } else if (isMyTurn) {
+        turnBanner.className = "turn-banner turn-active-me";
+        turnBanner.innerHTML = `🎯 ¡ES TU TURNO DE RESPONDER, ${escapeHtml(myUserName).toUpperCase()}! Introduce tu respuesta abajo.`;
+    } else {
+        const activeStudent = participantsMap[currentTurnId];
+        const activeName = activeStudent ? activeStudent.name : "Asignando...";
+        turnBanner.className = "turn-banner turn-active-other";
+        turnBanner.innerHTML = `⏳ Turno actual de participación: <span style="text-decoration:underline;">${escapeHtml(activeName)}</span> <br><small style="font-weight:normal;">(Modo espectador: visualizas el desarrollo en tiempo real, pero los campos están habilitados solo para ${escapeHtml(activeName)})</small>`;
+    }
+
+    setInputsEnabled(currentSec, isMyTurn);
+
+    // 6. Mostrar progreso de la rotación de participantes
+    document.getElementById("rotationStatsText").innerText = `${completedIds.length} completados de ${participantsList.length} participantes`;
+    const chipsContainer = document.getElementById("liveParticipantsChips");
+    chipsContainer.innerHTML = participantsList.map(p => {
+        const isDone = completedIds.includes(p.id);
+        const isCurrent = (p.id === currentTurnId && !sectionDone);
+        let cls = "participant-chip";
+        let icon = "⏳";
+        if (isDone) { cls += " chip-done"; icon = "✅"; }
+        else if (isCurrent) { cls += " chip-turn"; icon = "🎯"; }
+        return `<span class="${cls}">${icon} ${escapeHtml(p.name)}</span>`;
+    }).join("");
+
+    // 7. Mostrar retroalimentación compartida en tiempo real
+    renderSharedFeedback(currentEx, currentSec, isTeacher, sectionDone);
+
+    // 8. Actualizar el historial de participación
+    renderHistory();
+}
+
+function setInputsEnabled(section, enabled) {
+    if (section === "mc") {
+        document.getElementById("selMethodMc").disabled = !enabled;
+        document.getElementById("selOrderMc").disabled = !enabled;
+        document.getElementById("selAllMc").disabled = !enabled;
+        document.getElementById("btnEvalMc").disabled = !enabled;
+        document.getElementById("btnEvalMc").style.display = "block";
+    } else {
+        document.getElementById("inputMCalc").disabled = !enabled;
+        document.getElementById("inputNCalc").disabled = !enabled;
+        document.getElementById("inputResultCalc").disabled = !enabled;
+        document.getElementById("btnEvalCalc").disabled = !enabled;
+        document.getElementById("btnEvalCalc").style.display = "block";
+    }
+}
+
+/* ---------- 4. RETROALIMENTACIÓN COMPARTIDA EN TIEMPO REAL ---------- */
+function renderSharedFeedback(currentEx, currentSec, isTeacher, sectionDone) {
+    const lastInt = globalState.lastIntervention;
+    const feedbackBoxId = currentSec === "mc" ? "feedbackMc" : "feedbackCalc";
+    const btnNextId = currentSec === "mc" ? "btnNextMc" : "btnNextCalc";
+    const feedbackBox = document.getElementById(feedbackBoxId);
+    const btnNext = document.getElementById(btnNextId);
+
+    if (lastInt && lastInt.exerciseIdx === currentEx && lastInt.section === currentSec) {
+        const statusBadge = lastInt.isCorrect
+            ? `<span style="background:#28a745;color:white;padding:3px 10px;border-radius:12px;">✅ CORRECTA</span>`
+            : `<span style="background:#dc3545;color:white;padding:3px 10px;border-radius:12px;">❌ INCORRECTA</span>`;
+
+        feedbackBox.innerHTML = `
+            <div class="intervention-header">
+                <span>👤 <strong>Intervención de:</strong> ${escapeHtml(lastInt.participantName)}</span>
+                <span>📝 <strong>Respuesta:</strong> ${escapeHtml(lastInt.answerSummary)}</span>
+                ${statusBadge}
+            </div>
+            <div class="intervention-body">
+                ${lastInt.feedbackHtml}
+            </div>
+        `;
+        feedbackBox.style.display = "block";
+    } else {
+        feedbackBox.style.display = "none";
+    }
+
+    if (sectionDone && isTeacher) {
+        btnNext.style.display = "block";
+        if (currentSec === "mc") {
+            btnNext.innerText = "✅ Apartado a) Completado — Pasar al Apartado b) Aplicación Numérica ➔";
+        } else {
+            btnNext.innerText = (currentEx < exercisesCalc.length - 1)
+                ? "✅ Apartado b) Completado — Avanzar al Siguiente Ejercicio ➔"
+                : "🏆 ¡Actividad Completada! Reiniciar al Ejercicio 1 ➔";
+        }
+    } else {
+        btnNext.style.display = "none";
+    }
+}
+
+function renderHistory() {
+    const historyObj = globalState.history || {};
+    const entries = Object.values(historyObj).sort((a, b) => b.timestamp - a.timestamp);
+    const container = document.getElementById("historyList");
+    if (entries.length === 0) {
+        container.innerHTML = `<div style="color:#666; font-style:italic;">Aún no se han registrado respuestas en esta sesión.</div>`;
+        return;
+    }
+    container.innerHTML = entries.map(item => {
+        const badge = item.isCorrect
+            ? `<span style="color:var(--success);font-weight:bold;">✅ Correcta</span>`
+            : `<span style="color:var(--danger);font-weight:bold;">❌ Incorrecta</span>`;
+        const secLabel = item.section === "mc" ? "Apartado a (Método)" : "Apartado b (Cálculo)";
+        return `
+            <div class="history-item">
+                <div>
+                    <strong>Ej. ${item.exerciseIdx + 1} (${secLabel})</strong> — 
+                    <span style="color:var(--primary);font-weight:bold;">${escapeHtml(item.participantName)}</span>: 
+                    <code>${escapeHtml(item.answerSummary)}</code>
+                </div>
+                <div>${badge}</div>
+            </div>
+        `;
+    }).join("");
+}
+
+/* ---------- LÓGICA ORIGINAL DE SECCIÓN 1 (Método) + ENVÍO COLABORATIVO ---------- */
 function loadMc() {
     document.getElementById('selMethodMc').value = "";
     document.getElementById('selOrderMc').value = "";
@@ -393,7 +1064,10 @@ function loadMc() {
     document.getElementById('badgeMc').innerText = ex.context;
     document.getElementById('textMc').innerText = ex.text;
 }
+
 function evaluateMc() {
+    if (!verifyCanAnswer("mc")) return;
+
     const uMethod = document.getElementById('selMethodMc').value;
     const uOrder  = document.getElementById('selOrderMc').value;
     const uAll    = document.getElementById('selAllMc').value;
@@ -428,19 +1102,22 @@ function evaluateMc() {
         }
         html+=`<div class="feedback-item incorrect-bg">❌ <strong>Método:</strong> Incorrecto. ${why} <br>El método correcto es <strong>${ex.cMethod}</strong>. ${ex.expMethod}</div>`;
     }
-    document.getElementById('feedbackMc').innerHTML = html;
-    document.getElementById('feedbackMc').style.display = 'block';
-    document.getElementById('btnEvalMc').style.display = 'none';
-    document.getElementById('btnNextMc').style.display = 'block';
-}
-function nextMc() {
-    idxMc = (idxMc+1) % exercisesMc.length;
-    loadMc();
-}
-window.onload = loadMc;
 
-/* ---------- LÓGICA SECCIÓN 2 (Cálculo) ---------- */
-let idxCalc = 0;
+    const isAllCorrect = (uOrder === ex.cOrder && uAll === ex.cAll && uMethod === ex.cMethod);
+    const answerSummary = `Método: ${uMethod} | Orden: ${uOrder} | Todos (m=n): ${uAll}`;
+
+    submitCollaborativeAnswer("mc", isAllCorrect, answerSummary, html);
+}
+
+function nextMc() {
+    if (myRole !== "teacher") {
+        alert("Solo el docente puede autorizar el avance al siguiente apartado.");
+        return;
+    }
+    teacherGoToSection("calc");
+}
+
+/* ---------- LÓGICA ORIGINAL DE SECCIÓN 2 (Cálculo) + ENVÍO COLABORATIVO ---------- */
 function loadCalc() {
     document.getElementById('inputMCalc').value = "";
     document.getElementById('inputNCalc').value = "";
@@ -454,7 +1131,10 @@ function loadCalc() {
     document.getElementById('badgeCalc').innerText = ex.context;
     document.getElementById('textCalc').innerText = ex.text;
 }
+
 function evaluateCalc() {
+    if (!verifyCanAnswer("calc")) return;
+
     const uM = parseInt(document.getElementById('inputMCalc').value);
     const uN = parseInt(document.getElementById('inputNCalc').value);
     const uRes = parseInt(document.getElementById('inputResultCalc').value);
@@ -488,33 +1168,257 @@ function evaluateCalc() {
             </div>
             <div class="formula-box"><strong>Desarrollo:</strong><br>${ex.formula}</div>
         `;
-        document.getElementById('btnEvalCalc').style.display = 'none';
-        if (idxCalc < exercisesCalc.length-1) {
-            document.getElementById('btnNextCalc').innerText = "¡Correcto! Siguiente Ejercicio ➔";
-            document.getElementById('btnNextCalc').onclick = nextCalc;
-        } else {
-            document.getElementById('btnNextCalc').innerText = "🏆 ¡Completado! Reiniciar ➔";
-            document.getElementById('btnNextCalc').onclick = () => location.reload();
-        }
     }
-    document.getElementById('feedbackCalc').innerHTML = html;
-    document.getElementById('feedbackCalc').style.display = 'block';
-    if (!correct) {
-        document.getElementById('btnNextCalc').style.display = 'none';
-    } else {
-        document.getElementById('btnNextCalc').style.display = 'block';
-    }
+
+    const isAllCorrect = (correct && uRes === ex.result);
+    const answerSummary = `m = ${uM} | n = ${uN} | Resultado = ${uRes}`;
+
+    submitCollaborativeAnswer("calc", isAllCorrect, answerSummary, html);
 }
+
 function showCalcAlert(msg, type) {
     const colors = {warning:"#fff3cd",error:"#f8d7da",success:"#d4edda"};
     document.getElementById('feedbackCalc').innerHTML = `<div class="alert" style="background:${colors[type]};border-left:5px solid var(--${type});">${msg}</div>`;
     document.getElementById('feedbackCalc').style.display='block';
 }
+
 function nextCalc() {
-    idxCalc = (idxCalc+1) % exercisesCalc.length;
-    loadCalc();
+    if (myRole !== "teacher") {
+        alert("Solo el docente puede autorizar el avance al siguiente ejercicio.");
+        return;
+    }
+    teacherChangeExercise(1);
 }
-window.onload = () => { loadMc(); loadCalc(); };
+
+/* ---------- REGISTRO DE RESPUESTA Y ROTACIÓN AUTOMÁTICA ---------- */
+function verifyCanAnswer(expectedSection) {
+    if (!globalState) return false;
+    if (globalState.status === "pausada") {
+        alert("La actividad está en pausa por el docente.");
+        return false;
+    }
+    if (globalState.status !== "activa") {
+        alert("La actividad aún no está activa.");
+        return false;
+    }
+    if (globalState.section !== expectedSection) {
+        alert("Este apartado no es el que está activo actualmente.");
+        return false;
+    }
+    const currentTurnId = (globalState.rotation && globalState.rotation.currentTurnId) || "";
+    if (myRole !== "student" || myUserId !== currentTurnId) {
+        alert("No es tu turno de responder en este momento.");
+        return false;
+    }
+    return true;
+}
+
+function submitCollaborativeAnswer(section, isCorrect, answerSummary, feedbackHtml) {
+    const participantsMap = globalState.participants || {};
+    const rotation = globalState.rotation || {};
+    let completedIds = Array.isArray(rotation.completedIds) ? [...rotation.completedIds] : [];
+
+    if (isCorrect && !completedIds.includes(myUserId)) {
+        completedIds.push(myUserId);
+    }
+
+    const nextTurnInfo = pickRandomPendingTurn(participantsMap, completedIds, myUserId);
+    const now = Date.now();
+    const exIdx = globalState.exerciseIdx || 0;
+
+    const interventionObj = {
+        participantId: myUserId,
+        participantName: myUserName,
+        exerciseIdx: exIdx,
+        section: section,
+        answerSummary: answerSummary,
+        isCorrect: isCorrect,
+        feedbackHtml: feedbackHtml,
+        timestamp: now
+    };
+
+    const newHistoryKey = sessionRef.child("history").push().key;
+    const updates = {};
+    updates["rotation/completedIds"] = completedIds;
+    updates["rotation/lastTurnId"] = myUserId;
+    updates["rotation/currentTurnId"] = nextTurnInfo.nextTurnId;
+    updates["rotation/sectionDone"] = nextTurnInfo.sectionDone;
+    updates["lastIntervention"] = interventionObj;
+    updates[`history/${newHistoryKey}`] = {
+        participantName: myUserName,
+        exerciseIdx: exIdx,
+        section: section,
+        answerSummary: answerSummary,
+        isCorrect: isCorrect,
+        timestamp: now
+    };
+
+    sessionRef.update(updates);
+}
+
+/* ---------- 6. FUNCIONES DE CONTROL DEL DOCENTE (BrayanGGG) ---------- */
+function renderTeacherPanel(participantsList) {
+    const statusBadge = document.getElementById("teacherStatusBadge");
+    const infoText = document.getElementById("teacherInfoText");
+    const btnStart = document.getElementById("btnTeacherStart");
+    const btnPause = document.getElementById("btnTeacherPause");
+
+    const exIdx = globalState.exerciseIdx || 0;
+    const sec = globalState.section === "mc" ? "Apartado a) Método" : "Apartado b) Cálculo";
+
+    if (globalState.status === "registro") {
+        statusBadge.innerText = "En Registro";
+        statusBadge.style.background = "#FEB400";
+        statusBadge.style.color = "#000";
+        btnStart.classList.remove("hidden");
+        btnPause.disabled = true;
+        infoText.innerText = `Hay ${participantsList.length} participante(s) registrado(s). Al iniciar se cerrará el registro y comenzará la rotación.`;
+    } else if (globalState.status === "pausada") {
+        statusBadge.innerText = "Pausada";
+        statusBadge.style.background = "#dc3545";
+        statusBadge.style.color = "#fff";
+        btnStart.classList.add("hidden");
+        btnPause.disabled = false;
+        btnPause.innerText = "▶️ Reanudar Actividad";
+        btnPause.className = "btn-teacher btn-success";
+        infoText.innerText = `Actividad en pausa en Ejercicio ${exIdx + 1} (${sec}). Nadie puede enviar respuestas hasta reanudar.`;
+    } else {
+        statusBadge.innerText = "En Curso";
+        statusBadge.style.background = "#28a745";
+        statusBadge.style.color = "#fff";
+        btnStart.classList.add("hidden");
+        btnPause.disabled = false;
+        btnPause.innerText = "⏸️ Pausar Actividad";
+        btnPause.className = "btn-teacher btn-danger";
+        const regState = globalState.registrationOpen ? "Abierto" : "Cerrado";
+        infoText.innerText = `Ejercicio ${exIdx + 1} de 8 | ${sec} | Participantes: ${participantsList.length} | Registro: ${regState}`;
+    }
+}
+
+function teacherCloseRegAndStart() {
+    if (!globalState) return;
+    const participantsMap = globalState.participants || {};
+    if (Object.keys(participantsMap).length === 0) {
+        alert("Aún no hay ningún estudiante registrado. Espera a que se registre al menos 1 participante antes de iniciar.");
+        return;
+    }
+    const turnInfo = pickRandomPendingTurn(participantsMap, [], "");
+    sessionRef.update({
+        status: "activa",
+        registrationOpen: false,
+        exerciseIdx: 0,
+        section: "mc",
+        lastIntervention: null,
+        rotation: {
+            currentTurnId: turnInfo.nextTurnId,
+            lastTurnId: "",
+            completedIds: [],
+            sectionDone: turnInfo.sectionDone
+        }
+    });
+}
+
+function teacherTogglePause() {
+    if (!globalState || globalState.status === "registro") return;
+    const nextStatus = globalState.status === "pausada" ? "activa" : "pausada";
+    sessionRef.update({ status: nextStatus });
+}
+
+function teacherSkipTurn() {
+    if (!globalState) return;
+    const participantsMap = globalState.participants || {};
+    const rotation = globalState.rotation || {};
+    const completedIds = rotation.completedIds || [];
+    const currentTurnId = rotation.currentTurnId || "";
+
+    const nextTurnInfo = pickRandomPendingTurn(participantsMap, completedIds, currentTurnId);
+    sessionRef.update({
+        "rotation/lastTurnId": currentTurnId,
+        "rotation/currentTurnId": nextTurnInfo.nextTurnId,
+        "rotation/sectionDone": nextTurnInfo.sectionDone
+    });
+}
+
+function teacherGoToSection(targetSection) {
+    if (!globalState) return;
+    const participantsMap = globalState.participants || {};
+    const turnInfo = pickRandomPendingTurn(participantsMap, [], "");
+    sessionRef.update({
+        status: "activa",
+        section: targetSection,
+        lastIntervention: null,
+        rotation: {
+            currentTurnId: turnInfo.nextTurnId,
+            lastTurnId: "",
+            completedIds: [],
+            sectionDone: turnInfo.sectionDone
+        }
+    });
+}
+
+function teacherChangeExercise(delta) {
+    if (!globalState) return;
+    const currentEx = globalState.exerciseIdx || 0;
+    const nextEx = (currentEx + delta + exercisesMc.length) % exercisesMc.length;
+    const participantsMap = globalState.participants || {};
+    const turnInfo = pickRandomPendingTurn(participantsMap, [], "");
+
+    sessionRef.update({
+        status: "activa",
+        exerciseIdx: nextEx,
+        section: "mc",
+        lastIntervention: null,
+        rotation: {
+            currentTurnId: turnInfo.nextTurnId,
+            lastTurnId: "",
+            completedIds: [],
+            sectionDone: turnInfo.sectionDone
+        }
+    });
+}
+
+function teacherToggleRegistration() {
+    if (!globalState) return;
+    const newRegState = !globalState.registrationOpen;
+    sessionRef.update({ registrationOpen: newRegState });
+    alert(newRegState
+        ? "🔓 Registro reabierto: nuevos estudiantes pueden unirse mientras continúa la actividad."
+        : "🔒 Registro cerrado para nuevos participantes.");
+}
+
+function teacherResetSession() {
+    if (!confirm("¿Estás seguro de que deseas reiniciar TODA la actividad? Se borrará la lista de participantes y el historial para iniciar con un grupo nuevo.")) return;
+    sessionRef.set({
+        status: "registro",
+        registrationOpen: true,
+        exerciseIdx: 0,
+        section: "mc",
+        participants: {},
+        rotation: {
+            currentTurnId: "",
+            lastTurnId: "",
+            completedIds: [],
+            sectionDone: false
+        },
+        lastIntervention: null,
+        history: {}
+    });
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+window.onload = () => {
+    loadMc();
+    loadCalc();
+    initApp();
+};
 </script>
 </body>
 </html>
