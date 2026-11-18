@@ -2,209 +2,453 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Simulación masa‑resorte (retorno lento y sin oscilaciones)</title>
 <style>
-  body,html{
-    margin:0;padding:0;height:100%;overflow:hidden;
-    font-family:Arial,Helvetica,sans-serif;
-    background:#f0f4f8;
-    user-select:none;
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f4f8;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none; /* Evita scroll o zoom al arrastrar en celular */
   }
-  #container{
-    position:relative;width:100%;height:100%;
-    display:flex;align-items:center;justify-content:center;
+  #container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  #wall{
-    position:absolute;left:5%;width:30px;height:200px;background:#555;
+  #springCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
   }
-  #block{
-    position:absolute;width:80px;height:80px;
-    background:#4a90e2;border-radius:6px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:bold;box-shadow:0 4px 8px rgba(0,0,0,0.2);
+  #wall {
+    position: absolute;
+    left: 5%;
+    width: 26px;
+    height: 200px;
+    background: #475569;
+    border-radius: 0 4px 4px 0;
+    z-index: 2;
   }
-  #equilibrium{
-    position:absolute;left:calc(5% + 30px);
-    width:2px;height:220px;background:#d9534f;
-    transform:translateX(-50%);
+  #block {
+    position: absolute;
+    width: 76px;
+    height: 76px;
+    background: #2563eb;
+    border: 2px solid #1d4ed8;
+    border-radius: 6px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    z-index: 4;
+    touch-action: none;
   }
-  #info{
-    position:absolute;top:10px;right:10px;
-    background:rgba(255,255,255,0.9);padding:8px 12px;
-    border-radius:6px;font-size:14px;line-height:1.4;
+  #block:active {
+    cursor: grabbing;
   }
-  .arrow{
-    position:absolute;width:0;height:0;
-    border-left:12px solid transparent;
-    border-right:12px solid transparent;
-    border-bottom:20px solid #e67e22;
-    transform-origin:50% 0%;transition:transform 0.1s linear;
+  #info {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    border: 1px solid #cbd5e1;
+    z-index: 5;
+  }
+  #hint {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.8);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 5;
   }
 </style>
 </head>
 <body>
 <div id="container">
   <div id="wall"></div>
-  <div id="equilibrium"></div>
   <div id="block">Masa</div>
   <canvas id="springCanvas"></canvas>
 
   <div id="info">
-    <div><strong>k</strong> = <span id="kVal">200</span> N/m</div>
-    <div><strong>m</strong> = <span id="mVal">1</span> kg</div>
-    <div><strong>F</strong> = -k·x = <span id="forceVal">0</span> N</div>
-    <div><strong>x</strong> = <span id="xVal">0</span> m</div>
+    <div><strong>k</strong> = <span id="kVal">200</span> N/m</div>
+    <div><strong>m</strong> = <span id="mVal">1</span> kg</div>
+    <div><strong>F</strong> = -k·x = <span id="forceVal">0.00</span> N</div>
+    <div><strong>x</strong> = <span id="xVal">0.000</span> m</div>
+    <div><strong>x<sub>suelta</sub></strong> = <span id="releaseVal">--</span></div>
     <div>Estado: <span id="stateVal">Equilibrio</span></div>
   </div>
 
-  <div class="arrow" id="forceArrow"></div>
+  <div id="hint">Arrastra el bloque azul sobre el eje X y suéltalo</div>
 </div>
 
 <script>
 /* -----------------------------------------------------------------
-   Parámetros físicos (más rígido)
+   Parámetros físicos y escalas adaptativas
 ----------------------------------------------------------------- */
-const k = 200;               // constante elástica (N/m) – más rígido
-const m = 1;                 // masa (kg) – no usada en animación simple
-const PIXELS_PER_METER = 200; // escala visual
+const k = 200; // constante elástica (N/m)
+const m = 1;   // masa (kg)
+let PIXELS_PER_METER = 200;
 
 /* Posiciones (píxeles) */
-const wallX = window.innerWidth * 0.05 + 30; // límite derecho de la pared
-let equilibriumX = wallX + 150;              // posición natural del resorte
-let blockX = equilibriumX;                   // posición actual del bloque
+let wallX = 0;
+let equilibriumX = 0;
+let blockX = 0;
+let releaseX = null; // Posición donde se suelta el bloque
 
 /* DOM */
 const container = document.getElementById('container');
 const block = document.getElementById('block');
 const canvas = document.getElementById('springCanvas');
 const ctx = canvas.getContext('2d');
-const forceArrow = document.getElementById('forceArrow');
 const xVal = document.getElementById('xVal');
 const forceVal = document.getElementById('forceVal');
 const stateVal = document.getElementById('stateVal');
+const releaseVal = document.getElementById('releaseVal');
 
 /* -----------------------------------------------------------------
-   Canvas
+   Ajuste de pantalla y escala responsiva (PC y Celular)
 ----------------------------------------------------------------- */
-function resizeCanvas(){
+function resizeCanvas() {
+  const prevEq = equilibriumX;
+  const prevMeters = prevEq ? (blockX - prevEq) / PIXELS_PER_METER : 0;
+  const prevReleaseMeters = (prevEq && releaseX !== null) ? (releaseX - prevEq) / PIXELS_PER_METER : null;
+
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+
+  // Escala dinámica para que en pantallas angostas (celulares) haya suficiente recorrido
+  PIXELS_PER_METER = Math.min(200, Math.max(110, canvas.width * 0.28));
+
+  wallX = canvas.width * 0.05 + 26;
+  equilibriumX = wallX + Math.min(180, canvas.width * 0.34);
+
+  blockX = equilibriumX + prevMeters * PIXELS_PER_METER;
+  if (prevReleaseMeters !== null) {
+    releaseX = equilibriumX + prevReleaseMeters * PIXELS_PER_METER;
+  }
 }
-window.addEventListener('resize',()=>{resizeCanvas();draw();});
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  draw();
+});
 resizeCanvas();
+
+/* -----------------------------------------------------------------
+   Dibujar Plano Cartesiano centrado en x_0 = 0
+----------------------------------------------------------------- */
+function drawCartesianPlane() {
+  const centerY = canvas.height / 2;
+
+  ctx.save();
+
+  // Eje X (horizontal)
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(wallX + 6, centerY);
+  ctx.lineTo(canvas.width - 18, centerY);
+  ctx.stroke();
+
+  // Punta de flecha derecha del eje X
+  ctx.fillStyle = '#64748b';
+  ctx.beginPath();
+  ctx.moveTo(canvas.width - 12, centerY);
+  ctx.lineTo(canvas.width - 22, centerY - 5);
+  ctx.lineTo(canvas.width - 22, centerY + 5);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.font = 'bold 13px Arial';
+  ctx.fillText('+X (m)', canvas.width - 54, centerY - 10);
+
+  // Eje Y vertical en la posición de equilibrio (x_0 = 0)
+  ctx.strokeStyle = '#dc2626';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(equilibriumX, centerY - 125);
+  ctx.lineTo(equilibriumX, centerY + 125);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Etiqueta x_0 en el origen
+  ctx.fillStyle = '#dc2626';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('x₀ = 0', equilibriumX, centerY - 133);
+
+  // Marcas de escala cada 0.2 metros sobre el eje X
+  const stepMeters = 0.2;
+  const stepPx = stepMeters * PIXELS_PER_METER;
+  ctx.font = '11px Arial';
+  ctx.fillStyle = '#475569';
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1.2;
+
+  // Marcas hacia la derecha (+X)
+  for (let mPos = stepMeters, px = equilibriumX + stepPx; px < canvas.width - 35; mPos += stepMeters, px += stepPx) {
+    ctx.beginPath();
+    ctx.moveTo(px, centerY - 6);
+    ctx.lineTo(px, centerY + 6);
+    ctx.stroke();
+    ctx.fillText('+' + mPos.toFixed(1), px, centerY + 20);
+  }
+
+  // Marcas hacia la izquierda (-X)
+  for (let mNeg = -stepMeters, px = equilibriumX - stepPx; px > wallX + 15; mNeg -= stepMeters, px -= stepPx) {
+    ctx.beginPath();
+    ctx.moveTo(px, centerY - 6);
+    ctx.lineTo(px, centerY + 6);
+    ctx.stroke();
+    ctx.fillText(mNeg.toFixed(1), px, centerY + 20);
+  }
+
+  ctx.restore();
+}
+
+/* -----------------------------------------------------------------
+   Dibujar el cuadro punteado donde se soltó el bloque
+----------------------------------------------------------------- */
+function drawReleaseMarker() {
+  if (releaseX === null) return;
+
+  const centerY = canvas.height / 2;
+  const w = block.offsetWidth || 76;
+  const h = block.offsetHeight || 76;
+  const xMeters = (releaseX - equilibriumX) / PIXELS_PER_METER;
+
+  ctx.save();
+  ctx.strokeStyle = '#d97706';
+  ctx.fillStyle = 'rgba(245, 158, 11, 0.14)';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+
+  // Cuadro punteado en la posición exacta de liberación
+  ctx.fillRect(releaseX - w / 2, centerY - h / 2, w, h);
+  ctx.strokeRect(releaseX - w / 2, centerY - h / 2, w, h);
+
+  // Línea guía vertical hacia el eje X y etiqueta del punto
+  ctx.beginPath();
+  ctx.moveTo(releaseX, centerY + h / 2);
+  ctx.lineTo(releaseX, centerY + h / 2 + 24);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#b45309';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'center';
+  const sign = xMeters > 0 ? '+' : '';
+  ctx.fillText(`Soltado: ${sign}${xMeters.toFixed(3)} m`, releaseX, centerY + h / 2 + 38);
+
+  ctx.restore();
+}
 
 /* -----------------------------------------------------------------
    Dibujar el resorte como zig‑zag
 ----------------------------------------------------------------- */
-function drawSpring(){
+function drawSpring() {
   const startX = wallX;
-  const endX   = blockX;
-  const y = container.clientHeight/2;
-  const coilCount = 8;
-  const coilWidth = (endX-startX)/(coilCount*2);
-  ctx.strokeStyle='#2c3e50';
-  ctx.lineWidth=4;
+  const endX = blockX - (block.offsetWidth || 76) / 2;
+  const y = canvas.height / 2;
+  const coilCount = 10;
+  const coilWidth = (endX - startX) / (coilCount * 2);
+
+  ctx.save();
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 3.5;
+  ctx.lineJoin = 'round';
   ctx.beginPath();
-  ctx.moveTo(startX,y);
-  for(let i=0;i<coilCount;i++){
-    const nx = startX + (2*i+1)*coilWidth;
-    const ny = (i%2===0)? y-20 : y+20;
-    ctx.lineTo(nx,ny);
-    ctx.lineTo(nx+coilWidth,y);
+  ctx.moveTo(startX, y);
+  for (let i = 0; i < coilCount; i++) {
+    const nx = startX + (2 * i + 1) * coilWidth;
+    const ny = (i % 2 === 0) ? y - 16 : y + 16;
+    ctx.lineTo(nx, ny);
+    ctx.lineTo(nx + coilWidth, y);
   }
   ctx.stroke();
+  ctx.restore();
+}
+
+/* -----------------------------------------------------------------
+   Dibujar vector de fuerza restauradora sobre el bloque
+----------------------------------------------------------------- */
+function drawForceVector() {
+  const xMeters = (blockX - equilibriumX) / PIXELS_PER_METER;
+  if (Math.abs(xMeters) < 0.002) return;
+
+  const centerY = canvas.height / 2 - 54;
+  const dir = xMeters > 0 ? -1 : 1; // Siempre apunta hacia x_0 = 0
+  const arrowLen = Math.min(90, Math.max(28, Math.abs(xMeters) * 140));
+  const startX = blockX;
+  const endX = blockX + dir * arrowLen;
+
+  ctx.save();
+  ctx.strokeStyle = '#ea580c';
+  ctx.fillStyle = '#ea580c';
+  ctx.lineWidth = 3.5;
+
+  // Línea del vector
+  ctx.beginPath();
+  ctx.moveTo(startX, centerY);
+  ctx.lineTo(endX, centerY);
+  ctx.stroke();
+
+  // Punta de flecha
+  ctx.beginPath();
+  ctx.moveTo(endX + dir * 8, centerY);
+  ctx.lineTo(endX - dir * 4, centerY - 6);
+  ctx.lineTo(endX - dir * 4, centerY + 6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('F', (startX + endX) / 2, centerY - 8);
+  ctx.restore();
 }
 
 /* -----------------------------------------------------------------
    Render completo
 ----------------------------------------------------------------- */
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawCartesianPlane();
+  drawReleaseMarker();
   drawSpring();
+  drawForceVector();
 
-  // bloque
-  block.style.top = `${container.clientHeight/2 - block.offsetHeight/2}px`;
-  block.style.left = `${blockX - block.offsetWidth/2}px`;
+  // Posicionar bloque HTML
+  block.style.top = `${canvas.height / 2 - block.offsetHeight / 2}px`;
+  block.style.left = `${blockX - block.offsetWidth / 2}px`;
 
-  // flecha de fuerza
-  const dir = blockX>equilibriumX ? -1 : (blockX<equilibriumX ? 1 : 0);
-  const arrowSize=30;
-  forceArrow.style.top = `${container.clientHeight/2 - arrowSize}px`;
-  forceArrow.style.left = `${blockX - arrowSize/2}px`;
-  forceArrow.style.transform = `rotate(${dir*180}deg)`;
-  forceArrow.style.display = dir===0 ? 'none' : 'block';
+  // Cálculo de desplazamiento y fuerza
+  const xMeters = (blockX - equilibriumX) / PIXELS_PER_METER;
+  const force = -k * xMeters;
 
-  // cálculo de desplazamiento y fuerza
-  const xMeters = (blockX-equilibriumX)/PIXELS_PER_METER;
-  const force = -k*xMeters;
   xVal.textContent = xMeters.toFixed(3);
   forceVal.textContent = force.toFixed(2);
-  if(Math.abs(xMeters)<0.001){
-    stateVal.textContent='Equilibrio';
-    xVal.textContent='0';
-    forceVal.textContent='0';
-  }else if(xMeters>0){
-    stateVal.textContent='Estirado';
-  }else{
-    stateVal.textContent='Comprimido';
+
+  if (Math.abs(xMeters) < 0.001) {
+    stateVal.textContent = 'Equilibrio';
+    xVal.textContent = '0.000';
+    forceVal.textContent = '0.00';
+  } else if (xMeters > 0) {
+    stateVal.textContent = 'Estirado (+x)';
+  } else {
+    stateVal.textContent = 'Comprimido (-x)';
   }
 }
 
 /* -----------------------------------------------------------------
-   Interacción (drag)
+   Interacción unificada (Mouse y Pantalla Táctil con Pointer Events)
 ----------------------------------------------------------------- */
 let dragging = false;
 let dragOffset = 0;
-let returnAnimId = null;   // id del requestAnimationFrame de retorno
+let returnAnimId = null;
 
-block.addEventListener('mousedown',e=>{
+block.addEventListener('pointerdown', e => {
+  e.preventDefault();
   dragging = true;
-  const rect = block.getBoundingClientRect();
-  dragOffset = e.clientX - (rect.left + rect.width/2);
-  cancelReturnAnimation();   // interrumpir retorno si lo estaba
-});
+  block.setPointerCapture(e.pointerId);
 
-window.addEventListener('mousemove',e=>{
-  if(!dragging) return;
-  const newX = e.clientX - dragOffset;
-  const minX = wallX + 40;                     // evitar pasar la pared
-  const maxX = container.clientWidth - 40;    // borde derecho
-  blockX = Math.min(Math.max(newX,minX),maxX);
+  // Borrar el cuadro punteado anterior en cuanto se vuelve a tomar la masa
+  releaseX = null;
+  releaseVal.textContent = '--';
+
+  const rect = block.getBoundingClientRect();
+  dragOffset = e.clientX - (rect.left + rect.width / 2);
+  cancelReturnAnimation();
   draw();
 });
 
-window.addEventListener('mouseup',()=>{ 
-  if(!dragging) return;
-  dragging = false;
-  startReturnAnimation();   // iniciar regreso lento y único
+block.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  e.preventDefault();
+
+  const halfBlock = block.offsetWidth / 2;
+  const newX = e.clientX - dragOffset;
+  const minX = wallX + halfBlock + 12;          // Evitar chocar con la pared
+  const maxX = canvas.width - halfBlock - 12;   // Evitar salir de la pantalla
+
+  blockX = Math.min(Math.max(newX, minX), maxX);
+  draw();
 });
+
+function handleRelease(e) {
+  if (!dragging) return;
+  dragging = false;
+  if (e && e.pointerId !== undefined) {
+    try { block.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+
+  // Registrar el punto exacto donde se soltó el bloque
+  releaseX = blockX;
+  const relMeters = (releaseX - equilibriumX) / PIXELS_PER_METER;
+  releaseVal.textContent = `${relMeters.toFixed(3)} m`;
+
+  draw();
+  startReturnAnimation();
+}
+
+block.addEventListener('pointerup', handleRelease);
+block.addEventListener('pointercancel', handleRelease);
 
 /* -----------------------------------------------------------------
    Animación de retorno (una sola trayectoria, lenta)
 ----------------------------------------------------------------- */
-function cancelReturnAnimation(){
-  if(returnAnimId!==null){
+function cancelReturnAnimation() {
+  if (returnAnimId !== null) {
     cancelAnimationFrame(returnAnimId);
     returnAnimId = null;
   }
 }
-function startReturnAnimation(){
+
+function startReturnAnimation() {
   const startX = blockX;
   const deltaX = equilibriumX - startX;
-  const duration = 2000;                // 2 s (cámara lenta)
+  const duration = 2000; // 2 s (cámara lenta)
   const startTime = performance.now();
 
-  function step(now){
+  function step(now) {
     const elapsed = now - startTime;
-    const t = Math.min(elapsed/duration,1); // 0‑1
-    // Ease‑out (cuadrático) para que arranque rápido y termine suavemente
-    const ease = 1 - (1-t)*(1-t);
-    blockX = startX + deltaX*ease;
+    const t = Math.min(elapsed / duration, 1);
+    const ease = 1 - (1 - t) * (1 - t); // Ease-out cuadrático
+    blockX = startX + deltaX * ease;
     draw();
-    if(t<1){
+
+    if (t < 1) {
       returnAnimId = requestAnimationFrame(step);
-    }else{
-      // Aseguramos posición exacta de equilibrio al terminar
+    } else {
       blockX = equilibriumX;
       draw();
       returnAnimId = null;
@@ -216,7 +460,7 @@ function startReturnAnimation(){
 /* -----------------------------------------------------------------
    Inicialización
 ----------------------------------------------------------------- */
-draw();   // estado inicial
+draw();
 </script>
 </body>
 </html>
