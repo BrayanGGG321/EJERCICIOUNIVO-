@@ -69,4 +69,1854 @@
     }
 
     .header-title h1 {
-      font-size: 1.4
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .header-title p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-top: 0.2rem;
+    }
+
+    .btn-formulas {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      border: 1.5px solid var(--gold);
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-formulas:hover {
+      background: var(--gold);
+      color: var(--navy-dark);
+    }
+
+    /* Contenedor principal */
+    main {
+      max-width: 940px;
+      margin: 1.75rem auto 0;
+      padding: 0 1rem;
+    }
+
+    /* Panel desplegable de fórmulas */
+    .formulas-panel {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .formulas-panel.open {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .formulas-panel h3 {
+      color: var(--navy);
+      font-size: 1.05rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .formulas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 1rem;
+    }
+
+    .formula-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    .formula-card h4 {
+      color: var(--navy);
+      font-size: 0.94rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .formula-card p,
+    .formula-card li {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .formula-card ul {
+      padding-left: 1.15rem;
+      margin-top: 0.35rem;
+    }
+
+    /* Tipografía matemática sin librerías externas */
+    .math-var {
+      font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+      font-style: italic;
+    }
+
+    .xbar {
+      display: inline-block;
+      font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+      font-style: italic;
+      position: relative;
+      padding-top: 0.05em;
+    }
+
+    .xbar::before {
+      content: "";
+      position: absolute;
+      top: 0.18em;
+      left: 0;
+      right: 0;
+      border-top: 1.5px solid currentColor;
+    }
+
+    .formula-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 0.65rem 0.9rem;
+      background: #FFFFFF;
+      border-radius: 8px;
+      border: 1px dashed #CBD5E1;
+      font-family: "Cambria Math", "Times New Roman", Georgia, serif;
+      font-size: 1.14rem;
+      gap: 0.4rem;
+      margin-top: 0.55rem;
+    }
+
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.15rem;
+    }
+
+    .frac-num {
+      padding: 0 0.45rem 0.15rem;
+      border-bottom: 1.5px solid var(--text);
+      line-height: 1.25;
+    }
+
+    .frac-den {
+      padding: 0.15rem 0.45rem 0;
+      line-height: 1.25;
+    }
+
+    .sqrt {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .sqrt-over {
+      border-top: 1.4px solid currentColor;
+      padding: 0 0.18rem;
+      line-height: 1.05;
+      margin-left: -0.05rem;
+    }
+
+    /* Barra de progreso */
+    .progress-bar-wrap {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid #E2E8F0;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.65rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .progress-label {
+      font-weight: 700;
+      color: var(--navy);
+      font-size: 0.95rem;
+    }
+
+    .step-dots {
+      display: flex;
+      gap: 0.45rem;
+    }
+
+    .step-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #FFFFFF;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: default;
+      transition: all 0.2s ease;
+    }
+
+    .step-dot.active {
+      border-color: var(--navy);
+      background: var(--navy);
+      color: #FFFFFF;
+      transform: scale(1.06);
+    }
+
+    .step-dot.completed {
+      border-color: var(--success);
+      background: var(--success);
+      color: #FFFFFF;
+      cursor: pointer;
+    }
+
+    .progress-track {
+      height: 8px;
+      background: #E2E8F0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--navy), var(--gold));
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    /* Tarjetas */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid #E2E8F0;
+    }
+
+    .exercise-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-navy {
+      background: var(--navy);
+      color: #FFFFFF;
+    }
+
+    .badge-gold {
+      background: var(--gold-soft);
+      color: #926000;
+      border: 1px solid #F5D076;
+    }
+
+    .badge-slate {
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+    }
+
+    .exercise-title {
+      color: var(--navy);
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .exercise-text {
+      background: #F8FAFC;
+      border-left: 4px solid var(--navy);
+      padding: 0.95rem 1.15rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.96rem;
+      margin-bottom: 1.1rem;
+    }
+
+    /* Panel de datos previos (Parte 1) */
+    .given-data {
+      background: #F8FAFC;
+      border: 1px solid #DCE6F2;
+      border-radius: 10px;
+      padding: 0.95rem 1.1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.9rem;
+    }
+
+    .given-block h4 {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .hyp-summary {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 1.06rem;
+      color: var(--navy-dark);
+      font-weight: 700;
+      display: flex;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+    }
+
+    .param-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .param-chip {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 7px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--navy-dark);
+    }
+
+    /* Encabezados de pasos */
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid #E2E8F0;
+    }
+
+    .step-header h2 {
+      font-size: 1.08rem;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #FFFFFF;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-pill {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+    }
+
+    .status-pending {
+      background: #F1F5F9;
+      color: var(--muted);
+    }
+
+    .status-done {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .hidden-step {
+      display: none;
+    }
+
+    /* Controles */
+    select,
+    input[type="text"] {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.6rem 0.8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #FFFFFF;
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(31, 78, 121, 0.15);
+    }
+
+    select:disabled,
+    input:disabled {
+      background: #F1F5F9;
+      color: #475569;
+      cursor: not-allowed;
+    }
+
+    .is-valid {
+      border-color: var(--success) !important;
+      background-color: #F0FDF4 !important;
+    }
+
+    .is-invalid {
+      border-color: var(--error) !important;
+      background-color: #FEF2F2 !important;
+    }
+
+    /* Paso 1: input estadístico */
+    .stat-input-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-symbol-label {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .stat-input {
+      width: 170px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .hint-inline {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    /* Paso 2: selector de función Excel */
+    .excel-select-wrap {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .excel-select-wrap label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--navy-dark);
+      margin-bottom: 0.55rem;
+    }
+
+    .excel-select {
+      width: 100%;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .excel-result-box {
+      display: none;
+      margin-top: 1rem;
+      background: #F0FDF4;
+      border: 1.5px solid #86EFAC;
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+
+    .excel-result-box.show {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .excel-result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.85rem;
+      align-items: center;
+    }
+
+    .excel-code-pill {
+      font-family: Consolas, "Courier New", monospace;
+      background: #FFFFFF;
+      border: 1px solid #BBF7D0;
+      color: #14532D;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .excel-value-display {
+      text-align: center;
+      background: #FFFFFF;
+      border: 1px solid #BBF7D0;
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+    }
+
+    .excel-value-display small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .excel-value-display strong {
+      font-size: 1.35rem;
+      color: var(--navy);
+    }
+
+    .excel-note {
+      font-size: 0.82rem;
+      color: #166534;
+      margin-top: 0.6rem;
+    }
+
+    /* Paso 3: Comparación y decisión */
+    .comparison-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .comp-tile {
+      background: var(--gold-soft);
+      border: 1px solid #F5D076;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      text-align: center;
+    }
+
+    .comp-tile.navy-tile {
+      background: var(--info-bg);
+      border-color: #BFDBFE;
+    }
+
+    .comp-tile small {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .comp-tile strong {
+      font-size: 1.28rem;
+      color: var(--navy-dark);
+    }
+
+    .comp-tile span {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .decision-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .decision-option {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 0.95rem 1rem;
+      cursor: pointer;
+      background: #FFFFFF;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+    }
+
+    .decision-option:hover {
+      border-color: var(--navy);
+      background: #F8FAFC;
+    }
+
+    .decision-option.selected {
+      border-color: var(--navy);
+      background: var(--info-bg);
+      box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.15);
+    }
+
+    .decision-option.disabled-opt {
+      pointer-events: none;
+      opacity: 0.82;
+    }
+
+    .decision-option input[type="radio"] {
+      margin-top: 0.25rem;
+      accent-color: var(--navy);
+      transform: scale(1.15);
+    }
+
+    .decision-option strong {
+      display: block;
+      color: var(--navy);
+      font-size: 1rem;
+    }
+
+    .decision-option span {
+      font-size: 0.83rem;
+      color: var(--muted);
+    }
+
+    .conclusion-box {
+      display: none;
+      margin-top: 1rem;
+      background: #F8FAFC;
+      border-left: 4px solid var(--success);
+      border-top: 1px solid #BBF7D0;
+      border-right: 1px solid #BBF7D0;
+      border-bottom: 1px solid #BBF7D0;
+      border-radius: 0 10px 10px 0;
+      padding: 0.95rem 1.1rem;
+    }
+
+    .conclusion-box.show {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .conclusion-box h4 {
+      color: var(--success);
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .conclusion-box p {
+      font-size: 0.93rem;
+      color: var(--text);
+    }
+
+    /* Retroalimentación */
+    .feedback {
+      margin-top: 0.9rem;
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      display: none;
+    }
+
+    .feedback.show {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .feedback.error {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #FECACA;
+    }
+
+    .feedback.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #BBF7D0;
+    }
+
+    /* Botones */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.68rem 1.35rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .btn-primary {
+      background: var(--navy);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--navy-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--navy-dark);
+    }
+
+    .btn-gold:hover:not(:disabled) {
+      background: #E5A408;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #FFFFFF;
+      color: var(--navy);
+      border: 1.5px solid var(--navy);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: #F1F5F9;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Resumen final */
+    .summary-screen {
+      display: none;
+    }
+
+    .summary-screen.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .summary-banner {
+      background: linear-gradient(135deg, var(--navy), #29659A);
+      color: #FFFFFF;
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      border-bottom: 4px solid var(--gold);
+    }
+
+    .summary-banner h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 0.75rem 0.65rem;
+      border-bottom: 1px solid #E2E8F0;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #F1F5F9;
+      color: var(--navy);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    td code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.8rem;
+      background: #F1F5F9;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      color: var(--navy-dark);
+    }
+
+    .tag-reject {
+      display: inline-block;
+      background: #FEE2E2;
+      color: #991B1B;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .tag-keep {
+      display: inline-block;
+      background: #DBEAFE;
+      color: #1E40AF;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 1.15rem; }
+      .stat-input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="header-title">
+        <small>Universidad de Oriente · Facultad de Ciencias</small>
+        <h1>Pruebas de Hipótesis para una Media Poblacional</h1>
+        <p>Parte 2: Cálculo del estadístico, funciones de Excel y decisión estadística</p>
+      </div>
+      <button type="button" class="btn-formulas" id="toggleFormulasBtn">
+        Ver fórmulas y criterios
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Panel de referencia (sin revelar las fórmulas exactas de Excel) -->
+    <section class="formulas-panel" id="formulasPanel">
+      <h3>Fórmulas de estadísticos y criterios de decisión</h3>
+      <div class="formulas-grid">
+        <div class="formula-card">
+          <h4>Estadístico Z (&sigma; conocida)</h4>
+          <div class="formula-display">
+            <span class="math-var">Z</span> =
+            <span class="frac">
+              <span class="frac-num"><span class="xbar">x</span> &minus; <span class="math-var">&mu;</span><sub>0</sub></span>
+              <span class="frac-den"><span class="math-var">&sigma;</span> / <span class="sqrt">&radic;<span class="sqrt-over"><span class="math-var">n</span></span></span></span>
+            </span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <h4>Estadístico t (s muestral, gl = n &minus; 1)</h4>
+          <div class="formula-display">
+            <span class="math-var">t</span> =
+            <span class="frac">
+              <span class="frac-num"><span class="xbar">x</span> &minus; <span class="math-var">&mu;</span><sub>0</sub></span>
+              <span class="frac-den"><span class="math-var">s</span> / <span class="sqrt">&radic;<span class="sqrt-over"><span class="math-var">n</span></span></span></span>
+            </span>
+          </div>
+        </div>
+        <div class="formula-card">
+          <h4>Criterios de decisión</h4>
+          <ul>
+            <li><strong>Valor p:</strong> se rechaza H<sub>0</sub> si <em>p</em> &le; &alpha;.</li>
+            <li><strong>Valor crítico (cola derecha):</strong> se rechaza H<sub>0</sub> si estadístico &ge; valor crítico.</li>
+            <li><strong>Valor crítico (cola izquierda):</strong> se rechaza H<sub>0</sub> si estadístico &le; valor crítico.</li>
+            <li><strong>Valor crítico (dos colas):</strong> se rechaza H<sub>0</sub> si |estadístico| &ge; valor crítico.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de progreso -->
+    <section class="progress-bar-wrap" id="progressSection">
+      <div class="progress-top">
+        <span class="progress-label" id="progressLabel">Ejercicio 1 de 6</span>
+        <div class="step-dots" id="stepDots"></div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </section>
+
+    <!-- Área de trabajo -->
+    <div id="exerciseWorkspace">
+      <!-- Enunciado y resumen de Parte 1 -->
+      <section class="card">
+        <div class="exercise-meta">
+          <span class="badge badge-navy" id="exerciseBadge"></span>
+          <span class="badge badge-gold" id="methodBadge"></span>
+          <span class="badge badge-slate" id="distTailBadge"></span>
+        </div>
+        <h2 class="exercise-title" id="exerciseTitle"></h2>
+        <div class="exercise-text" id="exerciseText"></div>
+
+        <div class="given-data">
+          <div class="given-block">
+            <h4>Hipótesis planteadas (Parte 1)</h4>
+            <div class="hyp-summary" id="hypSummary"></div>
+          </div>
+          <div class="given-block">
+            <h4>Parámetros identificados</h4>
+            <div class="param-chips" id="paramChips"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Paso 1: Cálculo del estadístico -->
+      <section class="card" id="step1Card">
+        <div class="step-header">
+          <h2><span class="step-num">1</span> Cálculo del Estadístico de Prueba</h2>
+          <span class="status-pill status-pending" id="step1Status">Pendiente</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 0.9rem;">
+          Realiza la operación con los parámetros del ejercicio y digita el valor del estadístico <strong>redondeado a 2 decimales</strong> (incluye el signo negativo si corresponde).
+        </p>
+
+        <div class="stat-input-row">
+          <span class="stat-symbol-label" id="statSymbolLabel">Z =</span>
+          <input type="text" inputmode="decimal" id="statInput" class="stat-input" placeholder="Ej. 2.00 o -2.67" autocomplete="off" />
+          <span class="hint-inline">Puedes usar punto (.) o coma (,) decimal.</span>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="checkStep1Btn">
+            Verificar estadístico
+          </button>
+        </div>
+
+        <div class="feedback" id="step1Feedback"></div>
+        <div class="formula-display" id="statWorkedFormula" style="display: none; margin-top: 0.9rem;"></div>
+      </section>
+
+      <!-- Paso 2: Función de Excel para Valor Crítico o Valor p -->
+      <section class="card hidden-step" id="step2Card">
+        <div class="step-header">
+          <h2><span class="step-num">2</span> <span id="step2TitleText">Selección de Función en Excel</span></h2>
+          <span class="status-pill status-pending" id="step2Status">Pendiente</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 0.9rem;" id="step2Instructions"></p>
+
+        <div class="excel-select-wrap">
+          <label for="excelSelect">Selecciona la función de Excel (en español) que corresponde a este ejercicio:</label>
+          <select id="excelSelect" class="excel-select">
+            <option value="">-- Selecciona una función de Excel --</option>
+            <optgroup label="Funciones para Puntos Críticos (Z y t)">
+              <option value="vc_z_der">=INV.NORM.ESTAND(1-α)</option>
+              <option value="vc_z_izq">=INV.NORM.ESTAND(α)</option>
+              <option value="vc_z_dos">=INV.NORM.ESTAND(1-α/2)</option>
+              <option value="vc_t_der">=INV.T(1-α;gl)</option>
+              <option value="vc_t_izq">=INV.T(α;gl)</option>
+              <option value="vc_t_dos">=INV.T.2C(α;gl)</option>
+            </optgroup>
+            <optgroup label="Funciones para Valor p (Z y t)">
+              <option value="pv_z_der">=1-DISTR.NORM.ESTAND.N(z;VERDADERO)</option>
+              <option value="pv_z_izq">=DISTR.NORM.ESTAND.N(z;VERDADERO)</option>
+              <option value="pv_z_dos">=2*(1-DISTR.NORM.ESTAND.N(ABS(z);VERDADERO))</option>
+              <option value="pv_t_der">=DISTR.T.CD(t;gl)</option>
+              <option value="pv_t_izq">=DISTR.T.N(t;gl;VERDADERO)</option>
+              <option value="pv_t_dos">=DISTR.T.2C(ABS(t);gl)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="checkStep2Btn">
+            Verificar función y calcular
+          </button>
+        </div>
+
+        <div class="feedback" id="step2Feedback"></div>
+
+        <!-- Resultado devuelto al seleccionar la función correcta -->
+        <div class="excel-result-box" id="excelResultBox">
+          <div class="excel-result-grid">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 700; color: #166534; text-transform: uppercase; margin-bottom: 0.3rem;">
+                Fórmula aplicada en Excel
+              </div>
+              <div class="excel-code-pill" id="excelAppliedFormula"></div>
+            </div>
+            <div class="excel-value-display">
+              <small id="excelResultLabel"></small>
+              <strong id="excelResultValue"></strong>
+            </div>
+          </div>
+          <p class="excel-note" id="excelResultNote"></p>
+        </div>
+      </section>
+
+      <!-- Paso 3: Decisión estadística -->
+      <section class="card hidden-step" id="step3Card">
+        <div class="step-header">
+          <h2><span class="step-num">3</span> Decisión Estadística</h2>
+          <span class="status-pill status-pending" id="step3Status">Pendiente</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 0.95rem;">
+          Compara los dos valores obtenidos y determina cuál es la decisión estadística respecto a la hipótesis nula (H<sub>0</sub>):
+        </p>
+
+        <div class="comparison-board" id="comparisonBoard"></div>
+
+        <div class="decision-options">
+          <label class="decision-option" id="decReject">
+            <input type="radio" name="decisionChoice" value="rechazar" />
+            <div>
+              <strong>Se rechaza H<sub>0</sub></strong>
+              <span>Existe evidencia estadística suficiente a favor de H<sub>1</sub>.</span>
+            </div>
+          </label>
+          <label class="decision-option" id="decKeep">
+            <input type="radio" name="decisionChoice" value="no_rechazar" />
+            <div>
+              <strong>No se rechaza H<sub>0</sub></strong>
+              <span>No existe evidencia estadística suficiente para respaldar H<sub>1</sub>.</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="checkStep3Btn">
+            Verificar decisión
+          </button>
+          <button type="button" class="btn btn-gold" id="nextExerciseBtn" disabled>
+            Siguiente ejercicio &rarr;
+          </button>
+        </div>
+
+        <div class="feedback" id="step3Feedback"></div>
+
+        <div class="conclusion-box" id="conclusionBox">
+          <h4>Conclusión contextualizada</h4>
+          <p id="conclusionText"></p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Pantalla de resumen final -->
+    <section class="summary-screen" id="summaryScreen">
+      <div class="summary-banner">
+        <h2>¡Práctica completada!</h2>
+        <p>Calculaste los estadísticos, seleccionaste las funciones correctas en Excel y tomaste la decisión estadística en los 6 ejercicios.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="color: var(--navy); margin-bottom: 1rem;">Resumen general de resultados</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ejercicio</th>
+                <th>Estadístico</th>
+                <th>Función de Excel</th>
+                <th>Valor obtenido</th>
+                <th>Decisión</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody"></tbody>
+          </table>
+        </div>
+        <div class="actions" style="margin-top: 1.5rem;">
+          <button type="button" class="btn btn-outline" id="reviewBtn">Revisar ejercicios</button>
+          <button type="button" class="btn btn-gold" id="restartBtn">Reiniciar práctica</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =========================================================================
+    // METADATOS DE LAS 12 FUNCIONES DE EXCEL (para retroalimentación precisa)
+    // =========================================================================
+    const excelCatalog = {
+      vc_z_der: { method: "Valor crítico", dist: "Z", tail: "derecha",   label: "=INV.NORM.ESTAND(1-α)" },
+      vc_z_izq: { method: "Valor crítico", dist: "Z", tail: "izquierda", label: "=INV.NORM.ESTAND(α)" },
+      vc_z_dos: { method: "Valor crítico", dist: "Z", tail: "dos",       label: "=INV.NORM.ESTAND(1-α/2)" },
+      vc_t_der: { method: "Valor crítico", dist: "T", tail: "derecha",   label: "=INV.T(1-α;gl)" },
+      vc_t_izq: { method: "Valor crítico", dist: "T", tail: "izquierda", label: "=INV.T(α;gl)" },
+      vc_t_dos: { method: "Valor crítico", dist: "T", tail: "dos",       label: "=INV.T.2C(α;gl)" },
+      pv_z_der: { method: "Valor p",       dist: "Z", tail: "derecha",   label: "=1-DISTR.NORM.ESTAND.N(z;VERDADERO)" },
+      pv_z_izq: { method: "Valor p",       dist: "Z", tail: "izquierda", label: "=DISTR.NORM.ESTAND.N(z;VERDADERO)" },
+      pv_z_dos: { method: "Valor p",       dist: "Z", tail: "dos",       label: "=2*(1-DISTR.NORM.ESTAND.N(ABS(z);VERDADERO))" },
+      pv_t_der: { method: "Valor p",       dist: "T", tail: "derecha",   label: "=DISTR.T.CD(t;gl)" },
+      pv_t_izq: { method: "Valor p",       dist: "T", tail: "izquierda", label: "=DISTR.T.N(t;gl;VERDADERO)" },
+      pv_t_dos: { method: "Valor p",       dist: "T", tail: "dos",       label: "=DISTR.T.2C(ABS(t);gl)" }
+    };
+
+    // =========================================================================
+    // LOS MISMOS 6 EJERCICIOS DE LA PARTE 1
+    // =========================================================================
+    const exercises = [
+      {
+        id: 1,
+        origNum: "Ejercicio 4 de la guía",
+        title: "Atención y concentración después de una intervención psicológica",
+        text: "Un centro de atención psicológica establece que el puntaje promedio de concentración de sus participantes es de 70 puntos, medido mediante una prueba estandarizada. Después de implementar un programa de entrenamiento cognitivo, los investigadores consideran que el puntaje promedio ha aumentado. Se selecciona una muestra de 100 participantes y se obtiene una media de 72 puntos. Se conoce que la desviación estándar poblacional es de 10 puntos. Con un nivel de significancia del 5%, utilice el método del valor p para determinar si existe evidencia estadística de que el puntaje promedio de concentración es superior a 70 puntos.",
+        method: "Valor p",
+        dist: "Z",
+        tail: "derecha",
+        h0Text: "H₀: μ ≤ 70",
+        h1Text: "H₁: μ > 70",
+        mu0: 70,
+        xbar: 72,
+        sd: 10,
+        n: 100,
+        alpha: 0.05,
+        statRounded: 2.00,
+        statDisplay: "2.00",
+        excelKey: "pv_z_der",
+        excelApplied: "=1-DISTR.NORM.ESTAND.N(2;VERDADERO)",
+        excelOutputLabel: "Valor p obtenido",
+        excelOutputValue: "0.0228",
+        excelNote: "Área acumulada a la derecha de Z = 2.00 en la distribución normal estándar.",
+        decision: "rechazar",
+        decisionJustification: "Como el valor p (0.0228) es menor o igual que α (0.05), se rechaza la hipótesis nula.",
+        conclusion: "Con un nivel de significancia del 5%, existe evidencia estadística suficiente para afirmar que el puntaje promedio de concentración después de la intervención cognitiva es superior a 70 puntos."
+      },
+      {
+        id: 2,
+        origNum: "Ejercicio 5 de la guía",
+        title: "Tiempo de respuesta ante estímulos emocionales",
+        text: "Una investigación establece que el tiempo promedio de respuesta ante determinados estímulos emocionales es de 450 milisegundos. Un investigador considera que, al presentar los estímulos en condiciones controladas, el tiempo promedio de respuesta de los participantes es inferior a dicha cantidad. Para comprobarlo, selecciona una muestra aleatoria de 36 participantes y obtiene un tiempo promedio de 435 milisegundos. Se conoce que la desviación estándar poblacional es de 45 milisegundos. Con un nivel de significancia del 5%, realice una prueba de hipótesis mediante el método del valor crítico para determinar si existe evidencia estadística de que el tiempo promedio de respuesta es inferior a 450 milisegundos.",
+        method: "Valor crítico",
+        dist: "Z",
+        tail: "izquierda",
+        h0Text: "H₀: μ ≥ 450",
+        h1Text: "H₁: μ < 450",
+        mu0: 450,
+        xbar: 435,
+        sd: 45,
+        n: 36,
+        alpha: 0.05,
+        statRounded: -2.00,
+        statDisplay: "-2.00",
+        excelKey: "vc_z_izq",
+        excelApplied: "=INV.NORM.ESTAND(0.05)",
+        excelOutputLabel: "Valor crítico (Zc)",
+        excelOutputValue: "-1.6449",
+        excelNote: "Al ser una prueba de cola izquierda, la región de rechazo comprende todos los valores Z ≤ -1.6449.",
+        decision: "rechazar",
+        decisionJustification: "Como Z calculado (-2.00) es menor que el valor crítico (-1.6449), cae dentro de la región de rechazo en la cola izquierda.",
+        conclusion: "Con un nivel de significancia del 5%, existe evidencia estadística suficiente para concluir que el tiempo promedio de respuesta en condiciones controladas es inferior a 450 milisegundos."
+      },
+      {
+        id: 3,
+        origNum: "Ejercicio 6 de la guía",
+        title: "Estrés laboral en profesionales",
+        text: "Un estudio sobre bienestar ocupacional establece que el puntaje promedio de estrés laboral en una población de profesionales es de 40 puntos, medido mediante una escala psicológica. Una investigación desea determinar si el puntaje promedio de estrés de los profesionales que trabajan en una institución determinada es diferente de dicho valor. Para ello, selecciona una muestra aleatoria de 81 profesionales y obtiene una media de 42 puntos. Se conoce que la desviación estándar poblacional es de 9 puntos. Con un nivel de significancia del 1%, utilice el método del valor p para determinar si existe evidencia estadística de que el puntaje promedio de estrés laboral es diferente de 40 puntos.",
+        method: "Valor p",
+        dist: "Z",
+        tail: "dos",
+        h0Text: "H₀: μ = 40",
+        h1Text: "H₁: μ ≠ 40",
+        mu0: 40,
+        xbar: 42,
+        sd: 9,
+        n: 81,
+        alpha: 0.01,
+        statRounded: 2.00,
+        statDisplay: "2.00",
+        excelKey: "pv_z_dos",
+        excelApplied: "=2*(1-DISTR.NORM.ESTAND.N(ABS(2);VERDADERO))",
+        excelOutputLabel: "Valor p obtenido (dos colas)",
+        excelOutputValue: "0.0455",
+        excelNote: "En pruebas de dos colas, el valor p duplica el área de la cola correspondiente a |Z| = 2.00.",
+        decision: "no_rechazar",
+        decisionJustification: "Como el valor p (0.0455) es mayor que α (0.01), no se rechaza la hipótesis nula.",
+        conclusion: "Con un nivel de significancia del 1%, no existe evidencia estadística suficiente para afirmar que el puntaje promedio de estrés laboral de los profesionales de esta institución sea diferente de 40 puntos."
+      },
+      {
+        id: 4,
+        origNum: "Ejercicio 7 de la guía",
+        title: "Síntomas de ansiedad después de una intervención psicológica",
+        text: "Un centro de atención psicológica considera que el puntaje promedio de ansiedad de sus pacientes es de 60 puntos, medido mediante una escala estandarizada. Después de implementar un programa de intervención psicológica, un investigador desea comprobar si el puntaje promedio de ansiedad de los participantes es inferior a dicha cantidad. Para ello, selecciona una muestra de 16 pacientes y obtiene un promedio de 56 puntos, con una desviación estándar muestral de 6 puntos. Con un nivel de significancia del 5%, realice una prueba de hipótesis mediante el método del valor p para determinar si existe evidencia estadística de que el puntaje promedio de ansiedad es inferior a 60 puntos.",
+        method: "Valor p",
+        dist: "T",
+        tail: "izquierda",
+        h0Text: "H₀: μ ≥ 60",
+        h1Text: "H₁: μ < 60",
+        mu0: 60,
+        xbar: 56,
+        sd: 6,
+        n: 16,
+        gl: 15,
+        alpha: 0.05,
+        statRounded: -2.67,
+        statDisplay: "-2.67",
+        excelKey: "pv_t_izq",
+        excelApplied: "=DISTR.T.N(-2.67;15;VERDADERO)",
+        excelOutputLabel: "Valor p obtenido",
+        excelOutputValue: "0.0088",
+        excelNote: "Valor exacto con t = -8/3 ≈ -2.6667 (si ingresas -2.67 redondeado en Excel obtendrás 0.0087; la decisión estadística no cambia).",
+        decision: "rechazar",
+        decisionJustification: "Como el valor p (0.0088) es menor o igual que α (0.05), se rechaza la hipótesis nula.",
+        conclusion: "Con un nivel de significancia del 5%, existe evidencia estadística suficiente para afirmar que el puntaje promedio de ansiedad de los participantes es inferior a 60 puntos después de la intervención."
+      },
+      {
+        id: 5,
+        origNum: "Ejercicio 10 de la guía",
+        title: "Tiempo de atención sostenida",
+        text: "Un estudio psicológico establece que el tiempo promedio durante el cual una persona mantiene su atención en una actividad específica es de 25 minutos. Un investigador considera que los participantes de un programa de entrenamiento cognitivo pueden mantener su atención durante un tiempo promedio superior. Para comprobarlo, selecciona una muestra de 18 participantes y obtiene un tiempo promedio de 26.5 minutos, con una desviación estándar muestral de 3 minutos. Con un nivel de significancia del 1%, realice una prueba de hipótesis mediante el método del valor crítico para determinar si existe evidencia estadística de que el tiempo promedio de atención sostenida es superior a 25 minutos.",
+        method: "Valor crítico",
+        dist: "T",
+        tail: "derecha",
+        h0Text: "H₀: μ ≤ 25",
+        h1Text: "H₁: μ > 25",
+        mu0: 25,
+        xbar: 26.5,
+        sd: 3,
+        n: 18,
+        gl: 17,
+        alpha: 0.01,
+        statRounded: 2.12,
+        statDisplay: "2.12",
+        excelKey: "vc_t_der",
+        excelApplied: "=INV.T(1-0.01;17)",
+        excelOutputLabel: "Valor crítico (tc)",
+        excelOutputValue: "2.5669",
+        excelNote: "Al ser una prueba de cola derecha con gl = 17, la región de rechazo inicia a partir de t ≥ 2.5669.",
+        decision: "no_rechazar",
+        decisionJustification: "Como t calculado (2.12) es menor que el valor crítico (2.5669), no alcanza la región de rechazo.",
+        conclusion: "Con un nivel de significancia del 1%, no existe evidencia estadística suficiente para afirmar que el tiempo promedio de atención sostenida de los participantes sea superior a 25 minutos."
+      },
+      {
+        id: 6,
+        origNum: "Ejercicio 12 de la guía",
+        title: "Estrés percibido en profesionales de la salud",
+        text: "Un estudio sobre bienestar psicológico establece que el puntaje promedio de estrés percibido en profesionales de la salud es de 35 puntos. Un investigador desea comprobar si el puntaje promedio de estrés de los profesionales de una institución hospitalaria es diferente de dicho valor. Para ello, selecciona una muestra de 16 profesionales y obtiene una media de 37 puntos, con una desviación estándar muestral de 5 puntos. Con un nivel de significancia del 1%, realice una prueba de hipótesis mediante el método del valor crítico para determinar si existe evidencia estadística de que el puntaje promedio de estrés percibido es diferente de 35 puntos.",
+        method: "Valor crítico",
+        dist: "T",
+        tail: "dos",
+        h0Text: "H₀: μ = 35",
+        h1Text: "H₁: μ ≠ 35",
+        mu0: 35,
+        xbar: 37,
+        sd: 5,
+        n: 16,
+        gl: 15,
+        alpha: 0.01,
+        statRounded: 1.60,
+        statDisplay: "1.60",
+        excelKey: "vc_t_dos",
+        excelApplied: "=INV.T.2C(0.01;15)",
+        excelOutputLabel: "Valores críticos (±tc)",
+        excelOutputValue: "±2.9467",
+        excelNote: "Excel devuelve la magnitud positiva 2.9467. Al ser de dos colas, se rechaza H₀ si t ≤ -2.9467 o t ≥ +2.9467.",
+        decision: "no_rechazar",
+        decisionJustification: "Como |t calculado| = 1.60 es menor que 2.9467 (cae entre -2.9467 y +2.9467), queda en la zona de no rechazo.",
+        conclusion: "Con un nivel de significancia del 1%, no existe evidencia estadística suficiente para afirmar que el puntaje promedio de estrés percibido en los profesionales de esta institución hospitalaria sea diferente de 35 puntos."
+      }
+    ];
+
+    // Estado por ejercicio
+    let currentIndex = 0;
+    let progressState = exercises.map(() => ({
+      step1Done: false,
+      step2Done: false,
+      step3Done: false,
+      savedStat: "",
+      savedExcel: "",
+      savedDecision: ""
+    }));
+
+    // Referencias DOM
+    const formulasPanel = document.getElementById("formulasPanel");
+    const toggleFormulasBtn = document.getElementById("toggleFormulasBtn");
+    const progressLabel = document.getElementById("progressLabel");
+    const stepDots = document.getElementById("stepDots");
+    const progressFill = document.getElementById("progressFill");
+    const progressSection = document.getElementById("progressSection");
+    const exerciseWorkspace = document.getElementById("exerciseWorkspace");
+    const summaryScreen = document.getElementById("summaryScreen");
+
+    const exerciseBadge = document.getElementById("exerciseBadge");
+    const methodBadge = document.getElementById("methodBadge");
+    const distTailBadge = document.getElementById("distTailBadge");
+    const exerciseTitle = document.getElementById("exerciseTitle");
+    const exerciseText = document.getElementById("exerciseText");
+    const hypSummary = document.getElementById("hypSummary");
+    const paramChips = document.getElementById("paramChips");
+
+    const statSymbolLabel = document.getElementById("statSymbolLabel");
+    const statInput = document.getElementById("statInput");
+    const checkStep1Btn = document.getElementById("checkStep1Btn");
+    const step1Status = document.getElementById("step1Status");
+    const step1Feedback = document.getElementById("step1Feedback");
+    const statWorkedFormula = document.getElementById("statWorkedFormula");
+
+    const step2Card = document.getElementById("step2Card");
+    const step2TitleText = document.getElementById("step2TitleText");
+    const step2Instructions = document.getElementById("step2Instructions");
+    const step2Status = document.getElementById("step2Status");
+    const excelSelect = document.getElementById("excelSelect");
+    const checkStep2Btn = document.getElementById("checkStep2Btn");
+    const step2Feedback = document.getElementById("step2Feedback");
+    const excelResultBox = document.getElementById("excelResultBox");
+    const excelAppliedFormula = document.getElementById("excelAppliedFormula");
+    const excelResultLabel = document.getElementById("excelResultLabel");
+    const excelResultValue = document.getElementById("excelResultValue");
+    const excelResultNote = document.getElementById("excelResultNote");
+
+    const step3Card = document.getElementById("step3Card");
+    const step3Status = document.getElementById("step3Status");
+    const comparisonBoard = document.getElementById("comparisonBoard");
+    const decReject = document.getElementById("decReject");
+    const decKeep = document.getElementById("decKeep");
+    const checkStep3Btn = document.getElementById("checkStep3Btn");
+    const nextExerciseBtn = document.getElementById("nextExerciseBtn");
+    const step3Feedback = document.getElementById("step3Feedback");
+    const conclusionBox = document.getElementById("conclusionBox");
+    const conclusionText = document.getElementById("conclusionText");
+
+    // Utilidades
+    function parseDecimal(raw) {
+      if (typeof raw !== "string") return NaN;
+      const cleaned = raw.trim().replace(/[−–]/g, "-").replace(",", ".");
+      if (cleaned === "") return NaN;
+      return Number(cleaned);
+    }
+
+    function tailLabel(tail) {
+      const map = { izquierda: "Cola izquierda", derecha: "Cola derecha", dos: "Dos colas" };
+      return map[tail] || tail;
+    }
+
+    function showFeedback(el, type, html) {
+      el.className = `feedback show ${type}`;
+      el.innerHTML = html;
+    }
+
+    function clearFeedback(el) {
+      el.className = "feedback";
+      el.innerHTML = "";
+    }
+
+    // Panel de referencia
+    toggleFormulasBtn.addEventListener("click", () => {
+      const isOpen = formulasPanel.classList.toggle("open");
+      toggleFormulasBtn.textContent = isOpen
+        ? "Ocultar fórmulas y criterios"
+        : "Ver fórmulas y criterios";
+    });
+
+    // Renderizar barra de progreso
+    function renderProgress() {
+      const completedCount = progressState.filter((s) => s.step3Done).length;
+      progressLabel.textContent = `Ejercicio ${currentIndex + 1} de ${exercises.length} · Completados: ${completedCount}/${exercises.length}`;
+      progressFill.style.width = `${(completedCount / exercises.length) * 100}%`;
+
+      stepDots.innerHTML = "";
+      exercises.forEach((_, idx) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "step-dot";
+        dot.textContent = idx + 1;
+
+        if (idx === currentIndex) {
+          dot.classList.add("active");
+        } else if (progressState[idx].step3Done) {
+          dot.classList.add("completed");
+          dot.title = `Revisar ejercicio ${idx + 1}`;
+          dot.addEventListener("click", () => loadExercise(idx));
+        }
+        stepDots.appendChild(dot);
+      });
+    }
+
+    // Mostrar sustitución resuelta del estadístico
+    function renderWorkedStatFormula(ex) {
+      const letter = ex.dist === "Z" ? "Z" : "t";
+      statWorkedFormula.innerHTML = `
+        <span class="math-var">${letter}</span> =
+        <span class="frac">
+          <span class="frac-num">${ex.xbar} &minus; ${ex.mu0}</span>
+          <span class="frac-den">${ex.sd} / <span class="sqrt">&radic;<span class="sqrt-over">${ex.n}</span></span></span>
+        </span>
+        = <strong>${ex.statDisplay}</strong>
+      `;
+      statWorkedFormula.style.display = "flex";
+    }
+
+    // Mostrar resultado de Excel en Paso 2
+    function renderExcelResult(ex) {
+      excelAppliedFormula.textContent = ex.excelApplied;
+      excelResultLabel.textContent = ex.excelOutputLabel;
+      excelResultValue.textContent = ex.excelOutputValue;
+      excelResultNote.textContent = ex.excelNote;
+      excelResultBox.classList.add("show");
+    }
+
+    // Mostrar tablero comparativo en Paso 3
+    function renderComparisonBoard(ex) {
+      const statName = ex.dist === "Z" ? "Estadístico Z calculado" : "Estadístico t calculado";
+      if (ex.method === "Valor p") {
+        comparisonBoard.innerHTML = `
+          <div class="comp-tile navy-tile">
+            <small>${statName}</small>
+            <strong>${ex.statDisplay}</strong>
+            <span>${tailLabel(ex.tail)}</span>
+          </div>
+          <div class="comp-tile">
+            <small>Valor p obtenido en Excel</small>
+            <strong>${ex.excelOutputValue}</strong>
+            <span>Compara contra &alpha;</span>
+          </div>
+          <div class="comp-tile">
+            <small>Nivel de significancia (&alpha;)</small>
+            <strong>${ex.alpha}</strong>
+            <span>Regla: rechazar H<sub>0</sub> si p &le; &alpha;</span>
+          </div>
+        `;
+      } else {
+        comparisonBoard.innerHTML = `
+          <div class="comp-tile navy-tile">
+            <small>${statName}</small>
+            <strong>${ex.statDisplay}</strong>
+            <span>Compara con la región de rechazo</span>
+          </div>
+          <div class="comp-tile">
+            <small>${ex.excelOutputLabel}</small>
+            <strong>${ex.excelOutputValue}</strong>
+            <span>${tailLabel(ex.tail)} (&alpha; = ${ex.alpha}${ex.dist === "T" ? `, gl = ${ex.gl}` : ""})</span>
+          </div>
+        `;
+      }
+    }
+
+    // Cargar ejercicio
+    function loadExercise(index) {
+      currentIndex = index;
+      const ex = exercises[index];
+      const st = progressState[index];
+
+      summaryScreen.classList.remove("show");
+      exerciseWorkspace.style.display = "block";
+      progressSection.style.display = "block";
+
+      exerciseBadge.textContent = `Ejercicio ${index + 1} de ${exercises.length} (${ex.origNum})`;
+      methodBadge.textContent = `Método: ${ex.method}`;
+      distTailBadge.textContent = `Distribución ${ex.dist === "Z" ? "Normal (Z)" : "T de Student"} · ${tailLabel(ex.tail)}`;
+      exerciseTitle.textContent = ex.title;
+      exerciseText.textContent = ex.text;
+
+      hypSummary.innerHTML = `<span>${ex.h0Text}</span><span>${ex.h1Text}</span>`;
+
+      const sdLabel = ex.dist === "Z" ? `&sigma; = ${ex.sd}` : `s = ${ex.sd}`;
+      const glChip = ex.dist === "T" ? `<span class="param-chip">gl = ${ex.gl}</span>` : "";
+      paramChips.innerHTML = `
+        <span class="param-chip"><span class="xbar">x</span> = ${ex.xbar}</span>
+        <span class="param-chip">&mu;<sub>0</sub> = ${ex.mu0}</span>
+        <span class="param-chip">${sdLabel}</span>
+        <span class="param-chip">n = ${ex.n}</span>
+        ${glChip}
+        <span class="param-chip">&alpha; = ${ex.alpha}</span>
+      `;
+
+      // --- Paso 1 ---
+      statSymbolLabel.innerHTML = ex.dist === "Z" ? "Z =" : "t =";
+      statInput.classList.remove("is-valid", "is-invalid");
+      clearFeedback(step1Feedback);
+
+      if (st.step1Done) {
+        statInput.value = st.savedStat;
+        statInput.disabled = true;
+        statInput.classList.add("is-valid");
+        checkStep1Btn.disabled = true;
+        step1Status.textContent = "Correcto";
+        step1Status.className = "status-pill status-done";
+        showFeedback(step1Feedback, "success", "Estadístico calculado correctamente.");
+        renderWorkedStatFormula(ex);
+      } else {
+        statInput.value = "";
+        statInput.disabled = false;
+        checkStep1Btn.disabled = false;
+        step1Status.textContent = "Pendiente";
+        step1Status.className = "status-pill status-pending";
+        statWorkedFormula.style.display = "none";
+      }
+
+      // --- Paso 2 ---
+      const targetName = ex.method === "Valor p" ? "el valor p" : "el valor crítico";
+      step2TitleText.textContent = `Función de Excel para calcular ${targetName}`;
+      step2Instructions.innerHTML = `El enunciado solicita resolver por el <strong>método del ${ex.method.toLowerCase()}</strong>. Elige la fórmula exacta de Excel que corresponde a la distribución <strong>${ex.dist === "Z" ? "Z" : "t de Student"}</strong> y a una prueba de <strong>${tailLabel(ex.tail).toLowerCase()}</strong>.`;
+      excelSelect.classList.remove("is-valid", "is-invalid");
+      clearFeedback(step2Feedback);
+
+      if (!st.step1Done) {
+        step2Card.classList.add("hidden-step");
+        excelSelect.value = "";
+        excelSelect.disabled = false;
+        checkStep2Btn.disabled = false;
+        excelResultBox.classList.remove("show");
+        step2Status.textContent = "Pendiente";
+        step2Status.className = "status-pill status-pending";
+      } else {
+        step2Card.classList.remove("hidden-step");
+        if (st.step2Done) {
+          excelSelect.value = st.savedExcel;
+          excelSelect.disabled = true;
+          excelSelect.classList.add("is-valid");
+          checkStep2Btn.disabled = true;
+          step2Status.textContent = "Correcto";
+          step2Status.className = "status-pill status-done";
+          showFeedback(step2Feedback, "success", "Función de Excel seleccionada correctamente.");
+          renderExcelResult(ex);
+        } else {
+          excelSelect.value = "";
+          excelSelect.disabled = false;
+          checkStep2Btn.disabled = false;
+          excelResultBox.classList.remove("show");
+          step2Status.textContent = "Pendiente";
+          step2Status.className = "status-pill status-pending";
+        }
+      }
+
+      // --- Paso 3 ---
+      clearFeedback(step3Feedback);
+      conclusionBox.classList.remove("show");
+      decReject.classList.remove("selected", "disabled-opt");
+      decKeep.classList.remove("selected", "disabled-opt");
+      document.querySelectorAll('input[name="decisionChoice"]').forEach((r) => {
+        r.checked = false;
+        r.disabled = false;
+      });
+
+      if (!st.step2Done) {
+        step3Card.classList.add("hidden-step");
+        checkStep3Btn.disabled = false;
+        nextExerciseBtn.disabled = true;
+        step3Status.textContent = "Pendiente";
+        step3Status.className = "status-pill status-pending";
+      } else {
+        step3Card.classList.remove("hidden-step");
+        renderComparisonBoard(ex);
+        if (st.step3Done) {
+          const radio = document.querySelector(`input[name="decisionChoice"][value="${st.savedDecision}"]`);
+          if (radio) radio.checked = true;
+          (st.savedDecision === "rechazar" ? decReject : decKeep).classList.add("selected");
+          decReject.classList.add("disabled-opt");
+          decKeep.classList.add("disabled-opt");
+          checkStep3Btn.disabled = true;
+          nextExerciseBtn.disabled = false;
+          step3Status.textContent = "Correcto";
+          step3Status.className = "status-pill status-done";
+          showFeedback(step3Feedback, "success", `<strong>¡Decisión correcta!</strong> ${ex.decisionJustification}`);
+          conclusionText.textContent = ex.conclusion;
+          conclusionBox.classList.add("show");
+        } else {
+          checkStep3Btn.disabled = false;
+          nextExerciseBtn.disabled = true;
+          step3Status.textContent = "Pendiente";
+          step3Status.className = "status-pill status-pending";
+        }
+      }
+
+      nextExerciseBtn.innerHTML =
+        index === exercises.length - 1
+          ? "Ver resumen final &rarr;"
+          : "Siguiente ejercicio &rarr;";
+
+      renderProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // =========================================================================
+    // VALIDACIÓN PASO 1: ESTADÍSTICO CALCULADO (2 DECIMALES)
+    // =========================================================================
+    checkStep1Btn.addEventListener("click", () => {
+      const ex = exercises[currentIndex];
+      statInput.classList.remove("is-valid", "is-invalid");
+      clearFeedback(step1Feedback);
+
+      const userVal = parseDecimal(statInput.value);
+      if (Number.isNaN(userVal)) {
+        statInput.classList.add("is-invalid");
+        showFeedback(step1Feedback, "error", "Ingresa un valor numérico válido (ejemplo: 2.00 o -2.67).");
+        return;
+      }
+
+      // Verificación exacta a 2 decimales
+      if (Math.abs(userVal - ex.statRounded) < 1e-6) {
+        progressState[currentIndex].step1Done = true;
+        progressState[currentIndex].savedStat = ex.statDisplay;
+
+        statInput.value = ex.statDisplay;
+        statInput.disabled = true;
+        statInput.classList.add("is-valid");
+        checkStep1Btn.disabled = true;
+        step1Status.textContent = "Correcto";
+        step1Status.className = "status-pill status-done";
+
+        showFeedback(
+          step1Feedback,
+          "success",
+          "<strong>¡Correcto!</strong> El cálculo del estadístico es exacto. Ahora elige la función de Excel en el Paso 2."
+        );
+        renderWorkedStatFormula(ex);
+
+        step2Card.classList.remove("hidden-step");
+        step2Card.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      // Diagnóstico de errores comunes
+      statInput.classList.add("is-invalid");
+      const exactVal = (ex.xbar - ex.mu0) / (ex.sd / Math.sqrt(ex.n));
+      const noSqrtVal = (ex.xbar - ex.mu0) / ex.sd;
+
+      if (Math.abs(userVal + ex.statRounded) < 0.015) {
+        showFeedback(
+          step1Feedback,
+          "error",
+          "El número coincide en magnitud, pero <strong>revisa el signo</strong>: recuerda restar siempre en el orden <span class='xbar'>x</span> &minus; &mu;<sub>0</sub>."
+        );
+      } else if (Math.abs(userVal - noSqrtVal) < 0.05) {
+        showFeedback(
+          step1Feedback,
+          "error",
+          "Revisa el denominador: parece que olvidaste dividir la desviación estándar entre <strong>&radic;n</strong>."
+        );
+      } else if (Math.abs(userVal - exactVal) <= 0.025) {
+        showFeedback(
+          step1Feedback,
+          "error",
+          "Tu resultado está muy cerca; revisa el <strong>redondeo a 2 decimales</strong> (si la tercera cifra decimal es 5 o mayor, redondea hacia arriba)."
+        );
+      } else {
+        showFeedback(
+          step1Feedback,
+          "error",
+          `El valor ingresado no coincide. Verifica la operación: (${ex.xbar} &minus; ${ex.mu0}) dividido entre (${ex.sd} / &radic;${ex.n}), redondeado a 2 decimales.`
+        );
+      }
+    });
+
+    // Permitir Enter en Paso 1
+    statInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !checkStep1Btn.disabled) {
+        checkStep1Btn.click();
+      }
+    });
+
+    // =========================================================================
+    // VALIDACIÓN PASO 2: SELECCIÓN DE FUNCIÓN DE EXCEL
+    // =========================================================================
+    checkStep2Btn.addEventListener("click", () => {
+      const ex = exercises[currentIndex];
+      excelSelect.classList.remove("is-valid", "is-invalid");
+      clearFeedback(step2Feedback);
+
+      const chosenKey = excelSelect.value;
+      if (!chosenKey) {
+        excelSelect.classList.add("is-invalid");
+        showFeedback(step2Feedback, "error", "Selecciona una función de Excel de la lista desplegable.");
+        return;
+      }
+
+      if (chosenKey === ex.excelKey) {
+        progressState[currentIndex].step2Done = true;
+        progressState[currentIndex].savedExcel = chosenKey;
+
+        excelSelect.disabled = true;
+        excelSelect.classList.add("is-valid");
+        checkStep2Btn.disabled = true;
+        step2Status.textContent = "Correcto";
+        step2Status.className = "status-pill status-done";
+
+        showFeedback(
+          step2Feedback,
+          "success",
+          "<strong>¡Función correcta!</strong> Revisa el valor obtenido con Excel y toma la decisión estadística en el Paso 3."
+        );
+        renderExcelResult(ex);
+        renderComparisonBoard(ex);
+
+        step3Card.classList.remove("hidden-step");
+        step3Card.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      // Retroalimentación diagnóstica si la función no es la adecuada
+      excelSelect.classList.add("is-invalid");
+      const picked = excelCatalog[chosenKey];
+      const issues = [];
+
+      if (picked.method !== ex.method) {
+        issues.push(
+          `<strong>Método incorrecto:</strong> elegiste una función de <em>${picked.method}</em>, pero el ejercicio pide el método del <strong>${ex.method}</strong>.`
+        );
+      }
+      if (picked.dist !== ex.dist) {
+        issues.push(
+          `<strong>Distribución incorrecta:</strong> elegiste una función de la distribución <em>${picked.dist === "Z" ? "Normal (Z)" : "t de Student"}</em>, pero este ejercicio trabaja con <strong>${ex.dist === "Z" ? "Z (Normal estándar)" : "t de Student"}</strong>.`
+        );
+      }
+      if (picked.tail !== ex.tail) {
+        issues.push(
+          `<strong>Tipo de cola incorrecto:</strong> la fórmula elegida corresponde a una prueba de <em>${tailLabel(picked.tail).toLowerCase()}</em>, mientras que H<sub>1</sub> plantea una prueba de <strong>${tailLabel(ex.tail).toLowerCase()}</strong>.`
+        );
+      }
+
+      showFeedback(
+        step2Feedback,
+        "error",
+        `<strong>Algo falló en la función seleccionada:</strong><ul style="margin: 0.4rem 0 0 1.2rem;">${issues
+          .map((item) => `<li>${item}</li>`)
+          .join("")}</ul>`
+      );
+    });
+
+    // Estilo activo en radios de Paso 3
+    document.querySelectorAll('input[name="decisionChoice"]').forEach((radio) => {
+      radio.addEventListener("change", (e) => {
+        const val = e.target.value;
+        decReject.classList.toggle("selected", val === "rechazar");
+        decKeep.classList.toggle("selected", val === "no_rechazar");
+        clearFeedback(step3Feedback);
+      });
+    });
+
+    // =========================================================================
+    // VALIDACIÓN PASO 3: DECISIÓN ESTADÍSTICA
+    // =========================================================================
+    checkStep3Btn.addEventListener("click", () => {
+      const ex = exercises[currentIndex];
+      const chosenRadio = document.querySelector('input[name="decisionChoice"]:checked');
+      clearFeedback(step3Feedback);
+
+      if (!chosenRadio) {
+        showFeedback(step3Feedback, "error", "Selecciona si se rechaza o no se rechaza la hipótesis nula (H<sub>0</sub>).");
+        return;
+      }
+
+      const chosenDec = chosenRadio.value;
+      if (chosenDec === ex.decision) {
+        progressState[currentIndex].step3Done = true;
+        progressState[currentIndex].savedDecision = chosenDec;
+
+        decReject.classList.add("disabled-opt");
+        decKeep.classList.add("disabled-opt");
+        checkStep3Btn.disabled = true;
+        nextExerciseBtn.disabled = false;
+        step3Status.textContent = "Correcto";
+        step3Status.className = "status-pill status-done";
+
+        showFeedback(
+          step3Feedback,
+          "success",
+          `<strong>¡Decisión correcta!</strong> ${ex.decisionJustification}`
+        );
+        conclusionText.textContent = ex.conclusion;
+        conclusionBox.classList.add("show");
+        renderProgress();
+        return;
+      }
+
+      // Pista si se equivoca en la decisión
+      let hint = "";
+      if (ex.method === "Valor p") {
+        hint = `Revisa la regla del valor p: se rechaza H<sub>0</sub> únicamente cuando <strong>p &le; &alpha;</strong>. Compara p = ${ex.excelOutputValue} frente a &alpha; = ${ex.alpha}.`;
+      } else if (ex.tail === "izquierda") {
+        hint = `En una prueba de cola izquierda, se rechaza H<sub>0</sub> si el estadístico calculado (${ex.statDisplay}) es <strong>menor o igual</strong> que el valor crítico (${ex.excelOutputValue}).`;
+      } else if (ex.tail === "derecha") {
+        hint = `En una prueba de cola derecha, se rechaza H<sub>0</sub> si el estadístico calculado (${ex.statDisplay}) es <strong>mayor o igual</strong> que el valor crítico (${ex.excelOutputValue}).`;
+      } else {
+        hint = `En una prueba de dos colas, se rechaza H<sub>0</sub> si el valor absoluto del estadístico (|${ex.statDisplay}|) es <strong>mayor o igual</strong> que el valor crítico (${ex.excelOutputValue.replace("±", "")}).`;
+      }
+
+      showFeedback(step3Feedback, "error", `<strong>Decisión incorrecta.</strong> ${hint}`);
+    });
+
+    // Avanzar al siguiente ejercicio o mostrar resumen
+    nextExerciseBtn.addEventListener("click", () => {
+      if (currentIndex < exercises.length - 1) {
+        loadExercise(currentIndex + 1);
+      } else {
+        showSummary();
+      }
+    });
+
+    function showSummary() {
+      exerciseWorkspace.style.display = "none";
+      progressSection.style.display = "none";
+      summaryScreen.classList.add("show");
+
+      const tbody = document.getElementById("summaryTableBody");
+      tbody.innerHTML = exercises
+        .map((ex, idx) => {
+          const statSym = ex.dist === "Z" ? "Z" : "t";
+          const fnText = excelCatalog[ex.excelKey].label;
+          const decBadge =
+            ex.decision === "rechazar"
+              ? `<span class="tag-reject">Se rechaza H<sub>0</sub></span>`
+              : `<span class="tag-keep">No se rechaza H<sub>0</sub></span>`;
+          return `
+            <tr>
+              <td><strong>${idx + 1}</strong></td>
+              <td>${ex.title}<br /><small style="color: var(--muted);">${tailLabel(ex.tail)} · ${ex.method}</small></td>
+              <td style="white-space: nowrap;"><strong>${statSym} = ${ex.statDisplay}</strong></td>
+              <td><code>${fnText}</code></td>
+              <td style="white-space: nowrap;"><strong>${ex.excelOutputValue}</strong></td>
+              <td>${decBadge}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.getElementById("reviewBtn").addEventListener("click", () => loadExercise(0));
+
+    document.getElementById("restartBtn").addEventListener("click", () => {
+      progressState = exercises.map(() => ({
+        step1Done: false,
+        step2Done: false,
+        step3Done: false,
+        savedStat: "",
+        savedExcel: "",
+        savedDecision: ""
+      }));
+      loadExercise(0);
+    });
+
+    // Iniciar
+    loadExercise(0);
+  </script>
+</body>
+</html>
